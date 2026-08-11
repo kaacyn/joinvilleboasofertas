@@ -1,0 +1,25 @@
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8090}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Expõe o site publicamente via Cloudflare Tunnel (domínio joinvilleboasofertas.com).
+  # Requer CF_TUNNEL_TOKEN em .env — configure o hostname no painel Cloudflare apontando para http://web:80
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN:-}
+    depends_on:
+      web:
+        condition: service_healthy
+    profiles: ["tunnel"]
