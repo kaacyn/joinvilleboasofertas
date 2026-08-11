@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    container_name: joinvilleboasofertas-web
+    container_name: ${CONTAINER_NAME:-jbo-web}
     restart: unless-stopped
     ports:
       - "${WEB_PORT:-8090}:80"
@@ -12,24 +12,6 @@ services:
       retries: 3
       start_period: 10s
     networks:
-      - default
-      - snap-net
-
-  # Expõe o site publicamente via Cloudflare Tunnel (domínio joinvilleboasofertas.com).
-  # Token em .env (CF_TUNNEL_TOKEN) — mesma origem que ACESSOS.MD.
-  # No painel Cloudflare, rota: joinvilleboasofertas.com → http://joinvilleboasofertas-web:80
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN:-}
-    depends_on:
-      web:
-        condition: service_healthy
-    profiles: ["tunnel"]
-    networks:
-      - default
       - snap-net
 
 networks:
