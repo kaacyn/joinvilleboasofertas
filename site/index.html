@@ -6,10 +6,21 @@
   <meta name="description" content="Joinville Boas Ofertas — em breve, as melhores promoções da cidade.">
   <meta name="theme-color" content="#0D131D">
   <title>Joinville Boas Ofertas — Em breve</title>
-  <link rel="icon" href="/assets/logo.png" type="image/png">
+  <link rel="icon" href="/assets/favicon.png" type="image/png">
+  <link rel="preconnect" href="https://www.googletagmanager.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BLF2L14S0N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-BLF2L14S0N');
+  </script>
+
   <style>
     :root {
       --navy: #0D131D;
@@ -55,8 +66,8 @@
     }
 
     .ring--outer {
-      width: min(90vw, 520px);
-      height: min(90vw, 520px);
+      width: min(72vw, 340px);
+      height: min(72vw, 340px);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -55%);
@@ -64,8 +75,8 @@
     }
 
     .ring--inner {
-      width: min(78vw, 450px);
-      height: min(78vw, 450px);
+      width: min(62vw, 300px);
+      height: min(62vw, 300px);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -55%);
@@ -86,10 +97,10 @@
     }
 
     .logo {
-      width: min(280px, 72vw);
+      width: min(180px, 48vw);
       height: auto;
-      margin-bottom: 2rem;
-      filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.45));
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.4));
       animation: fade-up 0.7s ease both;
     }
 
@@ -268,13 +279,18 @@
   <div class="ring ring--inner" aria-hidden="true"></div>
 
   <main>
-    <img
-      class="logo"
-      src="/assets/logo.png"
-      alt="Joinville Boas Ofertas — as melhores ofertas perto de você"
-      width="280"
-      height="280"
-    >
+    <picture>
+      <source srcset="/assets/logo.webp" type="image/webp">
+      <img
+        class="logo"
+        src="/assets/logo.png"
+        alt="Joinville Boas Ofertas — as melhores ofertas perto de você"
+        width="180"
+        height="180"
+        decoding="async"
+        fetchpriority="high"
+      >
+    </picture>
 
     <div class="badge">
       <span class="badge-dot" aria-hidden="true"></span>
