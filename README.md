@@ -1,28 +1,18 @@
-# Joinville Boas Ofertas — Página de espera
+# Joinville Boas Ofertas — plataforma pública (Nuxt SSR)
 
-Página estática "Em breve, novidades" servida por nginx em Docker (`restart: unless-stopped`).
+Site de ofertas públicas de Joinville. Consome `/api/public/jbo/*` do snap-api
+via proxy nginx (same-origin). Sem autenticação.
 
 Repositório: https://github.com/kaacyn/joinvilleboasofertas
 
-## Ambientes locais (duas pastas, mesmo repo)
+## Ambientes locais
 
 | Pasta | Branch | Domínio | Porta host |
 |-------|--------|---------|------------|
 | `prd-joinvilleboasofertas` | `main` | https://joinvilleboasofertas.com | 8091 |
 | `dev-joinvilleboasofertas` | `develop` | https://joinvilleboasofertas-loc-app.cacin.dev | 8092 |
 
-O roteamento público usa o **Cloudflare Tunnel** compartilhado com o snap (`snap-net`). Não há `cloudflared` neste compose — as rotas ficam no tunnel `homelab-local-dev`.
-
-### Produção
-
-```bash
-cd prd-joinvilleboasofertas
-git checkout main && git pull --ff-only origin main
-cp .env.example .env   # se ainda não existir
-docker compose up -d --build
-```
-
-### Desenvolvimento
+## Desenvolvimento
 
 ```bash
 cd dev-joinvilleboasofertas
@@ -31,18 +21,24 @@ cp .env.example .env   # se ainda não existir
 docker compose up -d --build
 ```
 
-## Estrutura
+Serviços:
 
-```
-site/                — HTML, assets, logo
-nginx/default.conf   — configuração nginx
-Dockerfile           — imagem nginx alpine
-docker-compose.yml   — serviço web (rede snap-net)
-.env                 — CONTAINER_NAME e WEB_PORT por ambiente (gitignored)
-```
+- `app` (`jbo-dev-nuxt`) — Nuxt/Nitro na porta 3000 (rede `snap-net`)
+- `proxy` (`jbo-dev-web`) — nginx `:8092` → Nuxt; `/api/` → `snap-api-dev:8000`
 
-## Git workflow
+## Rotas
 
-- **Produção:** commit e push na branch `main` (pasta `prd-joinvilleboasofertas`).
-- **Desenvolvimento:** commit e push na branch `develop` (pasta `dev-joinvilleboasofertas`).
-- Para levar dev → prod: merge `develop` → `main` e rebuild na pasta prd.
+| Rota | Função |
+|------|--------|
+| `/` | Home: busca, filtros, listagem |
+| `/oferta/{id}` | Detalhe da oferta |
+| `/produto/{slug}` | Produto + mais barato + preços por mercado |
+| `/mercado/{slug}` | Ofertas do supermercado |
+| `/categoria/{slug}` | Ofertas da categoria |
+| `/privacidade` | Política de privacidade |
+| `/robots.txt`, `/sitemap.xml` | SEO |
+
+## Spec / plano
+
+- `docs/superpowers/specs/2026-08-12-jbo-plataforma-publica-design.md`
+- `docs/superpowers/plans/2026-08-12-jbo-nuxt-platform.md`
