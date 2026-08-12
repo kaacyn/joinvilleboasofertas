@@ -7,18 +7,33 @@
   <meta name="theme-color" content="#0D131D">
   <title>Joinville Boas Ofertas — Em breve</title>
   <link rel="icon" href="/assets/favicon.png" type="image/png">
-  <link rel="preconnect" href="https://www.googletagmanager.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-BLF2L14S0N"></script>
+  <!-- Google Analytics só em produção (joinvilleboasofertas.com) -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-BLF2L14S0N');
+    (function () {
+      var host = location.hostname;
+      var isProd = host === "joinvilleboasofertas.com" || host === "www.joinvilleboasofertas.com";
+      if (!isProd) return;
+
+      var preconnect = document.createElement("link");
+      preconnect.rel = "preconnect";
+      preconnect.href = "https://www.googletagmanager.com";
+      document.head.appendChild(preconnect);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag("js", new Date());
+      gtag("config", "G-BLF2L14S0N");
+
+      var s = document.createElement("script");
+      s.async = true;
+      s.src = "https://www.googletagmanager.com/gtag/js?id=G-BLF2L14S0N";
+      document.head.appendChild(s);
+    })();
   </script>
 
   <style>
