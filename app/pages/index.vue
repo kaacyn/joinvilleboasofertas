@@ -25,11 +25,11 @@
 
       <div v-if="hasMore" ref="sentinelRef" class="home__sentinel" />
 
-      <div v-if="loading" class="home__loading" aria-live="polite">
+      <div v-if="pending" class="home__loading" aria-live="polite">
         Carregando ofertas…
       </div>
 
-      <div v-if="!loading && !error && items.length === 0" class="home__empty">
+      <div v-if="!pending && !loadError && items.length === 0" class="home__empty">
         <p v-if="filters.state.value.q">
           Nenhuma oferta para “{{ filters.state.value.q }}”.
         </p>
@@ -44,9 +44,9 @@
         </button>
       </div>
 
-      <div v-if="error" class="home__error">
+      <div v-if="loadError" class="home__error">
         <p>Não foi possível carregar as ofertas.</p>
-        <button type="button" @click="reload">Tentar de novo</button>
+        <button type="button" @click="refresh">Tentar de novo</button>
       </div>
     </section>
 
@@ -67,23 +67,18 @@
 </template>
 
 <script setup lang="ts">
-import { jboGet, type JboFacets } from '~/utils/jboApi'
+import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
 
 const filters = useOfferFilters()
-const {
-  items,
-  hasMore,
-  loading,
-  error,
-  loadFirstPage,
-  loadMore,
-} = useOffersFeed()
-
 const sheetOpen = ref(false)
 const sentinelRef = ref<HTMLElement | null>(null)
 const qDraft = ref(filters.state.value.q)
 const activeCount = filters.activeCount
 const config = useRuntimeConfig()
+
+const extraItems = ref<JboOffer[]>([])
+const nextCursor = ref<string | null>(null)
+const loadingMore = ref(false)
 
 useSeoMeta({
   title: 'Ofertas em Joinville | Joinville Boas Ofertas',
@@ -111,27 +106,43 @@ useHead({
   ],
 })
 
-const { data: facetsData } = await useAsyncData('jbo-facets', () =>
-  jboGet<JboFacets>('/offers/facets'),
+const { data: facetsData } = await useAsyncData(
+  'jbo-facets',
+  () => jboGet<JboFacets>('/offers/facets').catch(() => ({
+    categories: [],
+    establishments: [],
+  })),
 )
 const facets = computed<JboFacets>(() => facetsData.value || {
   categories: [],
   establishments: [],
 })
 
-/**
- * Recarrega o feed a partir dos filtros atuais.
- */
-async function reload() {
-  await loadFirstPage(filters.apiParams.value)
-}
-
-await reload()
-
-watch(
-  () => JSON.stringify(filters.apiParams.value),
-  () => { reload() },
+const {
+  data: pageData,
+  pending,
+  error: pageError,
+  refresh,
+} = await useAsyncData(
+  'jbo-offers',
+  () => jboGet<JboOffersPage>('/offers', {
+    ...filters.apiParams.value,
+    page_size: 20,
+  }),
+  { watch: [() => JSON.stringify(filters.apiParams.value)] },
 )
+
+const items = computed(() => [
+  ...(pageData.value?.items || []),
+  ...extraItems.value,
+])
+const hasMore = computed(() => Boolean(nextCursor.value))
+const loadError = computed(() => Boolean(pageError.value))
+
+watch(pageData, (page) => {
+  extraItems.value = []
+  nextCursor.value = page?.next_cursor ?? null
+}, { immediate: true })
 
 watch(
   () => filters.state.value.q,
@@ -169,11 +180,29 @@ async function onApplyFilters(draft: {
   })
 }
 
+/**
+ * Carrega a próxima página do cursor.
+ */
+async function loadMore() {
+  if (!nextCursor.value || loadingMore.value) return
+  loadingMore.value = true
+  try {
+    const page = await jboGet<JboOffersPage>('/offers', {
+      ...filters.apiParams.value,
+      cursor: nextCursor.value,
+      page_size: 20,
+    })
+    extraItems.value = [...extraItems.value, ...(page.items || [])]
+    nextCursor.value = page.next_cursor
+  }
+  finally {
+    loadingMore.value = false
+  }
+}
+
 onMounted(() => {
   const io = new IntersectionObserver((entries) => {
-    if (entries.some(e => e.isIntersecting)) {
-      loadMore(filters.apiParams.value)
-    }
+    if (entries.some(e => e.isIntersecting)) loadMore()
   }, { rootMargin: '200px' })
 
   watch(sentinelRef, (el, _, onCleanup) => {

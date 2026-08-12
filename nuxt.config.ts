@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: false },
   css: ['~/assets/css/tokens.css'],
+  components: [
+    { path: '~/components', pathPrefix: false },
+  ],
   app: {
     head: {
       htmlAttrs: { lang: 'pt-BR' },
