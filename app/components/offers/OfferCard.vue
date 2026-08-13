@@ -1,10 +1,13 @@
 <template>
-  <article class="deal">
+  <article class="deal" :class="{ 'deal--expired': isExpired }">
     <div
       class="deal__stripe"
-      :class="hasSavings ? 'deal__stripe--savings' : 'deal__stripe--brand'"
+      :class="stripeClass"
     >
-      <template v-if="hasSavings">
+      <template v-if="isExpired">
+        <span class="deal__stripe-main deal__stripe-main--word">EXPIRADO</span>
+      </template>
+      <template v-else-if="hasSavings">
         <span class="deal__stripe-label">economia</span>
         <span class="deal__stripe-main">{{ pctLabel }}</span>
       </template>
@@ -30,7 +33,13 @@
         </NuxtLink>
         <span v-else>{{ offer.establishment_name }}</span>
       </div>
-      <p v-if="validityLabel" class="deal__validity">{{ validityLabel }}</p>
+      <p
+        v-if="validityLabel"
+        class="deal__validity"
+        :class="{ 'deal__validity--expired': isExpired }"
+      >
+        {{ validityLabel }}
+      </p>
       <div class="deal__price">
         <NuxtLink class="deal__price-now" :to="`/oferta/${offer.id}`">
           {{ priceLabel }}
@@ -51,20 +60,28 @@ const props = defineProps<{ offer: JboOffer }>()
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
-const hasSavings = computed(() => Number(props.offer.diff_percent) < 0)
+const isExpired = computed(() => props.offer.promo_active === false)
+const hasSavings = computed(() => !isExpired.value && Number(props.offer.diff_percent) < 0)
 const pctLabel = computed(() => `${Math.abs(Math.round(Number(props.offer.diff_percent || 0)))}%`)
 const priceLabel = computed(() => BRL.format(Number(props.offer.price)))
 const avgLabel = computed(() =>
   props.offer.avg_price != null ? BRL.format(Number(props.offer.avg_price)) : '',
 )
+const stripeClass = computed(() => {
+  if (isExpired.value) return 'deal__stripe--expired'
+  if (hasSavings.value) return 'deal__stripe--savings'
+  return 'deal__stripe--brand'
+})
 
 /**
- * Monta texto curto de validade da promo quando houver data fim.
+ * Monta texto curto de validade / expiração da promo.
  */
 function formatValidity(offer: JboOffer): string {
   if (!offer.promo_ends_on) return ''
-  const end = offer.promo_ends_on
-  return `Válido até ${end}`
+  if (offer.promo_active === false) {
+    return `Expirou em ${offer.promo_ends_on}`
+  }
+  return `Válido até ${offer.promo_ends_on}`
 }
 
 const validityLabel = computed(() => formatValidity(props.offer))
@@ -80,6 +97,10 @@ const validityLabel = computed(() => formatValidity(props.offer))
   border-radius: 12px;
   overflow: hidden;
   text-align: left;
+}
+
+.deal--expired {
+  opacity: 0.82;
 }
 
 .deal__stripe {
@@ -102,6 +123,11 @@ const validityLabel = computed(() => formatValidity(props.offer))
   color: var(--navy);
 }
 
+.deal__stripe--expired {
+  background: #3a4454;
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .deal__stripe-label {
   font-size: 0.55rem;
   text-transform: uppercase;
@@ -116,7 +142,7 @@ const validityLabel = computed(() => formatValidity(props.offer))
 }
 
 .deal__stripe-main--word {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   letter-spacing: 0.08em;
@@ -165,6 +191,10 @@ const validityLabel = computed(() => formatValidity(props.offer))
   color: var(--yellow);
 }
 
+.deal__validity--expired {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .deal__price {
   display: flex;
   flex-wrap: wrap;
@@ -177,6 +207,10 @@ const validityLabel = computed(() => formatValidity(props.offer))
   font-weight: 900;
   color: var(--yellow);
   text-decoration: none;
+}
+
+.deal--expired .deal__price-now {
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .deal__club {

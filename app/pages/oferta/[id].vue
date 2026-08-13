@@ -11,8 +11,13 @@
       </p>
       <p class="price">{{ priceLabel }}</p>
       <p v-if="offer.is_club_price" class="club">Preço de clube</p>
-      <p v-if="offer.promo_ends_on" class="validity">
-        Válido até {{ offer.promo_ends_on }}
+      <p v-if="offer.promo_ends_on" class="validity" :class="{ 'validity--expired': offer.promo_active === false }">
+        <template v-if="offer.promo_active === false">
+          Expirou em {{ offer.promo_ends_on }}
+        </template>
+        <template v-else>
+          Válido até {{ offer.promo_ends_on }}
+        </template>
       </p>
       <img
         v-if="offer.image_url"
@@ -98,6 +103,10 @@ h1 {
 .validity {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.validity--expired {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .photo {

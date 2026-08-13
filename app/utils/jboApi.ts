@@ -14,6 +14,7 @@ export type JboOffer = {
   is_club_price?: boolean
   promo_starts_on?: string | null
   promo_ends_on?: string | null
+  promo_active?: boolean
   avg_price?: string | number | null
   diff_percent?: number
   diff_amount?: string | number | null

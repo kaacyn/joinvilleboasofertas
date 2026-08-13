@@ -14,7 +14,7 @@
     <section class="home__deals" aria-label="Ofertas em Joinville">
       <header class="home__intro">
         <h1>Ofertas em Joinville</h1>
-        <p>Último preço vigente por produto e supermercado.</p>
+        <p>Último preço por produto e supermercado — inclui ofertas já expiradas.</p>
       </header>
 
       <OfferCard
