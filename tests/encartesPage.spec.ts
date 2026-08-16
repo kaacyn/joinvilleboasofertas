@@ -32,8 +32,29 @@ describe('encartes públicos', () => {
     const lightbox = source(path)
     expect(lightbox).toContain('@click.self="emit(\'close\')"')
     expect(lightbox).toContain('aria-label="Fechar"')
-    expect(lightbox).toContain('if (e.key === \'Escape\') emit(\'close\')')
+    expect(lightbox).toMatch(/if \(e\.key === 'Escape'\) \{\n\s*emit\('close'\)/)
     expect(lightbox).toContain('document.body.style.overflow = \'hidden\'')
     expect(lightbox).toContain('document.body.style.overflow = previousOverflow')
+  })
+
+  it('prende o foco no lightbox e devolve ao elemento de origem', () => {
+    const lightbox = source('app/components/encartes/EncarteLightbox.vue')
+
+    expect(lightbox).toContain('previouslyFocused = document.activeElement')
+    expect(lightbox).toContain('previouslyFocused?.focus()')
+    expect(lightbox).toContain('if (e.key === \'Tab\') trapTab(e)')
+    expect(lightbox).toContain('e.shiftKey')
+    expect(lightbox).toContain('e.preventDefault()')
+  })
+
+  it('avisa quando a lista de lojas falha sem bloquear os encartes', () => {
+    const page = source('app/pages/encartes.vue')
+
+    expect(page).toContain('storesLoadError')
+    expect(page).toContain('Não foi possível carregar as lojas.')
+
+    const gridOpenTag = /<div[^>]*class="grid"[^>]*>/.exec(page)?.[0] ?? ''
+    expect(gridOpenTag).toContain('v-if="items.length"')
+    expect(gridOpenTag).not.toContain('stores')
   })
 })

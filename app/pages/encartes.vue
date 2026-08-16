@@ -7,15 +7,29 @@
         <p>Encartes das lojas de Joinville e região.</p>
       </header>
 
-      <label class="filter">
-        <span class="sr-only">Filtrar por loja</span>
-        <select v-model="establishmentId" class="filter__select">
-          <option value="">Todas as lojas</option>
-          <option v-for="store in stores" :key="store.id" :value="store.id">
-            {{ store.name }}
-          </option>
-        </select>
-      </label>
+      <div class="filter">
+        <label class="filter__label">
+          <span class="sr-only">Filtrar por loja</span>
+          <select
+            v-model="establishmentId"
+            class="filter__select"
+            :aria-describedby="storesLoadError ? 'encartes-stores-error' : undefined"
+          >
+            <option value="">Todas as lojas</option>
+            <option v-for="store in stores" :key="store.id" :value="store.id">
+              {{ store.name }}
+            </option>
+          </select>
+        </label>
+        <p
+          v-if="storesLoadError"
+          id="encartes-stores-error"
+          class="filter__error"
+          role="status"
+        >
+          Não foi possível carregar as lojas. Mostrando encartes de todas elas.
+        </p>
+      </div>
 
       <p v-if="pending && !items.length" class="muted" aria-live="polite">
         Carregando…
@@ -77,11 +91,12 @@ const loadError = ref(false)
 const loadMoreError = ref(false)
 let requestGeneration = 0
 
-const { data: storesData } = await useAsyncData(
+const { data: storesData, error: storesError } = await useAsyncData(
   'jbo-encartes-stores',
   () => jboGet<{ items: Store[] }>('/establishments'),
 )
 const stores = computed(() => storesData.value?.items || [])
+const storesLoadError = computed(() => Boolean(storesError.value))
 
 function fetchPage(cursor: string | null, selectedEstablishment: string) {
   return jboGet<JboEncartesPage>('/encartes', {
@@ -185,7 +200,20 @@ useSeoMeta({
 }
 
 .filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
   width: min(100%, 360px);
+}
+
+.filter__label {
+  display: block;
+}
+
+.filter__error {
+  margin: 0;
+  color: #ffb2b5;
+  font-size: 0.8rem;
 }
 
 .filter__select {
