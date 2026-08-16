@@ -35,6 +35,7 @@ Serviços:
 | `/produto/{slug}` | Produto + mais barato + preços por loja |
 | `/loja/{slug}` | Ofertas da loja |
 | `/lojas` | Lista de lojas |
+| `/encartes` | Lista de encartes (filtro por loja) |
 | `/categoria/{slug}` | Ofertas da categoria |
 | `/privacidade` | Política de privacidade |
 | `/robots.txt`, `/sitemap.xml` | SEO |
