@@ -12,18 +12,16 @@
     <div v-if="$slots.default" class="header__slot">
       <slot />
     </div>
-    <nav class="header__nav" aria-label="Principal">
-      <NuxtLink to="/privacidade">Privacidade</NuxtLink>
-    </nav>
+    <HeaderMenu />
   </header>
 </template>
 
 <style scoped>
 .header {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 0.75rem 1rem;
+  gap: 0.75rem;
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--border);
   background: rgba(13, 19, 29, 0.85);
@@ -37,6 +35,8 @@
   display: flex;
   align-items: center;
   text-decoration: none;
+  flex-shrink: 0;
+  margin-right: auto;
 }
 
 .header__logo {
@@ -45,20 +45,7 @@
 }
 
 .header__slot {
-  flex: 1 1 220px;
+  flex: 1;
   min-width: 0;
-}
-
-.header__nav {
-  margin-left: auto;
-  font-size: 0.85rem;
-}
-
-.header__nav a {
-  color: var(--muted);
-}
-
-.header__nav a:hover {
-  color: var(--yellow);
 }
 </style>

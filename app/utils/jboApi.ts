@@ -10,6 +10,7 @@ export type JboOffer = {
   establishment_id: string
   establishment_name: string
   establishment_slug: string
+  establishment_logo_url?: string | null
   price: string | number
   is_club_price?: boolean
   promo_starts_on?: string | null

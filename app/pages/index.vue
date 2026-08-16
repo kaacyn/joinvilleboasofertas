@@ -5,10 +5,13 @@
     </AppHeader>
 
     <FilterBar
-      :active-count="activeCount"
+      :facets="facets"
+      :category-ids="filters.state.value.category_ids"
+      :establishment-ids="filters.state.value.establishment_ids"
       :sort="filters.state.value.sort"
-      @open-sheet="sheetOpen = true"
       @update:sort="onSort"
+      @apply-categories="onApplyCategories"
+      @apply-establishments="onApplyEstablishments"
     />
 
     <section class="home__deals" aria-label="Ofertas em Joinville">
@@ -50,19 +53,6 @@
       </div>
     </section>
 
-    <FiltersSheet
-      :open="sheetOpen"
-      :facets="facets"
-      :applied="{
-        category_ids: filters.state.value.category_ids,
-        establishment_ids: filters.state.value.establishment_ids,
-        price_min: filters.state.value.price_min,
-        price_max: filters.state.value.price_max,
-      }"
-      @update:open="sheetOpen = $event"
-      @apply="onApplyFilters"
-      @clear="filters.clear(true)"
-    />
   </div>
 </template>
 
@@ -70,7 +60,6 @@
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
 
 const filters = useOfferFilters()
-const sheetOpen = ref(false)
 const sentinelRef = ref<HTMLElement | null>(null)
 const qDraft = ref(filters.state.value.q)
 const activeCount = filters.activeCount
@@ -164,20 +153,17 @@ async function onSort(sort: string) {
 }
 
 /**
- * Aplica filtros do sheet.
+ * Aplica categorias escolhidas no chip da filterbar.
  */
-async function onApplyFilters(draft: {
-  category_ids: string[]
-  establishment_ids: string[]
-  price_min?: number | null
-  price_max?: number | null
-}) {
-  await filters.patch({
-    category_ids: draft.category_ids,
-    establishment_ids: draft.establishment_ids,
-    price_min: draft.price_min ?? null,
-    price_max: draft.price_max ?? null,
-  })
+async function onApplyCategories(ids: string[]) {
+  await filters.patch({ category_ids: ids })
+}
+
+/**
+ * Aplica lojas escolhidas no chip da filterbar.
+ */
+async function onApplyEstablishments(ids: string[]) {
+  await filters.patch({ establishment_ids: ids })
 }
 
 /**
