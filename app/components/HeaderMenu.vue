@@ -38,6 +38,14 @@
         Lojas
       </NuxtLink>
       <NuxtLink
+        to="/encartes"
+        class="hmenu__item"
+        role="menuitem"
+        @click="close"
+      >
+        Encartes
+      </NuxtLink>
+      <NuxtLink
         to="/privacidade"
         class="hmenu__item"
         role="menuitem"

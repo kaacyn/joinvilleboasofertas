@@ -31,6 +31,24 @@ export type JboOffersPage = {
   next_cursor: string | null
 }
 
+export type JboEncarte = {
+  id: string
+  establishment_id: string
+  establishment_name: string
+  establishment_slug: string
+  establishment_logo_url?: string | null
+  promo_starts_on?: string | null
+  promo_ends_on: string
+  promo_active: boolean
+  image_url?: string | null
+  image_url_xl?: string | null
+}
+
+export type JboEncartesPage = {
+  items: JboEncarte[]
+  next_cursor: string | null
+}
+
 export type JboFacets = {
   categories: { id: string, name: string }[]
   establishments: { id: string, name: string }[]
