@@ -7,16 +7,21 @@ export default defineEventHandler(async (event) => {
   const site = String(config.public.siteUrl || '').replace(/\/$/, '')
   const apiBase = String(config.apiBase || '').replace(/\/$/, '')
 
-  let paths: string[] = ['/', '/privacidade']
+  let paths: string[] = ['/', '/lojas', '/privacidade', '/termos']
   try {
     const data = await $fetch<{ urls: { loc: string }[] }>(
       `${apiBase}/api/public/jbo/sitemap`,
     )
+    const fromApi = (data.urls || [])
+      .filter(u => u.loc !== '/estabelecimentos')
+      .map(u => u.loc.replace(/^\/mercado\//, '/loja/'))
     paths = [
       ...new Set([
         '/',
+        '/lojas',
         '/privacidade',
-        ...(data.urls || []).map(u => u.loc),
+        '/termos',
+        ...fromApi,
       ]),
     ]
   }

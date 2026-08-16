@@ -32,8 +32,9 @@ Serviços:
 |------|--------|
 | `/` | Home: busca, filtros, listagem |
 | `/oferta/{id}` | Detalhe da oferta |
-| `/produto/{slug}` | Produto + mais barato + preços por mercado |
-| `/mercado/{slug}` | Ofertas do supermercado |
+| `/produto/{slug}` | Produto + mais barato + preços por loja |
+| `/loja/{slug}` | Ofertas da loja |
+| `/lojas` | Lista de lojas |
 | `/categoria/{slug}` | Ofertas da categoria |
 | `/privacidade` | Política de privacidade |
 | `/robots.txt`, `/sitemap.xml` | SEO |
