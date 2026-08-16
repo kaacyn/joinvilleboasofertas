@@ -222,7 +222,7 @@ function applyCategories(close: () => void) {
 }
 
 /**
- * Aplica mercados selecionados e fecha o chip.
+ * Aplica lojas selecionadas e fecha o chip.
  */
 function applyEstablishments(close: () => void) {
   emit('applyEstablishments', [...draftEstIds.value])
