@@ -10,8 +10,15 @@
 
         <section class="sheet__section">
           <h3>Categorias</h3>
+          <input
+            v-model="catSearch"
+            type="search"
+            class="sheet__search"
+            placeholder="Buscar categoria"
+            aria-label="Buscar categoria"
+          >
           <label
-            v-for="c in facets.categories"
+            v-for="c in filteredCategories"
             :key="c.id"
             class="sheet__check"
           >
@@ -22,12 +29,22 @@
             >
             {{ c.name }}
           </label>
+          <p v-if="!filteredCategories.length" class="sheet__empty">
+            Nenhuma categoria encontrada
+          </p>
         </section>
 
         <section class="sheet__section">
-          <h3>Mercados</h3>
+          <h3>Lojas</h3>
+          <input
+            v-model="estSearch"
+            type="search"
+            class="sheet__search"
+            placeholder="Buscar loja"
+            aria-label="Buscar loja"
+          >
           <label
-            v-for="e in facets.establishments"
+            v-for="e in filteredEstablishments"
             :key="e.id"
             class="sheet__check"
           >
@@ -38,6 +55,9 @@
             >
             {{ e.name }}
           </label>
+          <p v-if="!filteredEstablishments.length" class="sheet__empty">
+            Nenhuma loja encontrada
+          </p>
         </section>
 
         <section class="sheet__section sheet__row">
@@ -89,6 +109,9 @@ const draft = reactive<Draft>({
   price_max: null,
 })
 
+const catSearch = ref('')
+const estSearch = ref('')
+
 watch(
   () => props.open,
   (v) => {
@@ -97,7 +120,36 @@ watch(
     draft.establishment_ids = [...props.applied.establishment_ids]
     draft.price_min = props.applied.price_min ?? null
     draft.price_max = props.applied.price_max ?? null
+    catSearch.value = ''
+    estSearch.value = ''
   },
+)
+
+/**
+ * Normaliza texto para busca sem acento.
+ */
+function normalizeText(value: string): string {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+}
+
+/**
+ * Verifica se o nome contém a query.
+ */
+function matchesQuery(name: string, query: string): boolean {
+  const q = normalizeText(query).trim()
+  if (!q) return true
+  return normalizeText(name).includes(q)
+}
+
+const filteredCategories = computed(() =>
+  (props.facets.categories || []).filter(c => matchesQuery(c.name, catSearch.value)),
+)
+
+const filteredEstablishments = computed(() =>
+  (props.facets.establishments || []).filter(e => matchesQuery(e.name, estSearch.value)),
 )
 
 /**
@@ -198,6 +250,24 @@ function apply() {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
+}
+
+.sheet__search {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.sheet__empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
 }
 
 .sheet__check {

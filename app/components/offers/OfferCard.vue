@@ -27,11 +27,28 @@
       <div class="deal__meta">
         <NuxtLink
           v-if="offer.establishment_slug"
-          :to="`/mercado/${offer.establishment_slug}`"
+          class="deal__store"
+          :to="`/loja/${offer.establishment_slug}`"
         >
-          {{ offer.establishment_name }}
+          <img
+            v-if="offer.establishment_logo_url"
+            class="deal__store-logo"
+            :src="offer.establishment_logo_url"
+            :alt="`Logo ${offer.establishment_name}`"
+            loading="lazy"
+          >
+          <span>{{ offer.establishment_name }}</span>
         </NuxtLink>
-        <span v-else>{{ offer.establishment_name }}</span>
+        <span v-else class="deal__store">
+          <img
+            v-if="offer.establishment_logo_url"
+            class="deal__store-logo"
+            :src="offer.establishment_logo_url"
+            :alt="`Logo ${offer.establishment_name}`"
+            loading="lazy"
+          >
+          <span>{{ offer.establishment_name }}</span>
+        </span>
       </div>
       <p
         v-if="validityLabel"
@@ -179,6 +196,28 @@ const validityLabel = computed(() => formatValidity(props.offer))
   font-size: 0.8rem;
   color: var(--muted);
   margin-bottom: 0.35rem;
+}
+
+.deal__store {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  text-decoration: none;
+  min-width: 0;
+}
+
+.deal__store:hover {
+  color: var(--yellow);
+}
+
+.deal__store-logo {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #fff;
+  flex: 0 0 auto;
 }
 
 .deal__meta a {

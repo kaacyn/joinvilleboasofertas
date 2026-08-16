@@ -5,8 +5,15 @@
       <p v-if="offer.category_name" class="eyebrow">{{ offer.category_name }}</p>
       <h1>{{ offer.product_name }}</h1>
       <p class="meta">
-        <NuxtLink :to="`/mercado/${offer.establishment_slug}`">
-          {{ offer.establishment_name }}
+        <NuxtLink class="meta__store" :to="`/loja/${offer.establishment_slug}`">
+          <img
+            v-if="offer.establishment_logo_url"
+            class="meta__logo"
+            :src="offer.establishment_logo_url"
+            :alt="`Logo ${offer.establishment_name}`"
+            loading="lazy"
+          >
+          <span>{{ offer.establishment_name }}</span>
         </NuxtLink>
       </p>
       <p class="price">{{ priceLabel }}</p>
@@ -28,7 +35,7 @@
       >
       <p>
         <NuxtLink :to="`/produto/${offer.product_slug}`">
-          Ver preços deste produto em outros mercados
+          Ver preços deste produto em outras lojas
         </NuxtLink>
       </p>
     </main>
@@ -90,6 +97,26 @@ h1 {
 
 .meta {
   color: var(--muted);
+}
+
+.meta__store {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.meta__store:hover {
+  color: var(--yellow);
+}
+
+.meta__logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 5px;
+  background: #fff;
 }
 
 .price {

@@ -6,11 +6,11 @@
       :value="modelValue"
       type="search"
       class="search__input"
-      placeholder="Buscar produto ou mercado…"
+      placeholder="Buscar produto ou loja…"
       autocomplete="off"
+      enterkeyhint="search"
       @input="onInput"
     >
-    <button class="search__btn" type="submit">Buscar</button>
   </form>
 </template>
 
@@ -33,7 +33,6 @@ function onInput(e: Event) {
 <style scoped>
 .search {
   display: flex;
-  gap: 0.5rem;
   width: 100%;
 }
 
@@ -52,16 +51,6 @@ function onInput(e: Event) {
 .search__input:focus {
   outline: 2px solid var(--yellow);
   outline-offset: 1px;
-}
-
-.search__btn {
-  border: none;
-  background: var(--yellow);
-  color: var(--navy);
-  font-weight: 800;
-  border-radius: 10px;
-  padding: 0 1rem;
-  cursor: pointer;
 }
 
 .sr-only {
