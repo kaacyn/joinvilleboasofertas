@@ -87,4 +87,11 @@ describe('encartes públicos', () => {
     expect(card).toMatch(/useState\('encartes:rendered-at', \(\) => new Date\(\)\.toISOString\(\)\)/)
     expect(card).toContain('formatRegisteredAt(encarte.created_at, new Date(renderedAt))')
   })
+
+  it('tem página pública /encarte/[id] com OG e fetch do detalhe', () => {
+    const page = source('app/pages/encarte/[id].vue')
+    expect(page).toContain("jboGet<JboEncarte>(`/encartes/${")
+    expect(page).toContain('og:image')
+    expect(page).toContain('useSeoMeta')
+  })
 })
