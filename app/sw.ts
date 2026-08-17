@@ -34,7 +34,13 @@ type PushPayload = {
   icon?: string
   tag?: string
   url?: string
+  click_token?: string
   vibrate?: number[]
+}
+
+type NotificationData = {
+  url?: string
+  click_token?: string
 }
 
 /** Path relativo do payload vira URL absoluta na origem do JBO. */
@@ -63,7 +69,10 @@ async function handlePush(payload: PushPayload | null) {
     body,
     icon: payload?.icon || '/pwa-192x192.png',
     tag: payload?.tag,
-    data: { url: resolvePushUrl(payload?.url) },
+    data: {
+      url: resolvePushUrl(payload?.url),
+      click_token: payload?.click_token ?? '',
+    },
     requireInteraction: false,
     vibrate: payload?.vibrate || [200, 100, 200],
   })
@@ -71,9 +80,26 @@ async function handlePush(payload: PushPayload | null) {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
-  const data = (event.notification.data || {}) as { url?: string }
-  event.waitUntil(focusOrOpen(resolvePushUrl(data.url)))
+  const data = (event.notification.data || {}) as NotificationData
+  event.waitUntil(reportClickThenOpen(data))
 })
+
+async function reportClickThenOpen(data: NotificationData) {
+  if (data.click_token) {
+    try {
+      await fetch('/api/public/jbo/push/click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: data.click_token }),
+        keepalive: true,
+      })
+    }
+    catch {
+      // abrir URL mesmo se o POST falhar
+    }
+  }
+  await focusOrOpen(resolvePushUrl(data.url))
+}
 
 async function focusOrOpen(url: string) {
   const windowClients = await self.clients.matchAll({
