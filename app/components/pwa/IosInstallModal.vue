@@ -2,6 +2,7 @@
   <Teleport to="body">
     <div
       v-if="open"
+      ref="overlay"
       class="ios-install"
       role="dialog"
       aria-modal="true"
@@ -35,7 +36,7 @@
           <li>Toque em <strong>Adicionar</strong> no canto superior direito.</li>
         </ol>
 
-        <button type="button" class="ios-install__ok" @click="close">
+        <button ref="okButton" type="button" class="ios-install__ok" @click="close">
           Entendi
         </button>
       </div>
@@ -44,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   open: boolean
   isSafari?: boolean
 }>(), {
@@ -55,12 +56,17 @@ const emit = defineEmits<{
   'update:open': [boolean]
 }>()
 
+const overlay = ref<HTMLElement | null>(null)
+const okButton = ref<HTMLButtonElement | null>(null)
+
 /**
  * Fecha o modal de instalação iOS.
  */
 function close() {
   emit('update:open', false)
 }
+
+useDialogLock(toRef(props, 'open'), overlay, okButton, close)
 </script>
 
 <style scoped>

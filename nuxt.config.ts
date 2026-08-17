@@ -1,9 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 const publicSiteUrl = process.env.NUXT_PUBLIC_SITE_URL || ''
 const locPwaDev = Boolean(publicSiteUrl) && !/localhost|127\.0\.0\.1/.test(publicSiteUrl)
-const pwaNavigation = {
-  denylist: ['/api/'],
-}
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',

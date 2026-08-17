@@ -17,7 +17,7 @@ describe('PWA JBO', () => {
     expect(config).toContain("short_name: 'JBO'")
     expect(config).toContain("theme_color: '#0D131D'")
     expect(config).toContain("display: 'standalone'")
-    expect(config).toMatch(/denylist:[\s\S]*\/api\//)
+    expect(config).not.toContain('pwaNavigation')
   })
 
   it('tem service worker fonte para injectManifest', () => {
@@ -28,6 +28,7 @@ describe('PWA JBO', () => {
     const sw = source('app/sw.ts')
 
     expect(sw).toContain('precacheAndRoute')
+    expect(sw).toContain('denylist: [/^\\/api\\//]')
     expect(sw).toMatch(
       /try\s*\{[\s\S]*createHandlerBoundToURL\s*\(\s*['"]\/['"]\s*\)[\s\S]*\}\s*catch/,
     )

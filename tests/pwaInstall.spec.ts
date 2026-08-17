@@ -67,4 +67,10 @@ describe('prompt de instalação PWA', () => {
     expect(source('app/components/pwa/InstallAppButton.vue')).toContain('--yellow')
     expect(source('app/components/pwa/IosInstallModal.vue')).toContain('--navy')
   })
+
+  it('fecha os modais de instalação com Escape', () => {
+    expect(source('app/composables/useDialogLock.ts')).toContain("e.key === 'Escape'")
+    expect(source('app/components/pwa/IosInstallModal.vue')).toContain('useDialogLock')
+    expect(source('app/components/pwa/AndroidInstallModal.vue')).toContain('useDialogLock')
+  })
 })

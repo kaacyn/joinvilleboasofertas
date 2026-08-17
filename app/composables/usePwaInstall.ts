@@ -46,6 +46,19 @@ function detectSafariOnIOS(): boolean {
   return !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)
 }
 
+/** CTA visível fora de standalone em iOS/Android, ou no desktop com prompt nativo. */
+export function canInstallPwa(opts: {
+  isStandalone: boolean
+  platform: Platform
+  hasPendingPrompt: boolean
+}): boolean {
+  return !opts.isStandalone && (
+    opts.platform === 'ios'
+    || opts.platform === 'android'
+    || opts.hasPendingPrompt
+  )
+}
+
 /**
  * Detecta se o JBO pode ser instalado e dispara o prompt nativo ou o modal de passos.
  */
@@ -97,13 +110,11 @@ export function usePwaInstall() {
   })
 
   const isIos = computed(() => platform.value === 'ios')
-  const canInstall = computed(
-    () => !isStandalone.value && (
-      platform.value === 'ios'
-      || platform.value === 'android'
-      || pendingPrompt.value !== null
-    ),
-  )
+  const canInstall = computed(() => canInstallPwa({
+    isStandalone: isStandalone.value,
+    platform: platform.value,
+    hasPendingPrompt: pendingPrompt.value !== null,
+  }))
 
   /**
    * No Android chama deferredPrompt.prompt(); no iOS abre o modal de passos.

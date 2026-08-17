@@ -2,6 +2,7 @@
   <Teleport to="body">
     <div
       v-if="open"
+      ref="overlay"
       class="android-install"
       role="dialog"
       aria-modal="true"
@@ -22,7 +23,7 @@
           <li>Confirme em <strong>Instalar</strong>.</li>
         </ol>
 
-        <button type="button" class="android-install__ok" @click="close">
+        <button ref="okButton" type="button" class="android-install__ok" @click="close">
           Entendi
         </button>
       </div>
@@ -31,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   open: boolean
 }>()
 
@@ -39,12 +40,17 @@ const emit = defineEmits<{
   'update:open': [boolean]
 }>()
 
+const overlay = ref<HTMLElement | null>(null)
+const okButton = ref<HTMLButtonElement | null>(null)
+
 /**
  * Fecha o modal de instalação Android.
  */
 function close() {
   emit('update:open', false)
 }
+
+useDialogLock(toRef(props, 'open'), overlay, okButton, close)
 </script>
 
 <style scoped>
