@@ -21,7 +21,7 @@
         Válido até {{ formatDate(encarte.promo_ends_on) }}
       </span>
       <span class="card__registered">
-        {{ formatRegisteredAt(encarte.created_at) }}
+        {{ formatRegisteredAt(encarte.created_at, new Date(renderedAt)) }}
       </span>
       <span v-if="!encarte.promo_active" class="card__expired">Expirado</span>
     </span>
@@ -34,6 +34,9 @@ import { formatRegisteredAt } from '~/utils/relativeTime'
 
 defineProps<{ encarte: JboEncarte }>()
 defineEmits<{ open: [encarte: JboEncarte] }>()
+
+/** Instante serializado no payload: SSR e hidratação usam a mesma referência de tempo. */
+const renderedAt = useState('encartes:rendered-at', () => new Date().toISOString())
 
 /** Formata uma data ISO curta sem conversão de fuso horário. */
 function formatDate(iso: string): string {

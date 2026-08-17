@@ -76,8 +76,15 @@ describe('encartes públicos', () => {
     const card = source('app/components/encartes/EncarteCard.vue')
     const api = source('app/utils/jboApi.ts')
 
-    expect(card).toContain('formatRegisteredAt(encarte.created_at)')
+    expect(card).toContain('formatRegisteredAt(encarte.created_at,')
     expect(card).toContain('class="card__registered"')
     expect(api).toMatch(/created_at:\s*string/)
+  })
+
+  it('congela no payload o instante de referência do cadastro', () => {
+    const card = source('app/components/encartes/EncarteCard.vue')
+
+    expect(card).toMatch(/useState\('encartes:rendered-at', \(\) => new Date\(\)\.toISOString\(\)\)/)
+    expect(card).toContain('formatRegisteredAt(encarte.created_at, new Date(renderedAt))')
   })
 })
