@@ -34,6 +34,8 @@
         “LGPD — Joinville Boas Ofertas”.
       </p>
       <p>
+        <NuxtLink to="/termos">Termos de uso</NuxtLink>
+        ·
         <NuxtLink to="/">← Voltar às ofertas</NuxtLink>
       </p>
     </main>
