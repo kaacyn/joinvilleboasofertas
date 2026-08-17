@@ -32,6 +32,7 @@ São três fatias independentes, nesta ordem: PWA → compartilhar → sino (o S
 
 - Conta, cadastro, SSO com o Snap, inbox de notificações no JBO.
 - App nativo (Play Store / App Store).
+- Bottom nav, FAB de captura ou shell autenticado do Snap — só install + SW.
 - OneSignal, FCM direto ou outro vendor de push.
 - Avisar encarte já existente ou atualização de um papel antigo.
 - Compartilhar atalhos explícitos de Facebook/Instagram (a folha nativa cobre as redes no celular).
@@ -43,16 +44,16 @@ São três fatias independentes, nesta ordem: PWA → compartilhar → sino (o S
 
 **Repo:** `dev-joinvilleboasofertas`
 
-- Plugin `@vite-pwa/nuxt` (ou equivalente estável no Nuxt 4 do projeto).
+- Plugin `@vite-pwa/nuxt` em modo **`injectManifest`**, no mesmo espírito de `snap/vite.config.js` + `snap/src/sw/sw.js` (Workbox + handlers `push` / `notificationclick` na fatia 3).
 - `display: standalone`, `lang: pt-BR`, `start_url: /`, `scope: /`.
 - `theme_color` / `background_color`: `#0D131D` (já usado em `theme-color`).
 - `name`: Joinville Boas Ofertas; `short_name`: JBO.
-- Ícones 192 e 512 (`any` + `maskable`), derivados do logo atual em `public/assets/`.
-- Service worker com `navigateFallback` para o app shell; na fatia 3 passa a tratar `push` / `notificationclick`.
-- Prompt de instalação no mobile: `beforeinstallprompt` onde o Chrome expõe; no iOS, texto de “Adicionar à Tela de Início” quando `display-mode` não é `standalone` (mesmo espírito de `snap/src/composables/usePwaInstall.js`).
+- Ícones 192 e 512 (`any` + `maskable`), gerados a partir do logo em `public/assets/` (portar `snap/scripts/generate-pwa-icons.mjs`).
+- Prompt de instalação no mobile: portar o padrão `usePwaInstall` + modal iOS / fallback Android (`snap/src/composables/usePwaInstall.js`, `IosInstallModal.vue`, `AndroidInstallModal.vue`). Onde colocar o CTA: header ou banner discreto, **não** BottomNav.
+- Toast de “Nova versão” no espírito de `usePwaUpdate.js` (poll do SW).
 - Desktop: o site continua o mesmo; “app” = instalado na tela inicial.
 
-O SW **não** cacheia HTML autenticado (não há) nem respostas `/api/img/` de forma agressiva que quebre assinatura HMAC.
+O SW **não** cacheia `/api/` nem `/api/img/` (assinatura HMAC). Denylist de navegação igual ao Snap (`/api/`).
 
 ---
 
@@ -77,8 +78,13 @@ O SW **não** cacheia HTML autenticado (não há) nem respostas `/api/img/` de f
 
 ### Card / lightbox
 
-- Três pontinhos no canto da miniatura (junto ao sino), `type="button"`, `stop` no clique para **não** abrir o lightbox.
-- `navigator.share({ title, text, url })` quando `navigator.share` existir; senão copiar `origin + /encarte/{id}` e confirmar na UI.
+O card **deixa de ser um `<button>` único** (hoje `EncarteCard.vue` envolve tudo). Aninhar sino/⋯ aí é HTML inválido.
+
+- Outer: `<article class="card">`.
+- Abrir lightbox: botão (ou área) **irmão** das ações, não pai delas.
+- Sino e três pontinhos: botões irmãos, overlay no canto da miniatura, alvo ~44px.
+- Menu ⋯: padrão próximo de `HeaderMenu` / `FilterChipDropdown` (fecha fora + Escape); **sem** `role="menu"` incompleto se não houver setas.
+- `navigator.share({ title, text, url })` quando existir; senão copiar `origin + /encarte/{id}` e confirmar na UI.
 - Lightbox da listagem inalterado.
 
 ---
@@ -110,7 +116,7 @@ Limites: recusar payload sem chaves; `establishment_id` UUID; no máximo 30 PUTs
 
 ### UI
 
-- Sino no card e em `/encarte/{id}`, canto da mídia, `stop` no clique.
+- Sino no card e em `/encarte/{id}`, canto da mídia, irmão do botão de abrir (não filho).
 - Primeiro toque: `Notification.requestPermission` → `pushManager.subscribe` (VAPID da rota pública) → `PUT /devices` → `PUT /follows` com `following: true`.
 - Toques seguintes: só `PUT /follows` (toggle). Estado visual: preenchido se a loja está em `establishment_ids`.
 - Permissão `denied`: aviso, sem fingir que segue.
@@ -158,7 +164,7 @@ Quando um `PhotoScan` **passa a ser elegível** (e ainda não tem disparo regist
 
 **Frontend**
 
-- Card: três pontinhos e sino não disparam `@open` do lightbox (teste de markup/`@click.stop`).
+- Card: outer não é `<button>`; não há controle interativo aninhado; ⋯/sino não disparam o lightbox.
 - Página `/encarte/[id].vue` existe e pede o detalhe por id.
 - Manifest / `registerType` do PWA configurados (asserção de `nuxt.config` + arquivo de manifesto gerado ou config do módulo).
 - Helper de share: usa `navigator.share` quando existe; senão clipboard.
