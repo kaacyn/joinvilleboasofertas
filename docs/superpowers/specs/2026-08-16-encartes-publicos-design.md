@@ -17,6 +17,7 @@ Expor no site público Joinville Boas Ofertas uma página de **encartes** (Photo
 | Status | `dataset_status ∈ {pending, approved}` — **não** expor status na UI |
 | Clique | Lightbox com imagem XL |
 | Vencidos | Incluir; selo visual **Expirado** quando `promo_active=false` |
+| Horizonte | Só encartes com `promo_ends_on <= hoje + 7 dias` (vencidos continuam); ver `2026-08-17-encartes-horizonte-7-dias-design.md` |
 | Ordenação | Fixa: `promo_ends_on DESC`, desempate `created_at DESC` |
 | Filtro | Por loja (`establishment_id`); opção “Todas” |
 | Auth | Público (sem login), como o restante do JBO |
@@ -49,6 +50,7 @@ o frontend não depende do catálogo público de estabelecimentos.
    (`apply_jbo_scope`: não admin-only + allowlist ou bbox)
 3. Imagem presente (`image` com key utilizável)
 4. `promo_ends_on` **não nulo** (necessário para ordenar e sinalizar expiração)
+5. `promo_ends_on <= hoje + 7 dias` (horizonte; vencidos no passado continuam)
 
 ### Payload do item (sem status)
 
@@ -106,7 +108,7 @@ Em `HeaderMenu.vue`, link **Encartes** → `/encartes`, acima de Privacidade.
 ## Critérios de sucesso
 
 1. Menu mostra **Encartes** e a rota `/encartes` responde 200.
-2. Lista só traz encartes `pending`/`approved` no escopo JBO, com imagem e `promo_ends_on`.
+2. Lista só traz encartes `pending`/`approved` no escopo JBO, com imagem, `promo_ends_on` e dentro do horizonte de 7 dias (vencidos inclusos).
 3. Ordem sempre por vencimento decrescente.
 4. Filtro por loja funciona; “Todas” remove o filtro.
 5. Clique abre lightbox; vencidos aparecem com selo **Expirado**.
