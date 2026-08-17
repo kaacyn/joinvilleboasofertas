@@ -71,4 +71,13 @@ describe('encartes públicos', () => {
     expect(page).toContain('limit: 20')
     expect(page).not.toContain('page_size:')
   })
+
+  it('mostra quando cada encarte foi cadastrado', () => {
+    const card = source('app/components/encartes/EncarteCard.vue')
+    const api = source('app/utils/jboApi.ts')
+
+    expect(card).toContain('formatRegisteredAt(encarte.created_at)')
+    expect(card).toContain('class="card__registered"')
+    expect(api).toMatch(/created_at:\s*string/)
+  })
 })

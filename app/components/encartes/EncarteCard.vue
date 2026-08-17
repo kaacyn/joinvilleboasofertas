@@ -20,6 +20,9 @@
       <span class="card__dates">
         Válido até {{ formatDate(encarte.promo_ends_on) }}
       </span>
+      <span class="card__registered">
+        {{ formatRegisteredAt(encarte.created_at) }}
+      </span>
       <span v-if="!encarte.promo_active" class="card__expired">Expirado</span>
     </span>
   </button>
@@ -27,6 +30,7 @@
 
 <script setup lang="ts">
 import type { JboEncarte } from '~/utils/jboApi'
+import { formatRegisteredAt } from '~/utils/relativeTime'
 
 defineProps<{ encarte: JboEncarte }>()
 defineEmits<{ open: [encarte: JboEncarte] }>()
@@ -102,7 +106,8 @@ function formatDate(iso: string): string {
   font-weight: 800;
 }
 
-.card__dates {
+.card__dates,
+.card__registered {
   color: var(--muted);
   font-size: 0.78rem;
 }

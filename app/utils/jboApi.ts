@@ -42,6 +42,7 @@ export type JboEncarte = {
   promo_active: boolean
   image_url?: string | null
   image_url_xl?: string | null
+  created_at: string
 }
 
 export type JboEncartesPage = {
