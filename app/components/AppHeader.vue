@@ -12,6 +12,7 @@
     <div v-if="$slots.default" class="header__slot">
       <slot />
     </div>
+    <InstallAppButton />
     <HeaderMenu />
   </header>
 </template>
