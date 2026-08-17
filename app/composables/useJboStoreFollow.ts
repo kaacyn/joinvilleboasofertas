@@ -9,12 +9,25 @@ export function urlBase64ToUint8Array(base64String: string) {
 }
 
 let loadPromise: Promise<void> | null = null
+const inFlight = new Map<string, Promise<void>>()
+const SW_READY_MS = 4000
 
 function detectPushSupport(): boolean {
   return typeof window !== 'undefined'
     && 'Notification' in window
     && 'PushManager' in window
     && 'serviceWorker' in navigator
+}
+
+/** Registration atual, ou `ready` com timeout — `ready` sozinho nunca rejeita. */
+async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> {
+  if (!('serviceWorker' in navigator)) return null
+  const existing = await navigator.serviceWorker.getRegistration()
+  if (existing) return existing
+  const timeout = new Promise<null>((resolve) => {
+    setTimeout(() => resolve(null), SW_READY_MS)
+  })
+  return Promise.race([navigator.serviceWorker.ready, timeout])
 }
 
 /**
@@ -27,6 +40,16 @@ export function useJboStoreFollow() {
   const hintFor = useState('jbo:follow-hint-for', () => '')
   const pushSupported = useState('jbo:push-supported', () => true)
   const { isIos, isStandalone } = usePwaInstall()
+
+  function applyFollow(establishmentId: string, following: boolean) {
+    if (following) {
+      if (!followedIds.value.includes(establishmentId)) {
+        followedIds.value = [...followedIds.value, establishmentId]
+      }
+      return
+    }
+    followedIds.value = followedIds.value.filter(id => id !== establishmentId)
+  }
 
   async function loadOnce() {
     if (!import.meta.client) return
@@ -61,7 +84,8 @@ export function useJboStoreFollow() {
 
   async function ensureSubscription(): Promise<PushSubscription> {
     await loadOnce()
-    const reg = await navigator.serviceWorker.ready
+    const reg = await getPushRegistration()
+    if (!reg) throw new Error('Service worker indisponível')
     const existing = await reg.pushManager.getSubscription()
     if (existing) return existing
     let key = vapidKey.value
@@ -80,8 +104,15 @@ export function useJboStoreFollow() {
     hint.value = ''
     hintFor.value = establishmentId
 
+    await loadOnce()
+
     if (!detectPushSupport()) {
       pushSupported.value = false
+      hint.value = 'Para receber avisos no iPhone, instale o app na tela inicial.'
+      return
+    }
+
+    if (isIos.value && !isStandalone.value) {
       hint.value = 'Para receber avisos no iPhone, instale o app na tela inicial.'
       return
     }
@@ -94,42 +125,49 @@ export function useJboStoreFollow() {
       }
     }
 
-    if (isIos.value && !isStandalone.value) {
-      hint.value = 'Para receber avisos no iPhone, instale o app na tela inicial.'
+    const pending = inFlight.get(establishmentId)
+    if (pending) {
+      await pending
       return
     }
 
-    const previous = followedIds.value
-    const following = !previous.includes(establishmentId)
+    const run = (async () => {
+      const following = !followedIds.value.includes(establishmentId)
+      try {
+        const sub = await ensureSubscription()
+        const json = sub.toJSON()
+        const endpoint = json.endpoint
+        const p256dh = json.keys?.p256dh
+        const auth = json.keys?.auth
+        if (!endpoint || !p256dh || !auth) throw new Error('incomplete')
 
+        await jboSend('PUT', '/push/devices', {
+          endpoint,
+          p256dh,
+          auth,
+          user_agent: navigator.userAgent,
+        })
+
+        applyFollow(establishmentId, following)
+
+        await jboSend('PUT', '/push/follows', {
+          endpoint,
+          establishment_id: establishmentId,
+          following: following,
+        })
+      }
+      catch {
+        applyFollow(establishmentId, !following)
+        if (!hint.value) hint.value = 'Não foi possível salvar. Tente de novo.'
+      }
+    })()
+
+    inFlight.set(establishmentId, run)
     try {
-      const sub = await ensureSubscription()
-      const json = sub.toJSON()
-      const endpoint = json.endpoint
-      const p256dh = json.keys?.p256dh
-      const auth = json.keys?.auth
-      if (!endpoint || !p256dh || !auth) throw new Error('incomplete')
-
-      await jboSend('PUT', '/push/devices', {
-        endpoint,
-        p256dh,
-        auth,
-        user_agent: navigator.userAgent,
-      })
-
-      followedIds.value = following
-        ? [...previous, establishmentId]
-        : previous.filter(id => id !== establishmentId)
-
-      await jboSend('PUT', '/push/follows', {
-        endpoint,
-        establishment_id: establishmentId,
-        following: following,
-      })
+      await run
     }
-    catch {
-      followedIds.value = previous
-      if (!hint.value) hint.value = 'Não foi possível salvar. Tente de novo.'
+    finally {
+      inFlight.delete(establishmentId)
     }
   }
 
@@ -143,9 +181,9 @@ export function useJboStoreFollow() {
 }
 
 async function currentEndpoint(): Promise<string | null> {
-  if (!('serviceWorker' in navigator)) return null
   try {
-    const reg = await navigator.serviceWorker.ready
+    const reg = await getPushRegistration()
+    if (!reg) return null
     const sub = await reg.pushManager.getSubscription()
     return sub?.endpoint || null
   }

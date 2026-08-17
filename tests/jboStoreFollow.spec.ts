@@ -52,7 +52,29 @@ describe('sino anônimo segue loja', () => {
   it('reverte o sino se o PUT de follow falhar', () => {
     const src = source('app/composables/useJboStoreFollow.ts')
     expect(src).toContain('catch')
-    expect(src).toMatch(/followedIds\.value = previous/)
+    const toggleFn = src.slice(src.indexOf('async function toggle'))
+    expect(toggleFn).toContain('await loadOnce()')
+    expect(toggleFn).not.toContain('followedIds.value = previous')
+    expect(src).toMatch(/followedIds\.value = followedIds\.value\.filter/)
+  })
+
+  it('checa iOS e PushManager antes de pedir permissão', () => {
+    const src = source('app/composables/useJboStoreFollow.ts')
+    const toggleFn = src.slice(src.indexOf('async function toggle'))
+    const ios = toggleFn.indexOf('isIos.value && !isStandalone.value')
+    const push = toggleFn.indexOf('detectPushSupport')
+    const perm = toggleFn.indexOf('Notification.requestPermission')
+    expect(ios).toBeGreaterThan(-1)
+    expect(push).toBeGreaterThan(-1)
+    expect(perm).toBeGreaterThan(-1)
+    expect(ios).toBeLessThan(perm)
+    expect(push).toBeLessThan(perm)
+  })
+
+  it('não espera serviceWorker.ready sem limite', () => {
+    const src = source('app/composables/useJboStoreFollow.ts')
+    expect(src).toContain('getRegistration')
+    expect(src).toMatch(/Promise\.race|setTimeout/)
   })
 
   it('mostra recado no iOS fora de standalone e sem PushManager', () => {
