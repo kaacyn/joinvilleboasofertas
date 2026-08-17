@@ -13,7 +13,7 @@ describe('PWA JBO', () => {
     const config = source('nuxt.config.ts')
     expect(config).toContain('@vite-pwa/nuxt')
     expect(config).toContain("injectManifest")
-    expect(config).not.toMatch(/srcDir:\s*['"]app['"]/)
+    expect(config).toContain("srcDir: '.'")
     expect(config).toContain("short_name: 'JBO'")
     expect(config).toContain("theme_color: '#0D131D'")
     expect(config).toContain("display: 'standalone'")

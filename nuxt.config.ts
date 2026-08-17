@@ -47,6 +47,7 @@ export default defineNuxtConfig({
   },
   pwa: {
     strategies: 'injectManifest',
+    srcDir: '.',
     filename: 'sw.ts',
     registerType: 'autoUpdate',
     injectRegister: 'auto',
