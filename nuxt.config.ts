@@ -55,7 +55,6 @@ export default defineNuxtConfig({
     includeAssets: ['assets/favicon.png', 'apple-touch-icon.png'],
     injectManifest: {
       globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
-      navigateFallbackDenylist: pwaNavigation.denylist.map((path) => new RegExp(`^${path}`)),
     },
     manifest: {
       name: 'Joinville Boas Ofertas',
