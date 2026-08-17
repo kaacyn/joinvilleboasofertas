@@ -18,6 +18,7 @@ Expor no site público Joinville Boas Ofertas uma página de **encartes** (Photo
 | Clique | Lightbox com imagem XL |
 | Vencidos | Incluir; selo visual **Expirado** quando `promo_active=false` |
 | Horizonte | Só encartes com `promo_ends_on <= hoje + 7 dias` (vencidos continuam); ver `2026-08-17-encartes-horizonte-7-dias-design.md` |
+| Cadastro | Card mostra “Cadastrado há…” a partir de `created_at`; ver `2026-08-17-encartes-cadastrado-ha-design.md` |
 | Ordenação | Fixa: `promo_ends_on DESC`, desempate `created_at DESC` |
 | Filtro | Por loja (`establishment_id`); opção “Todas” |
 | Auth | Público (sem login), como o restante do JBO |
@@ -64,6 +65,7 @@ o frontend não depende do catálogo público de estabelecimentos.
   "promo_starts_on": "YYYY-MM-DD|null",
   "promo_ends_on": "YYYY-MM-DD",
   "promo_active": true,
+  "created_at": "2026-08-17T12:34:56.789012-03:00",
   "image_url": "string|null",
   "image_url_xl": "string|null"
 }
