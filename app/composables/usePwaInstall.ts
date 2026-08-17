@@ -11,9 +11,9 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const pendingPrompt = ref<BeforeInstallPromptEvent | null>(null)
-const platform = ref<Platform>(detectPlatform())
-const isStandalone = ref(detectStandalone())
-const isSafariOnIOS = ref(detectSafariOnIOS())
+const platform = ref<Platform>('other')
+const isStandalone = ref(false)
+const isSafariOnIOS = ref(false)
 const showIosModal = ref(false)
 const showAndroidModal = ref(false)
 

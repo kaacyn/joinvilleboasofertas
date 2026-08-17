@@ -27,6 +27,17 @@ describe('prompt de instalação PWA', () => {
     expect(install).toBeLessThan(menu)
   })
 
+  it('não detecta plataforma no escopo do módulo para evitar mismatch de hidratação', () => {
+    const composable = source('app/composables/usePwaInstall.ts')
+
+    expect(composable).not.toMatch(/ref(?:<[^>]+>)?\(detectPlatform\(\)\)/)
+    expect(composable).not.toMatch(/ref(?:<[^>]+>)?\(detectStandalone\(\)\)/)
+    expect(composable).not.toMatch(/ref(?:<[^>]+>)?\(detectSafariOnIOS\(\)\)/)
+    expect(composable).toMatch(/platform = ref(?:<Platform>)?\(['"]other['"]\)/)
+    expect(composable).toMatch(/isStandalone = ref\(false\)/)
+    expect(composable).toMatch(/isSafariOnIOS = ref\(false\)/)
+  })
+
   it('expõe canInstall, isStandalone, isIos e promptInstall sem auth', () => {
     const composable = source('app/composables/usePwaInstall.ts')
 
