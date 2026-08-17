@@ -6,6 +6,17 @@
         <h1>Encarte {{ encarte.establishment_name }}</h1>
         <button
           type="button"
+          class="bell"
+          aria-label="Receber avisos desta loja"
+          :aria-pressed="isFollowing(encarte.establishment_id) ? 'true' : 'false'"
+          @click="onBell"
+        >
+          <svg class="bell-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0-6 6v2.7L4.2 15a1.2 1.2 0 0 0 1 1.9h13.6a1.2 1.2 0 0 0 1-1.9L18 11.7V9a6 6 0 0 0-6-6zm0 18a2.8 2.8 0 0 1-2.7-2h5.4A2.8 2.8 0 0 1 12 21z" />
+          </svg>
+        </button>
+        <button
+          type="button"
           class="share"
           aria-label="Compartilhar encarte"
           @click="onShare"
@@ -13,6 +24,11 @@
           ⋯
         </button>
       </div>
+      <p
+        v-if="followHint && encarte && hintFor === encarte.establishment_id"
+        class="bell-hint"
+        aria-live="polite"
+      >{{ followHint }}</p>
       <p class="copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</p>
       <p class="meta">
         <NuxtLink class="meta__store" :to="`/loja/${encarte.establishment_slug}`">
@@ -72,8 +88,16 @@ if (error.value) {
 
 const photoUrl = computed(() => encarte.value?.image_url_xl || encarte.value?.image_url || '')
 
+const { isFollowing, toggle, hint: followHint, hintFor } = useJboStoreFollow()
+
 const copied = ref(false)
 let copiedTimer: ReturnType<typeof setTimeout> | undefined
+
+/** Liga ou desliga avisos da loja deste encarte. */
+async function onBell() {
+  if (!encarte.value) return
+  await toggle(encarte.value.establishment_id)
+}
 
 /** Folha nativa ou copiar link `{origin}/encarte/{id}`. */
 async function onShare() {
@@ -135,6 +159,7 @@ h1 {
   font-weight: 900;
 }
 
+.bell,
 .share {
   display: inline-flex;
   align-items: center;
@@ -155,13 +180,32 @@ h1 {
   cursor: pointer;
 }
 
+.bell-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.bell[aria-pressed="true"] .bell-icon {
+  fill: currentColor;
+}
+
+.bell:hover,
 .share:hover {
   border-color: var(--yellow);
 }
 
+.bell:focus-visible,
 .share:focus-visible {
   outline: 2px solid var(--yellow);
   outline-offset: 2px;
+}
+
+.bell-hint {
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .copied {

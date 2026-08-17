@@ -132,4 +132,25 @@ describe('encartes públicos', () => {
     expect(card).toContain('shareEncarte')
     expect(card).toContain('aria-label="Compartilhar encarte"')
   })
+
+  it('tem sino no card como irmão, não filho do botão de abrir', () => {
+    const card = source('app/components/encartes/EncarteCard.vue')
+    expect(card).toContain('aria-label="Receber avisos desta loja"')
+    expect(card).toContain('useJboStoreFollow')
+    expect(card).toMatch(/<article[\s\S]*class="card"/)
+
+    const openButtons = card.match(/<button\b[^>]*>[\s\S]*?<\/button>/g) || []
+    const openWithBell = openButtons.filter(block =>
+      block.includes('card__open') && block.includes('Receber avisos desta loja'),
+    )
+    expect(openWithBell).toEqual([])
+    expect(card).toContain('@click.stop')
+  })
+
+  it('SW trata push e notificationclick', () => {
+    const sw = source('app/sw.ts')
+    expect(sw).toContain("addEventListener('push'")
+    expect(sw).toContain("addEventListener('notificationclick'")
+    expect(sw).toContain('showNotification')
+  })
 })

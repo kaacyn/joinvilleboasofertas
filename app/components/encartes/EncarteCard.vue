@@ -27,6 +27,22 @@
       ></button>
       <button
         type="button"
+        class="card__bell"
+        aria-label="Receber avisos desta loja"
+        :aria-pressed="isFollowing(encarte.establishment_id) ? 'true' : 'false'"
+        @click.stop="onBell"
+      >
+        <svg class="card__bell-icon" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M12 3a6 6 0 0 0-6 6v2.7L4.2 15a1.2 1.2 0 0 0 1 1.9h13.6a1.2 1.2 0 0 0 1-1.9L18 11.7V9a6 6 0 0 0-6-6zm0 18a2.8 2.8 0 0 1-2.7-2h5.4A2.8 2.8 0 0 1 12 21z" />
+        </svg>
+      </button>
+      <p
+        v-if="followHint && hintFor === encarte.establishment_id"
+        class="card__bell-hint"
+        aria-live="polite"
+      >{{ followHint }}</p>
+      <button
+        type="button"
         class="card__share"
         aria-label="Compartilhar encarte"
         @click="onShare"
@@ -73,6 +89,13 @@ import { shareEncarte } from '~/utils/shareEncarte'
 
 const props = defineProps<{ encarte: JboEncarte }>()
 defineEmits<{ open: [encarte: JboEncarte] }>()
+
+const { isFollowing, toggle, hint: followHint, hintFor } = useJboStoreFollow()
+
+/** Liga ou desliga avisos da loja sem abrir o lightbox. */
+async function onBell() {
+  await toggle(props.encarte.establishment_id)
+}
 
 /** Instante serializado no payload: SSR e hidratação usam a mesma referência de tempo. */
 const renderedAt = useState('encartes:rendered-at', () => new Date().toISOString())
@@ -173,10 +196,10 @@ function formatDate(iso: string): string {
   text-align: center;
 }
 
+.card__bell,
 .card__share {
   position: absolute;
   top: 0.4rem;
-  right: 0.4rem;
   z-index: 2;
   display: inline-flex;
   align-items: center;
@@ -195,10 +218,47 @@ function formatDate(iso: string): string {
   cursor: pointer;
 }
 
+.card__bell {
+  left: 0.4rem;
+}
+
+.card__share {
+  right: 0.4rem;
+}
+
+.card__bell-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+
+.card__bell[aria-pressed="true"] .card__bell-icon {
+  fill: currentColor;
+}
+
+.card__bell-hint {
+  position: absolute;
+  top: calc(0.4rem + 48px);
+  left: 0.4rem;
+  z-index: 2;
+  max-width: calc(100% - 0.8rem);
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--navy-light);
+  color: var(--white);
+  font-size: 0.72rem;
+  line-height: 1.3;
+}
+
+.card__bell:hover,
 .card__share:hover {
   border-color: var(--yellow);
 }
 
+.card__bell:focus-visible,
 .card__share:focus-visible {
   outline: 2px solid var(--yellow);
   outline-offset: 2px;

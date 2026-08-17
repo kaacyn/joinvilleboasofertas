@@ -79,3 +79,14 @@ export async function jboGet<T>(
   )
   return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, { query: cleaned })
 }
+
+/**
+ * POST/PUT same-origin / interno em /api/public/jbo.
+ */
+export async function jboSend<T>(
+  method: 'POST' | 'PUT',
+  path: string,
+  body: Record<string, unknown>,
+): Promise<T> {
+  return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, { method, body })
+}
