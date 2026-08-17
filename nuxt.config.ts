@@ -26,6 +26,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/png', href: '/assets/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
@@ -51,7 +52,7 @@ export default defineNuxtConfig({
     registerType: 'autoUpdate',
     injectRegister: 'auto',
     registerWebManifestInRouteRules: true,
-    includeAssets: ['assets/favicon.png'],
+    includeAssets: ['assets/favicon.png', 'apple-touch-icon.png'],
     injectManifest: {
       globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
       navigateFallbackDenylist: pwaNavigation.denylist.map((path) => new RegExp(`^${path}`)),
@@ -66,6 +67,11 @@ export default defineNuxtConfig({
       display: 'standalone',
       background_color: '#0D131D',
       theme_color: '#0D131D',
+      icons: [
+        { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: 'pwa-maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
     },
     devOptions: {
       enabled: locPwaDev,

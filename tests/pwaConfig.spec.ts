@@ -22,4 +22,16 @@ describe('PWA JBO', () => {
   it('tem service worker fonte para injectManifest', () => {
     expect(existsSync(resolve(root, 'app/sw.ts')) || existsSync(resolve(root, 'public/sw.js'))).toBe(true)
   })
+
+  it('expõe ícones PWA 192/512/maskable e apple-touch-icon', () => {
+    for (const file of [
+      'public/pwa-192x192.png',
+      'public/pwa-512x512.png',
+      'public/pwa-maskable-512x512.png',
+      'public/apple-touch-icon.png',
+    ]) {
+      expect(existsSync(resolve(root, file))).toBe(true)
+    }
+    expect(source('nuxt.config.ts')).toContain('apple-touch-icon')
+  })
 })
