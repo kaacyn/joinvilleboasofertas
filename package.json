@@ -17,8 +17,11 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
+    "@vite-pwa/nuxt": "^1.1.1",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^14.12.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1"
   }
 }
