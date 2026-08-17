@@ -93,7 +93,7 @@ let requestGeneration = 0
 
 const { data: storesData, error: storesError } = await useAsyncData(
   'jbo-encartes-stores',
-  () => jboGet<{ items: Store[] }>('/establishments'),
+  () => jboGet<{ items: Store[] }>('/encartes/stores'),
 )
 const stores = computed(() => storesData.value?.items || [])
 const storesLoadError = computed(() => Boolean(storesError.value))
@@ -102,7 +102,7 @@ function fetchPage(cursor: string | null, selectedEstablishment: string) {
   return jboGet<JboEncartesPage>('/encartes', {
     establishment_id: selectedEstablishment || undefined,
     cursor: cursor || undefined,
-    page_size: 20,
+    limit: 20,
   })
 }
 

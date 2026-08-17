@@ -57,4 +57,18 @@ describe('encartes públicos', () => {
     expect(gridOpenTag).toContain('v-if="items.length"')
     expect(gridOpenTag).not.toContain('stores')
   })
+
+  it('carrega o filtro da rota autocontida de lojas com encartes', () => {
+    const page = source('app/pages/encartes.vue')
+
+    expect(page).toContain("jboGet<{ items: Store[] }>('/encartes/stores')")
+    expect(page).not.toContain("jboGet<{ items: Store[] }>('/establishments')")
+  })
+
+  it('envia o limite público padronizado ao feed', () => {
+    const page = source('app/pages/encartes.vue')
+
+    expect(page).toContain('limit: 20')
+    expect(page).not.toContain('page_size:')
+  })
 })

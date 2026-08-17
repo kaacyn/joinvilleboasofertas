@@ -33,12 +33,20 @@ Query:
 |-------|------|-----------|
 | `establishment_id` | UUID opcional | Filtra por loja |
 | `cursor` | string opcional | Paginação |
-| `limit` | int opcional | Default alinhado ao feed de ofertas (ex.: 20) |
+| `limit` | int opcional | Default 20; mínimo 1 e máximo 50 |
+
+`GET /api/public/jbo/encartes/stores`
+
+Retorna `{ "items": [{ "id", "name", "slug" }] }`, ordenado pelo nome da
+loja e sem duplicações. Só inclui lojas com ao menos um encarte elegível pelos
+mesmos critérios do feed. Este endpoint é a fonte autocontida do filtro da UI;
+o frontend não depende do catálogo público de estabelecimentos.
 
 ### Critérios de inclusão
 
 1. `dataset_status` ∈ `{pending, approved}`
-2. Escopo JBO de estabelecimento (`jbo_establishments_qs` / não admin-only + allowlist ou bbox)
+2. Escopo JBO aplicado diretamente ao queryset de `PhotoScan`
+   (`apply_jbo_scope`: não admin-only + allowlist ou bbox)
 3. Imagem presente (`image` com key utilizável)
 4. `promo_ends_on` **não nulo** (necessário para ordenar e sinalizar expiração)
 
@@ -76,7 +84,7 @@ Query:
 ### Página `/encartes`
 
 - Header padrão + título **Encartes** e frase curta de apoio
-- Filtro de loja: select/chip com lojas do endpoint existente de estabelecimentos JBO + “Todas”
+- Filtro de loja: select/chip alimentado por `GET /encartes/stores` + “Todas”
 - Lista/grid de cards: thumb, nome da loja, validade; selo **Expirado** se `!promo_active`
 - Clique no card → lightbox (imagem XL); fechar com ESC, clique fora ou botão
 - “Carregar mais” quando houver `next_cursor`
