@@ -88,10 +88,48 @@ describe('encartes públicos', () => {
     expect(card).toContain('formatRegisteredAt(encarte.created_at, new Date(renderedAt))')
   })
 
+  it('mostra a logo da loja ao lado do nome, com iniciais como reserva', () => {
+    const card = source('app/components/encartes/EncarteCard.vue')
+
+    expect(card).toContain('v-if="encarte.establishment_logo_url"')
+    expect(card).toContain(':src="encarte.establishment_logo_url"')
+    expect(card).toContain('class="card__logo"')
+    expect(card).toContain('card__logo--fallback')
+    expect(card).toContain('initials(encarte.establishment_name)')
+    expect(card).toMatch(/\.card__logo[^{]*\{[^}]*object-fit:\s*contain/)
+  })
+
+  it('mostra a miniatura inteira no quadro de story, com fundo nas laterais', () => {
+    const card = source('app/components/encartes/EncarteCard.vue')
+
+    expect(card).toContain('class="card__fill"')
+    expect(card).toContain('class="card__img"')
+    expect(card).toMatch(/aspect-ratio:\s*9\s*\/\s*16/)
+    expect(card).not.toMatch(/aspect-ratio:\s*3\s*\/\s*4/)
+    expect(card).toMatch(/\.card__img[^{]*\{[^}]*object-fit:\s*contain/)
+    expect(card).toMatch(/\.card__img[^{]*\{[^}]*position:\s*absolute/)
+    expect(card).toMatch(/\.card__fill[^{]*\{[^}]*object-fit:\s*cover/)
+    expect(card).toMatch(/\.card__fill[^{]*\{[^}]*filter:\s*blur/)
+  })
+
   it('tem página pública /encarte/[id] com OG e fetch do detalhe', () => {
     const page = source('app/pages/encarte/[id].vue')
     expect(page).toContain("jboGet<JboEncarte>(`/encartes/${")
     expect(page).toContain('og:image')
     expect(page).toContain('useSeoMeta')
+  })
+
+  it('compartilha o encarte na página de detalhe', () => {
+    const page = source('app/pages/encarte/[id].vue')
+    expect(page).toContain('shareEncarte')
+    expect(page).toContain('aria-label="Compartilhar encarte"')
+  })
+
+  it('decompõe o card: article com abrir e compartilhar irmãos', () => {
+    const card = source('app/components/encartes/EncarteCard.vue')
+    expect(card).toMatch(/<article[\s\S]*class="card"/)
+    expect(card).not.toMatch(/<button[\s\S]*class="card"/)
+    expect(card).toContain('shareEncarte')
+    expect(card).toContain('aria-label="Compartilhar encarte"')
   })
 })

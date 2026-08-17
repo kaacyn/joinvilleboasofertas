@@ -2,7 +2,18 @@
   <div class="page">
     <AppHeader />
     <main v-if="encarte" class="page__main">
-      <h1>Encarte {{ encarte.establishment_name }}</h1>
+      <div class="heading">
+        <h1>Encarte {{ encarte.establishment_name }}</h1>
+        <button
+          type="button"
+          class="share"
+          aria-label="Compartilhar encarte"
+          @click="onShare"
+        >
+          ⋯
+        </button>
+      </div>
+      <p class="copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</p>
       <p class="meta">
         <NuxtLink class="meta__store" :to="`/loja/${encarte.establishment_slug}`">
           <img
@@ -43,6 +54,7 @@
 <script setup lang="ts">
 import { jboGet, type JboEncarte } from '~/utils/jboApi'
 import { formatRegisteredAt } from '~/utils/relativeTime'
+import { shareEncarte } from '~/utils/shareEncarte'
 
 const route = useRoute()
 const id = computed(() => String(route.params.id))
@@ -59,6 +71,26 @@ if (error.value) {
 }
 
 const photoUrl = computed(() => encarte.value?.image_url_xl || encarte.value?.image_url || '')
+
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+
+/** Folha nativa ou copiar link `{origin}/encarte/{id}`. */
+async function onShare() {
+  if (!encarte.value) return
+  const origin = import.meta.client ? window.location.origin : ''
+  const result = await shareEncarte({
+    title: encarte.value.establishment_name,
+    text: 'Encarte',
+    url: `${origin}/encarte/${encarte.value.id}`,
+  }).catch(() => undefined)
+  if (result !== 'copied') return
+  copied.value = true
+  clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => {
+    copied.value = false
+  }, 2000)
+}
 
 /** Formata uma data ISO curta sem conversão de fuso horário. */
 function formatDate(iso: string): string {
@@ -90,10 +122,57 @@ useSeoMeta({
   padding: 1.25rem 1rem 2rem;
 }
 
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
 h1 {
+  flex: 1;
   margin: 0.25rem 0 0.5rem;
   font-size: 1.5rem;
   font-weight: 900;
+}
+
+.share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 0.15rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--navy-light);
+  color: var(--yellow);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.share:hover {
+  border-color: var(--yellow);
+}
+
+.share:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.copied {
+  min-height: 1.2em;
+  margin: 0 0 0.35rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.copied:empty {
+  display: none;
 }
 
 .meta {
