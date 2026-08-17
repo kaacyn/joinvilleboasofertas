@@ -23,6 +23,19 @@ describe('PWA JBO', () => {
     expect(existsSync(resolve(root, 'app/sw.ts')) || existsSync(resolve(root, 'public/sw.js'))).toBe(true)
   })
 
+  it('envolve createHandlerBoundToURL em try/catch para o SW instalar no SSR', () => {
+    const sw = source('app/sw.ts')
+
+    expect(sw).toContain('precacheAndRoute')
+    expect(sw).toMatch(
+      /try\s*\{[\s\S]*createHandlerBoundToURL\s*\(\s*['"]\/['"]\s*\)[\s\S]*\}\s*catch/,
+    )
+  })
+
+  it('inclui NuxtPwaManifest no app.vue para injetar o manifesto no HTML SSR', () => {
+    expect(source('app/app.vue')).toContain('<NuxtPwaManifest')
+  })
+
   it('expõe ícones PWA 192/512/maskable e apple-touch-icon', () => {
     for (const file of [
       'public/pwa-192x192.png',
