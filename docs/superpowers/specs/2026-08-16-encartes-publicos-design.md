@@ -72,7 +72,7 @@ o frontend não depende do catálogo público de estabelecimentos.
 ```
 
 - `promo_active`: `promo_ends_on >= hoje` (e, se houver, `promo_starts_on <= hoje`); espelha a ideia de vigência das ofertas JBO.
-- `image_url` / `image_url_xl`: URLs assinadas via `image_to_url_dict` (presets `md` e `xl`), no mesmo espírito do dataset admin.
+- `image_url` / `image_url_xl`: URLs assinadas via `image_to_url_dict` (presets `encarte` 480×640 `contain` e `xl`), para miniatura inteira no card e ampliação no lightbox; ver `2026-08-17-encartes-miniatura-inteira-design.md`.
 
 ### Resposta de página
 
