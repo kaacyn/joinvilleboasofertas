@@ -30,6 +30,7 @@ export type JboOffer = {
   comparison_base?: number | null
   volume_value?: string | number | null
   volume_unit?: string
+  pricing_mode?: string
 }
 
 export const DEFAULT_CLUB_LABEL = 'Clube'

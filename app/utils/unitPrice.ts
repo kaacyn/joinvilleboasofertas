@@ -1,4 +1,4 @@
-/** Formata preço normalizado e sufixo de embalagem (padrão Snap / e-commerce). */
+/** Formata preço normalizado e sufixo de modo de venda (un/kg/bdj). */
 
 const BRL_2 = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -29,7 +29,7 @@ const UNIT_DISPLAY: Record<string, string> = {
 }
 
 /**
- * Sufixo de embalagem (ex.: 330ml, 1,35L, un).
+ * Sufixo de embalagem (ex.: 330ml) — uso interno/legado; cards usam modo de venda.
  */
 export function formatVolumeSuffix(
   volumeValue: string | number | null | undefined,
@@ -42,6 +42,25 @@ export function formatVolumeSuffix(
   if (!Number.isFinite(n) || n <= 0) return null
   if ((unit === 'un' || unit === 'bdj') && n === 1) return label
   return `${QTY.format(n)}${label}`
+}
+
+/**
+ * Sufixo do preço conforme modo de venda: un | kg | bdj.
+ * Legado: fixed_package + volume_unit bdj → bdj.
+ */
+export function formatSellUnitSuffix(
+  pricingMode?: string | null,
+  volumeUnit?: string | null,
+): string | null {
+  const mode = String(pricingMode || '').trim().toLowerCase()
+  if (mode === 'by_measure') return 'kg'
+  if (mode === 'bandeja') return 'bdj'
+  if (mode === 'fixed_package') {
+    const unit = String(volumeUnit || '').trim().toLowerCase()
+    if (unit === 'bdj') return 'bdj'
+    return 'un'
+  }
+  return null
 }
 
 /**
@@ -67,11 +86,11 @@ export function formatUnitPrice({
 }
 
 /**
- * Preço da oferta com sufixo de volume quando disponível (texto único).
+ * Preço da oferta com sufixo de modo de venda (texto único).
  */
 export function formatOfferPrice(offer: {
   price: string | number
-  volume_value?: string | number | null
+  pricing_mode?: string | null
   volume_unit?: string | null
 }): string {
   const { amount, volumeSuffix } = formatOfferPriceParts(offer)
@@ -79,15 +98,15 @@ export function formatOfferPrice(offer: {
 }
 
 /**
- * Partes do preço para estilizar o volume menor que o valor.
+ * Partes do preço: valor + sufixo de venda (un/kg/bdj) para tipografia.
  */
 export function formatOfferPriceParts(offer: {
   price: string | number
-  volume_value?: string | number | null
+  pricing_mode?: string | null
   volume_unit?: string | null
 }): { amount: string, volumeSuffix: string | null } {
   return {
     amount: BRL_2.format(Number(offer.price)),
-    volumeSuffix: formatVolumeSuffix(offer.volume_value, offer.volume_unit),
+    volumeSuffix: formatSellUnitSuffix(offer.pricing_mode, offer.volume_unit),
   }
 }
