@@ -1,11 +1,18 @@
 <template>
-  <article class="deal" :class="{ 'deal--expired': isExpired }">
+  <NuxtLink
+    class="deal"
+    :class="{ 'deal--expired': isExpired }"
+    :to="productHref"
+  >
     <div
       class="deal__stripe"
       :class="stripeClass"
     >
       <template v-if="isExpired">
         <span class="deal__stripe-main deal__stripe-main--word">EXPIRADO</span>
+      </template>
+      <template v-else-if="isUpcoming">
+        <span class="deal__stripe-main deal__stripe-main--word">EM BREVE</span>
       </template>
       <template v-else-if="hasSavings">
         <span class="deal__stripe-label">economia</span>
@@ -18,28 +25,11 @@
       <div v-if="offer.category_name" class="deal__category">
         {{ offer.category_name }}
       </div>
-      <NuxtLink
-        class="deal__name"
-        :to="`/produto/${offer.product_slug || offer.product_id}`"
-      >
+      <div class="deal__name">
         {{ offer.product_name }}
-      </NuxtLink>
+      </div>
       <div class="deal__meta">
-        <NuxtLink
-          v-if="offer.establishment_slug"
-          class="deal__store"
-          :to="`/loja/${offer.establishment_slug}`"
-        >
-          <img
-            v-if="offer.establishment_logo_url"
-            class="deal__store-logo"
-            :src="offer.establishment_logo_url"
-            :alt="`Logo ${offer.establishment_name}`"
-            loading="lazy"
-          >
-          <span>{{ offer.establishment_name }}</span>
-        </NuxtLink>
-        <span v-else class="deal__store">
+        <span class="deal__store">
           <img
             v-if="offer.establishment_logo_url"
             class="deal__store-logo"
@@ -53,55 +43,61 @@
       <p
         v-if="validityLabel"
         class="deal__validity"
-        :class="{ 'deal__validity--expired': isExpired }"
+        :class="{ 'deal__validity--expired': isExpired, 'deal__validity--upcoming': isUpcoming }"
       >
         {{ validityLabel }}
       </p>
       <div class="deal__price">
-        <NuxtLink class="deal__price-now" :to="`/oferta/${offer.id}`">
-          {{ priceLabel }}
-        </NuxtLink>
-        <span v-if="offer.is_club_price" class="deal__club">Clube</span>
+        <div class="deal__price-stack">
+          <span class="deal__price-now">{{ priceLabel }}</span>
+          <span v-if="unitPriceLabel" class="deal__price-unit">{{ unitPriceLabel }}</span>
+        </div>
+        <span v-if="offer.is_club_price" class="deal__club">{{ clubLabel }}</span>
         <span v-if="hasSavings && avgLabel" class="deal__price-avg">
           média {{ avgLabel }}
         </span>
       </div>
     </div>
-  </article>
+  </NuxtLink>
 </template>
 
 <script setup lang="ts">
-import type { JboOffer } from '~/utils/jboApi'
+import { clubBadgeLabel, productOfferPath, type JboOffer } from '~/utils/jboApi'
+import { formatOfferPrice, formatUnitPrice } from '~/utils/unitPrice'
+import {
+  formatPromoValidityLabel,
+  getPromoPhase,
+  isPromoExpired,
+} from '~/utils/promoPhase'
 
 const props = defineProps<{ offer: JboOffer }>()
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
-const isExpired = computed(() => props.offer.promo_active === false)
-const hasSavings = computed(() => !isExpired.value && Number(props.offer.diff_percent) < 0)
+const clubLabel = computed(() => clubBadgeLabel(props.offer))
+const productHref = computed(() => productOfferPath(props.offer))
+const promoPhase = computed(() => getPromoPhase(props.offer))
+const isExpired = computed(() => isPromoExpired(props.offer))
+const isUpcoming = computed(() => promoPhase.value === 'upcoming')
+const hasSavings = computed(() => promoPhase.value === 'active' && Number(props.offer.diff_percent) < 0)
 const pctLabel = computed(() => `${Math.abs(Math.round(Number(props.offer.diff_percent || 0)))}%`)
-const priceLabel = computed(() => BRL.format(Number(props.offer.price)))
+const priceLabel = computed(() => formatOfferPrice(props.offer))
+const unitPriceLabel = computed(() => formatUnitPrice({
+  priceVolumeMin: props.offer.price_volume_min,
+  volumeUnitMin: props.offer.volume_unit_min,
+  comparisonBase: props.offer.comparison_base,
+}))
 const avgLabel = computed(() =>
   props.offer.avg_price != null ? BRL.format(Number(props.offer.avg_price)) : '',
 )
 const stripeClass = computed(() => {
   if (isExpired.value) return 'deal__stripe--expired'
+  if (isUpcoming.value) return 'deal__stripe--upcoming'
   if (hasSavings.value) return 'deal__stripe--savings'
   return 'deal__stripe--brand'
 })
 
-/**
- * Monta texto curto de validade / expiração da promo.
- */
-function formatValidity(offer: JboOffer): string {
-  if (!offer.promo_ends_on) return ''
-  if (offer.promo_active === false) {
-    return `Expirou em ${offer.promo_ends_on}`
-  }
-  return `Válido até ${offer.promo_ends_on}`
-}
-
-const validityLabel = computed(() => formatValidity(props.offer))
+const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
 </script>
 
 <style scoped>
@@ -114,6 +110,13 @@ const validityLabel = computed(() => formatValidity(props.offer))
   border-radius: 12px;
   overflow: hidden;
   text-align: left;
+  text-decoration: none;
+  color: inherit;
+}
+
+.deal:hover {
+  text-decoration: none;
+  border-color: rgba(255, 200, 0, 0.35);
 }
 
 .deal--expired {
@@ -143,6 +146,11 @@ const validityLabel = computed(() => formatValidity(props.offer))
 .deal__stripe--expired {
   background: #3a4454;
   color: rgba(255, 255, 255, 0.85);
+}
+
+.deal__stripe--upcoming {
+  background: var(--upcoming);
+  color: var(--white);
 }
 
 .deal__stripe-label {
@@ -184,11 +192,10 @@ const validityLabel = computed(() => formatValidity(props.offer))
   font-weight: 800;
   font-size: 1rem;
   color: var(--white);
-  text-decoration: none;
   margin-bottom: 0.35rem;
 }
 
-.deal__name:hover {
+.deal:hover .deal__name {
   color: var(--yellow);
 }
 
@@ -203,12 +210,7 @@ const validityLabel = computed(() => formatValidity(props.offer))
   align-items: center;
   gap: 0.4rem;
   color: var(--muted);
-  text-decoration: none;
   min-width: 0;
-}
-
-.deal__store:hover {
-  color: var(--yellow);
 }
 
 .deal__store-logo {
@@ -218,10 +220,6 @@ const validityLabel = computed(() => formatValidity(props.offer))
   border-radius: 4px;
   background: #fff;
   flex: 0 0 auto;
-}
-
-.deal__meta a {
-  color: var(--muted);
 }
 
 .deal__validity {
@@ -234,6 +232,10 @@ const validityLabel = computed(() => formatValidity(props.offer))
   color: rgba(255, 255, 255, 0.55);
 }
 
+.deal__validity--upcoming {
+  color: var(--upcoming-light);
+}
+
 .deal__price {
   display: flex;
   flex-wrap: wrap;
@@ -241,15 +243,27 @@ const validityLabel = computed(() => formatValidity(props.offer))
   gap: 0.45rem;
 }
 
+.deal__price-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
 .deal__price-now {
   font-size: 1.25rem;
   font-weight: 900;
   color: var(--yellow);
-  text-decoration: none;
 }
 
 .deal--expired .deal__price-now {
   color: rgba(255, 255, 255, 0.75);
+}
+
+.deal__price-unit {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.2;
 }
 
 .deal__club {
