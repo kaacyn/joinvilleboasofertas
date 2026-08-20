@@ -38,28 +38,32 @@
       </section>
 
       <section v-if="selected" class="hero" aria-label="Oferta nesta loja">
-        <div class="hero__price-stack">
-          <p class="hero__price">
-            {{ priceParts(selected).amount }}<span
-              v-if="priceParts(selected).volumeSuffix"
-              class="hero__price-vol"
-            >/{{ priceParts(selected).volumeSuffix }}</span>
-          </p>
-          <p v-if="unitPriceLabel(selected)" class="hero__price-unit">
-            {{ unitPriceLabel(selected) }}
+        <div class="price-box" aria-label="Preço da oferta">
+          <div class="price-box__row">
+            <div class="price-box__main">
+              <p class="hero__price">
+                {{ priceParts(selected).amount }}<span
+                  v-if="priceParts(selected).volumeSuffix"
+                  class="hero__price-vol"
+                >/{{ priceParts(selected).volumeSuffix }}</span>
+              </p>
+              <p v-if="unitPriceLabel(selected)" class="hero__price-unit">
+                {{ unitPriceLabel(selected) }}
+              </p>
+            </div>
+            <span v-if="selected.is_club_price" class="price-box__club">{{ clubHint }}</span>
+          </div>
+          <p
+            v-if="validityLabel(selected)"
+            class="hero__validity"
+            :class="{
+              'hero__validity--expired': isPromoExpired(selected),
+              'hero__validity--upcoming': isPromoUpcoming(selected),
+            }"
+          >
+            {{ validityLabel(selected) }}
           </p>
         </div>
-        <p v-if="selected.is_club_price" class="hero__club">{{ clubHint }}</p>
-        <p
-          v-if="validityLabel(selected)"
-          class="hero__validity"
-          :class="{
-            'hero__validity--expired': isPromoExpired(selected),
-            'hero__validity--upcoming': isPromoUpcoming(selected),
-          }"
-        >
-          {{ validityLabel(selected) }}
-        </p>
         <ProductStoreBox :offer="selected" />
       </section>
 
@@ -431,13 +435,32 @@ h1 {
 .hero {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 1.1rem;
 }
 
-.hero__price-stack {
+.price-box {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.65rem;
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.price-box__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+}
+
+.price-box__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
 }
 
 .hero__price {
@@ -445,6 +468,7 @@ h1 {
   font-size: 2.1rem;
   font-weight: 900;
   color: var(--yellow);
+  line-height: 1.15;
 }
 
 .hero__price-vol {
@@ -461,9 +485,22 @@ h1 {
   color: var(--muted);
 }
 
-.hero__club,
+.price-box__club {
+  flex: 0 0 auto;
+  align-self: center;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(255, 200, 0, 0.15);
+  color: var(--yellow);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
 .hero__validity {
   margin: 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border);
   color: var(--muted);
   font-size: 0.9rem;
 }

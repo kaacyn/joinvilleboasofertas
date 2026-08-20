@@ -191,6 +191,7 @@ describe('página de produto a partir do card da home', () => {
 
   it('mostra volume e unitário no hero e em Onde encontrar', () => {
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
+    expect(page).toContain('price-box')
     expect(page).toContain('formatOfferPriceParts')
     expect(page).toContain('formatUnitPrice')
     expect(page).toContain('hero__price-unit')
