@@ -49,7 +49,12 @@
       </p>
       <div class="deal__price">
         <div class="deal__price-stack">
-          <span class="deal__price-now">{{ priceLabel }}</span>
+          <span class="deal__price-now">
+            {{ priceParts.amount }}<span
+              v-if="priceParts.volumeSuffix"
+              class="deal__price-vol"
+            >/{{ priceParts.volumeSuffix }}</span>
+          </span>
           <span v-if="unitPriceLabel" class="deal__price-unit">{{ unitPriceLabel }}</span>
         </div>
         <span v-if="offer.is_club_price" class="deal__club">{{ clubLabel }}</span>
@@ -63,7 +68,7 @@
 
 <script setup lang="ts">
 import { clubBadgeLabel, productOfferPath, type JboOffer } from '~/utils/jboApi'
-import { formatOfferPrice, formatUnitPrice } from '~/utils/unitPrice'
+import { formatOfferPriceParts, formatUnitPrice } from '~/utils/unitPrice'
 import {
   formatPromoValidityLabel,
   getPromoPhase,
@@ -81,7 +86,7 @@ const isExpired = computed(() => isPromoExpired(props.offer))
 const isUpcoming = computed(() => promoPhase.value === 'upcoming')
 const hasSavings = computed(() => promoPhase.value === 'active' && Number(props.offer.diff_percent) < 0)
 const pctLabel = computed(() => `${Math.abs(Math.round(Number(props.offer.diff_percent || 0)))}%`)
-const priceLabel = computed(() => formatOfferPrice(props.offer))
+const priceParts = computed(() => formatOfferPriceParts(props.offer))
 const unitPriceLabel = computed(() => formatUnitPrice({
   priceVolumeMin: props.offer.price_volume_min,
   volumeUnitMin: props.offer.volume_unit_min,
@@ -253,6 +258,13 @@ const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
   font-size: 1.25rem;
   font-weight: 900;
   color: var(--yellow);
+}
+
+.deal__price-vol {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 0.05rem;
 }
 
 .deal--expired .deal__price-now {

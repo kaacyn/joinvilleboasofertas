@@ -39,7 +39,12 @@
 
       <section v-if="selected" class="hero" aria-label="Oferta nesta loja">
         <div class="hero__price-stack">
-          <p class="hero__price">{{ priceLabel(selected) }}</p>
+          <p class="hero__price">
+            {{ priceParts(selected).amount }}<span
+              v-if="priceParts(selected).volumeSuffix"
+              class="hero__price-vol"
+            >/{{ priceParts(selected).volumeSuffix }}</span>
+          </p>
           <p v-if="unitPriceLabel(selected)" class="hero__price-unit">
             {{ unitPriceLabel(selected) }}
           </p>
@@ -88,7 +93,12 @@
               <span>{{ offer.establishment_name }}</span>
             </span>
             <span class="row__price" :class="{ 'row__price--expired': isOfferExpired(offer) }">
-              <span class="row__price-main">{{ priceLabel(offer) }}</span>
+              <span class="row__price-main">
+                {{ priceParts(offer).amount }}<span
+                  v-if="priceParts(offer).volumeSuffix"
+                  class="row__price-vol"
+                >/{{ priceParts(offer).volumeSuffix }}</span>
+              </span>
               <span v-if="unitPriceLabel(offer)" class="row__price-unit">
                 {{ unitPriceLabel(offer) }}
               </span>
@@ -127,7 +137,7 @@ import {
   isPromoExpired,
   isPromoUpcoming,
 } from '~/utils/promoPhase'
-import { formatOfferPrice, formatUnitPrice } from '~/utils/unitPrice'
+import { formatOfferPrice, formatOfferPriceParts, formatUnitPrice } from '~/utils/unitPrice'
 
 type ProductPage = {
   product: {
@@ -222,10 +232,17 @@ function initials(name: string): string {
 }
 
 /**
- * Formata o preço da oferta.
+ * Formata o preço da oferta (texto único, ex. SEO).
  */
 function priceLabel(offer: JboOffer) {
   return formatOfferPrice(offer)
+}
+
+/**
+ * Partes do preço para o volume ficar tipograficamente menor.
+ */
+function priceParts(offer: JboOffer) {
+  return formatOfferPriceParts(offer)
 }
 
 /**
@@ -430,6 +447,13 @@ h1 {
   color: var(--yellow);
 }
 
+.hero__price-vol {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 0.08rem;
+}
+
 .hero__price-unit {
   margin: 0;
   font-size: 0.85rem;
@@ -549,6 +573,13 @@ h2 {
   font-weight: 900;
   color: var(--yellow);
   white-space: nowrap;
+}
+
+.row__price-vol {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-left: 0.04rem;
 }
 
 .row__price-unit {

@@ -67,14 +67,27 @@ export function formatUnitPrice({
 }
 
 /**
- * Preço da oferta com sufixo de volume quando disponível.
+ * Preço da oferta com sufixo de volume quando disponível (texto único).
  */
 export function formatOfferPrice(offer: {
   price: string | number
   volume_value?: string | number | null
   volume_unit?: string | null
 }): string {
-  const main = BRL_2.format(Number(offer.price))
-  const suffix = formatVolumeSuffix(offer.volume_value, offer.volume_unit)
-  return suffix ? `${main}/${suffix}` : main
+  const { amount, volumeSuffix } = formatOfferPriceParts(offer)
+  return volumeSuffix ? `${amount}/${volumeSuffix}` : amount
+}
+
+/**
+ * Partes do preço para estilizar o volume menor que o valor.
+ */
+export function formatOfferPriceParts(offer: {
+  price: string | number
+  volume_value?: string | number | null
+  volume_unit?: string | null
+}): { amount: string, volumeSuffix: string | null } {
+  return {
+    amount: BRL_2.format(Number(offer.price)),
+    volumeSuffix: formatVolumeSuffix(offer.volume_value, offer.volume_unit),
+  }
 }

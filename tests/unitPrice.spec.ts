@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   formatOfferPrice,
+  formatOfferPriceParts,
   formatUnitPrice,
   formatVolumeSuffix,
 } from '../app/utils/unitPrice'
@@ -83,5 +84,18 @@ describe('formatOfferPrice', () => {
 
   it('sem volume fica só o preço', () => {
     expect(formatOfferPrice({ price: '3.59' })).toBe(`R$${nbsp}3,59`)
+  })
+})
+
+describe('formatOfferPriceParts', () => {
+  it('separa valor e sufixo para tipografia', () => {
+    expect(formatOfferPriceParts({
+      price: '3.59',
+      volume_value: 330,
+      volume_unit: 'ml',
+    })).toEqual({
+      amount: `R$${nbsp}3,59`,
+      volumeSuffix: '330ml',
+    })
   })
 })

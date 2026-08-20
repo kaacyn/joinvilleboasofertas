@@ -183,16 +183,19 @@ describe('página de produto a partir do card da home', () => {
 
   it('mostra sufixo de volume e preço unitário no card', () => {
     const card = source('app/components/offers/OfferCard.vue')
-    expect(card).toContain('formatOfferPrice')
+    expect(card).toContain('formatOfferPriceParts')
     expect(card).toContain('formatUnitPrice')
     expect(card).toContain('deal__price-unit')
+    expect(card).toContain('deal__price-vol')
   })
 
   it('mostra volume e unitário no hero e em Onde encontrar', () => {
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
-    expect(page).toContain('formatOfferPrice')
+    expect(page).toContain('formatOfferPriceParts')
     expect(page).toContain('formatUnitPrice')
     expect(page).toContain('hero__price-unit')
+    expect(page).toContain('hero__price-vol')
     expect(page).toContain('row__price-unit')
+    expect(page).toContain('row__price-vol')
   })
 })
