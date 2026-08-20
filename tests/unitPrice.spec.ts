@@ -32,6 +32,12 @@ describe('formatSellUnitSuffix', () => {
     expect(formatSellUnitSuffix('bandeja')).toBe('bdj')
   })
 
+  it('pacote/caixa/fardo → abreviações', () => {
+    expect(formatSellUnitSuffix('pacote')).toBe('pct.')
+    expect(formatSellUnitSuffix('caixa')).toBe('cx.')
+    expect(formatSellUnitSuffix('fardo')).toBe('fd.')
+  })
+
   it('legado fixed_package + bdj → bdj', () => {
     expect(formatSellUnitSuffix('fixed_package', 'bdj')).toBe('bdj')
   })

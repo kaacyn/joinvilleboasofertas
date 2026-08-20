@@ -45,7 +45,7 @@ export function formatVolumeSuffix(
 }
 
 /**
- * Sufixo do preço conforme modo de venda: un | kg | bdj.
+ * Sufixo do preço conforme tipo de embalagem: un | kg | bdj | pct. | cx. | fd.
  * Legado: fixed_package + volume_unit bdj → bdj.
  */
 export function formatSellUnitSuffix(
@@ -55,6 +55,9 @@ export function formatSellUnitSuffix(
   const mode = String(pricingMode || '').trim().toLowerCase()
   if (mode === 'by_measure') return 'kg'
   if (mode === 'bandeja') return 'bdj'
+  if (mode === 'pacote') return 'pct.'
+  if (mode === 'caixa') return 'cx.'
+  if (mode === 'fardo') return 'fd.'
   if (mode === 'fixed_package') {
     const unit = String(volumeUnit || '').trim().toLowerCase()
     if (unit === 'bdj') return 'bdj'
