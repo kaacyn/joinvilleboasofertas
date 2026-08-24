@@ -16,13 +16,27 @@ describe('encartes públicos', () => {
     expect(headerMenu).toContain('Encartes')
   })
 
-  it('identifica visualmente um encarte expirado', () => {
+  it('expõe CTA Envie um encarte', () => {
+    const page = source('app/pages/encartes.vue')
+    expect(page).toContain('to="/envie-um-encarte"')
+    expect(page).toContain('Envie um encarte')
+  })
+
+  it('distingue encarte expirado de em breve pelas datas', () => {
     const path = 'app/components/encartes/EncarteCard.vue'
     expect(existsSync(resolve(root, path))).toBe(true)
 
     const card = source(path)
-    expect(card).toContain('v-if="!encarte.promo_active"')
+    expect(card).toContain('getPromoPhase')
+    expect(card).toContain('formatPromoValidityLabel')
     expect(card).toContain('Expirado')
+    expect(card).toContain('Em breve')
+    expect(card).not.toContain('encarte.promo_active')
+
+    const detail = source('app/pages/encarte/[id].vue')
+    expect(detail).toContain('formatPromoValidityLabel')
+    expect(detail).toContain('Em breve')
+    expect(detail).not.toContain('encarte.promo_active')
   })
 
   it('fecha o lightbox pelas três interações e bloqueia o fundo', () => {
@@ -58,11 +72,48 @@ describe('encartes públicos', () => {
     expect(gridOpenTag).not.toContain('stores')
   })
 
-  it('carrega o filtro da rota autocontida de lojas com encartes', () => {
+  it('usa o filtro de lojas igual ao da home', () => {
     const page = source('app/pages/encartes.vue')
 
+    expect(page).toContain('FilterBar')
+    expect(page).toContain(':show-categories="false"')
+    expect(page).toContain(':show-sort="true"')
+    expect(page).toContain(':sort-options="ENCARTES_SORT_OPTIONS"')
+    expect(page).toContain('@apply-establishments="onApplyEstablishments"')
+    expect(page).toContain('@update:sort="onSort"')
+    expect(page).toContain('establishment_ids:')
+    expect(page).toContain('sort,')
+    expect(page).not.toContain('filter__select')
     expect(page).toContain("jboGet<{ items: Store[] }>('/encartes/stores')")
-    expect(page).not.toContain("jboGet<{ items: Store[] }>('/establishments')")
+  })
+
+  it('ordena por cadastro ou vencimento na URL', () => {
+    const page = source('app/pages/encartes.vue')
+    const filters = source('app/composables/useEncartesFilters.ts')
+    const bar = source('app/components/offers/FilterBar.vue')
+
+    expect(page).toContain('setSort')
+    expect(page).toContain('route.query.sort')
+    expect(filters).toContain("ENCARTES_SORT_DEFAULT = 'created'")
+    expect(filters).toContain("value: 'created'")
+    expect(filters).toContain("label: 'Cadastro'")
+    expect(filters).toContain("value: 'ends'")
+    expect(filters).toContain("label: 'Vencimento'")
+    expect(bar).toContain('pickSort')
+    expect(bar).toContain('Ordenar:')
+    expect(bar).toContain('Ordenar por')
+    expect(bar).not.toContain('filterbar__select')
+  })
+
+  it('expõe lojas filtradas na URL', () => {
+    const page = source('app/pages/encartes.vue')
+    const filters = source('app/composables/useEncartesFilters.ts')
+
+    expect(page).toContain('useEncartesFilters')
+    expect(page).toContain('setEstablishmentIds')
+    expect(page).toContain('route.query.establishment_ids')
+    expect(filters).toContain('router.replace')
+    expect(filters).toContain('establishment_ids')
   })
 
   it('envia o limite público padronizado ao feed', () => {

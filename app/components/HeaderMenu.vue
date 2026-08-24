@@ -46,6 +46,14 @@
         Encartes
       </NuxtLink>
       <NuxtLink
+        to="/envie-um-encarte"
+        class="hmenu__item"
+        role="menuitem"
+        @click="close"
+      >
+        Envie um encarte
+      </NuxtLink>
+      <NuxtLink
         to="/privacidade"
         class="hmenu__item"
         role="menuitem"

@@ -1,35 +1,39 @@
 <template>
   <div class="page">
     <AppHeader />
+
+    <FilterBar
+      :facets="facets"
+      :category-ids="[]"
+      :establishment-ids="filters.establishmentIds.value"
+      :sort="filters.sort.value"
+      :show-categories="false"
+      :show-sort="true"
+      :sort-default="ENCARTES_SORT_DEFAULT"
+      :sort-options="ENCARTES_SORT_OPTIONS"
+      @apply-establishments="onApplyEstablishments"
+      @update:sort="onSort"
+    />
+
     <main class="page__main">
       <header class="page__intro">
         <h1>Encartes</h1>
         <p>Encartes das lojas de Joinville e região.</p>
+        <NuxtLink
+          to="/envie-um-encarte"
+          class="intro-cta"
+        >
+          Envie um encarte
+        </NuxtLink>
       </header>
 
-      <div class="filter">
-        <label class="filter__label">
-          <span class="sr-only">Filtrar por loja</span>
-          <select
-            v-model="establishmentId"
-            class="filter__select"
-            :aria-describedby="storesLoadError ? 'encartes-stores-error' : undefined"
-          >
-            <option value="">Todas as lojas</option>
-            <option v-for="store in stores" :key="store.id" :value="store.id">
-              {{ store.name }}
-            </option>
-          </select>
-        </label>
-        <p
-          v-if="storesLoadError"
-          id="encartes-stores-error"
-          class="filter__error"
-          role="status"
-        >
-          Não foi possível carregar as lojas. Mostrando encartes de todas elas.
-        </p>
-      </div>
+      <p
+        v-if="storesLoadError"
+        class="filter-error"
+        role="status"
+      >
+        Não foi possível carregar as lojas. Mostrando encartes de todas elas.
+      </p>
 
       <p v-if="pending && !items.length" class="muted" aria-live="polite">
         Carregando…
@@ -73,7 +77,8 @@
 </template>
 
 <script setup lang="ts">
-import { jboGet, type JboEncarte, type JboEncartesPage } from '~/utils/jboApi'
+import { ENCARTES_SORT_DEFAULT, ENCARTES_SORT_OPTIONS } from '~/composables/useEncartesFilters'
+import { jboGet, type JboEncarte, type JboEncartesPage, type JboFacets } from '~/utils/jboApi'
 
 type Store = {
   id: string
@@ -81,11 +86,11 @@ type Store = {
   slug: string
 }
 
-const establishmentId = ref('')
+const route = useRoute()
+const filters = useEncartesFilters()
 const open = ref<JboEncarte | null>(null)
 const items = ref<JboEncarte[]>([])
 const nextCursor = ref<string | null>(null)
-const reloading = ref(false)
 const loadingMore = ref(false)
 const loadError = ref(false)
 const loadMoreError = ref(false)
@@ -97,10 +102,24 @@ const { data: storesData, error: storesError } = await useAsyncData(
 )
 const stores = computed(() => storesData.value?.items || [])
 const storesLoadError = computed(() => Boolean(storesError.value))
+const facets = computed<JboFacets>(() => ({
+  categories: [],
+  establishments: stores.value.map(store => ({
+    id: store.id,
+    name: store.name,
+  })),
+}))
 
-function fetchPage(cursor: string | null, selectedEstablishment: string) {
+function fetchPage(
+  cursor: string | null,
+  selectedEstablishments: string[],
+  sort: string,
+) {
   return jboGet<JboEncartesPage>('/encartes', {
-    establishment_id: selectedEstablishment || undefined,
+    establishment_ids: selectedEstablishments.length
+      ? selectedEstablishments.join(',')
+      : undefined,
+    sort,
     cursor: cursor || undefined,
     limit: 20,
   })
@@ -112,51 +131,54 @@ const {
   error: initialError,
 } = await useAsyncData(
   'jbo-encartes',
-  () => fetchPage(null, ''),
+  () => fetchPage(null, filters.establishmentIds.value, filters.sort.value),
+  { watch: [() => route.query.establishment_ids, () => route.query.sort] },
 )
 
 items.value = initialPage.value?.items || []
 nextCursor.value = initialPage.value?.next_cursor ?? null
 loadError.value = Boolean(initialError.value)
 
-const pending = computed(() => initialPending.value || reloading.value)
+const pending = computed(() => initialPending.value)
 
-watch(establishmentId, async (selectedEstablishment) => {
-  const generation = ++requestGeneration
+useSyncLoadingIndicator(pending)
 
-  items.value = []
-  nextCursor.value = null
-  loadingMore.value = false
-  loadError.value = false
-  loadMoreError.value = false
-  reloading.value = true
+watch(
+  () => initialPage.value,
+  (page) => {
+    items.value = page?.items || []
+    nextCursor.value = page?.next_cursor ?? null
+    loadError.value = false
+    loadMoreError.value = false
+    loadingMore.value = false
+    requestGeneration += 1
+  },
+)
 
-  try {
-    const page = await fetchPage(null, selectedEstablishment)
-    if (generation !== requestGeneration) return
-
-    items.value = page.items
-    nextCursor.value = page.next_cursor
-  }
-  catch {
-    if (generation === requestGeneration) loadError.value = true
-  }
-  finally {
-    if (generation === requestGeneration) reloading.value = false
-  }
+watch(initialError, (error) => {
+  loadError.value = Boolean(error)
 })
+
+async function onApplyEstablishments(ids: string[]) {
+  await filters.setEstablishmentIds(ids)
+}
+
+async function onSort(sort: string) {
+  await filters.setSort(sort)
+}
 
 async function loadMore() {
   const cursor = nextCursor.value
   if (!cursor || loadingMore.value) return
 
   const generation = requestGeneration
-  const selectedEstablishment = establishmentId.value
+  const selectedEstablishments = [...filters.establishmentIds.value]
+  const selectedSort = filters.sort.value
   loadingMore.value = true
   loadMoreError.value = false
 
   try {
-    const page = await fetchPage(cursor, selectedEstablishment)
+    const page = await fetchPage(cursor, selectedEstablishments, selectedSort)
     if (generation !== requestGeneration) return
 
     items.value = [...items.value, ...page.items]
@@ -199,37 +221,22 @@ useSeoMeta({
   font-size: 0.95rem;
 }
 
-.filter {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  width: min(100%, 360px);
+.intro-cta {
+  display: inline-flex;
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  background: var(--yellow);
+  color: var(--navy);
+  font-weight: 800;
+  font-size: 0.88rem;
+  text-decoration: none;
 }
 
-.filter__label {
-  display: block;
-}
-
-.filter__error {
+.filter-error {
   margin: 0;
   color: #ffb2b5;
-  font-size: 0.8rem;
-}
-
-.filter__select {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.65rem 2.25rem 0.65rem 0.85rem;
-  background: var(--navy-light);
-  color: var(--white);
-  font: inherit;
-  font-size: 0.9rem;
-}
-
-.filter__select:focus {
-  outline: 2px solid var(--yellow);
-  outline-offset: 1px;
+  font-size: 0.82rem;
 }
 
 .grid {
@@ -266,16 +273,5 @@ useSeoMeta({
 
 .muted {
   color: var(--muted);
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
 }
 </style>

@@ -14,10 +14,20 @@ describe('integração de navegação e filtros', () => {
     const headerMenu = source('app/components/HeaderMenu.vue')
 
     expect(appHeader).toMatch(/<HeaderMenu\s*\/>/)
+    expect(appHeader).toContain('useLoadingIndicator')
+    expect(appHeader).toContain('header__loading')
     expect(headerMenu).toContain('to="/lojas"')
+    expect(headerMenu).toContain('to="/envie-um-encarte"')
+    expect(headerMenu).toContain('Envie um encarte')
     expect(headerMenu).toContain('to="/privacidade"')
     expect(headerMenu).toContain('to="/termos"')
     expect(() => source('app/pages/termos.vue')).not.toThrow()
+  })
+
+  it('sincroniza filtros da home e encartes com a barra de carregamento', () => {
+    expect(source('app/composables/useSyncLoadingIndicator.ts')).toContain('useLoadingIndicator')
+    expect(source('app/pages/index.vue')).toContain('useSyncLoadingIndicator')
+    expect(source('app/pages/encartes.vue')).toContain('useSyncLoadingIndicator')
   })
 
   it('fornece ao FilterBar as props e listeners do contrato atual', () => {
