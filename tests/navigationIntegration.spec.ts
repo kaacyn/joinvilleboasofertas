@@ -19,6 +19,8 @@ describe('integração de navegação e filtros', () => {
     expect(headerMenu).toContain('to="/lojas"')
     expect(headerMenu).toContain('to="/envie-um-encarte"')
     expect(headerMenu).toContain('Envie um encarte')
+    expect(headerMenu).toContain('to="/perguntas-frequentes"')
+    expect(headerMenu).toContain('Perguntas frequentes')
     expect(headerMenu).toContain('to="/privacidade"')
     expect(headerMenu).toContain('to="/termos"')
     expect(() => source('app/pages/termos.vue')).not.toThrow()

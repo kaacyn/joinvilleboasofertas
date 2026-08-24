@@ -54,6 +54,14 @@
         Envie um encarte
       </NuxtLink>
       <NuxtLink
+        to="/perguntas-frequentes"
+        class="hmenu__item"
+        role="menuitem"
+        @click="close"
+      >
+        Perguntas frequentes
+      </NuxtLink>
+      <NuxtLink
         to="/privacidade"
         class="hmenu__item"
         role="menuitem"
