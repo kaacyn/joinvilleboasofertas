@@ -37,6 +37,7 @@ Serviços:
 | `/lojas` | Lista de lojas |
 | `/encartes` | Lista de encartes (filtro por loja) |
 | `/envie-um-encarte` | Formulário Envie um encarte (lead Instagram) |
+| `/perguntas-frequentes` | Perguntas frequentes (FAQ) |
 | `/categoria/{slug}` | Ofertas da categoria |
 | `/privacidade` | Política de privacidade |
 | `/robots.txt`, `/sitemap.xml` | SEO |
