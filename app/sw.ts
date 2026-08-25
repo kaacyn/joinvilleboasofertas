@@ -64,7 +64,7 @@ self.addEventListener('push', (event) => {
 /** Chrome exige notificação visível em todo push. */
 async function handlePush(payload: PushPayload | null) {
   const title = payload?.title || 'Joinville Boas Ofertas'
-  const body = payload?.body || 'Você tem um novo encarte'
+  const body = payload?.body || 'Você tem novas ofertas'
   await self.registration.showNotification(title, {
     body,
     icon: payload?.icon || '/pwa-192x192.png',
