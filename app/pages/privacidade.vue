@@ -43,9 +43,10 @@
 </template>
 
 <script setup lang="ts">
-useSeoMeta({
+useJboSeo({
   title: 'Política de Privacidade | Joinville Boas Ofertas',
   description: 'Como o Joinville Boas Ofertas trata dados pessoais (LGPD).',
+  path: '/privacidade',
 })
 </script>
 

@@ -27,17 +27,19 @@ type CatPage = {
 const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 
-const { data, error } = await useAsyncData(
+const { data, error, pending } = await useAsyncData(
   () => `categoria-${slug.value}`,
   () => jboGet<CatPage>(`/categories/${slug.value}`),
   { watch: [slug] },
 )
 
+useSyncLoadingIndicator(pending)
+
 if (error.value) {
   throw createError({ statusCode: 404, statusMessage: 'Categoria não encontrada' })
 }
 
-useSeoMeta({
+useJboSeo({
   title: () =>
     data.value
       ? `${data.value.category.name} — ofertas em Joinville`
@@ -46,6 +48,7 @@ useSeoMeta({
     data.value
       ? `Ofertas da categoria ${data.value.category.name} em Joinville.`
       : '',
+  path: () => `/categoria/${slug.value}`,
 })
 </script>
 

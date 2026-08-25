@@ -3,12 +3,12 @@
     <AppHeader />
     <main class="page__main">
       <header class="page__intro">
-        <h1>Envie um encarte</h1>
+        <h1>Envios de encartes</h1>
         <p>
-          Buscamos informações de encartes no Instagram do mercado.
-          Se o mercado não tiver Instagram, deixe o campo em branco —
-          o envio nativo de encartes pela plataforma está em desenvolvimento
-          e o pedido fica na fila aguardando essa evolução.
+          Atualmente buscamos informações de encartes no Instagram da loja.
+          Se a loja não tiver instagram, deixe o campo em branco — o envio nativo
+          de encartes pela plataforma está em desenvolvimento e o pedido fica
+          na fila aguardando essa evolução.
         </p>
       </header>
 
@@ -26,7 +26,7 @@
         @submit.prevent="onSubmit"
       >
         <label class="field">
-          <span>Nome do mercado *</span>
+          <span>Nome da loja *</span>
           <input
             v-model="storeName"
             type="text"
@@ -56,12 +56,12 @@
           >
         </label>
         <label class="field">
-          <span>Instagram do mercado</span>
+          <span>Instagram da loja</span>
           <input
             v-model="instagram"
             type="text"
             maxlength="100"
-            placeholder="@mercado (opcional)"
+            placeholder="@loja (opcional)"
             autocomplete="off"
           >
         </label>
@@ -107,9 +107,10 @@
 <script setup lang="ts">
 import { jboSend } from '~/utils/jboApi'
 
-useSeoMeta({
-  title: 'Envie um encarte | Joinville Boas Ofertas',
-  description: 'Cadastre o Instagram do mercado para monitoramento de encartes.',
+useJboSeo({
+  title: 'Envios de encartes | Joinville Boas Ofertas',
+  description: 'Cadastre o Instagram da loja para monitoramento de encartes.',
+  path: '/envie-um-encarte',
 })
 
 const storeName = ref('')

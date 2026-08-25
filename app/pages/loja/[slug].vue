@@ -14,17 +14,25 @@
           class="loja-head__logo loja-head__logo--fallback"
           aria-hidden="true"
         >{{ initials(data.establishment.name) }}</span>
-        <div class="loja-head__text">
-          <h1>{{ data.establishment.name }}</h1>
-          <p v-if="data.establishment.address" class="addr">
-            {{ data.establishment.address }}
-          </p>
+        <div class="loja-head__body">
+          <div class="loja-head__text">
+            <h1>{{ data.establishment.name }}</h1>
+            <p v-if="data.establishment.address" class="addr">
+              {{ data.establishment.address }}
+            </p>
+          </div>
+          <StoreFollowBell
+            :establishment-id="data.establishment.id"
+            :store-name="data.establishment.name"
+            show-hint
+          />
         </div>
       </header>
       <OfferCard
         v-for="offer in data.items"
         :key="offer.id"
         :offer="offer"
+        hide-store
       />
       <p v-if="!data.items.length" class="empty">Sem ofertas vigentes nesta loja.</p>
     </main>
@@ -49,11 +57,13 @@ type EstPage = {
 const route = useRoute()
 const slug = computed(() => String(route.params.slug))
 
-const { data, error } = await useAsyncData(
+const { data, error, pending } = await useAsyncData(
   () => `loja-${slug.value}`,
   () => jboGet<EstPage>(`/establishments/${slug.value}`),
   { watch: [slug] },
 )
+
+useSyncLoadingIndicator(pending)
 
 if (error.value) {
   throw createError({ statusCode: 404, statusMessage: 'Loja não encontrada' })
@@ -66,7 +76,7 @@ function initials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase()
 }
 
-useSeoMeta({
+useJboSeo({
   title: () =>
     data.value
       ? `Ofertas em ${data.value.establishment.name} | Joinville`
@@ -75,6 +85,29 @@ useSeoMeta({
     data.value
       ? `Preços vigentes em ${data.value.establishment.name}, Joinville.`
       : '',
+  path: () => `/loja/${slug.value}`,
+  image: () => data.value?.establishment.logo_url,
+  jsonLd: () => {
+    if (!data.value) return null
+    const est = data.value.establishment
+    const site = String(useRuntimeConfig().public.siteUrl || '').replace(/\/$/, '')
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name: est.name,
+      url: `${site}/loja/${est.slug}`,
+      ...(est.address
+        ? {
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: est.address,
+              addressLocality: 'Joinville',
+              addressCountry: 'BR',
+            },
+          }
+        : {}),
+    }
+  },
 })
 </script>
 
@@ -92,6 +125,16 @@ h1 {
   margin: 0;
   font-size: 1.45rem;
   font-weight: 900;
+  min-width: 0;
+}
+
+.loja-head__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
 }
 
 .loja-head {
@@ -120,7 +163,12 @@ h1 {
 }
 
 .loja-head__text {
+  flex: 1;
   min-width: 0;
+}
+
+.addr {
+  margin: 0.2rem 0 0;
 }
 
 .addr,

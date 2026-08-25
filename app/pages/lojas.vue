@@ -24,10 +24,10 @@
       <p v-else-if="!filtered.length" class="muted">Nenhuma loja encontrada.</p>
 
       <ul v-else class="list" aria-label="Lista de lojas">
-        <li v-for="est in filtered" :key="est.id">
+        <li v-for="est in filtered" :key="est.id" class="list__item">
           <NuxtLink
             :to="`/loja/${est.slug}`"
-            class="list__item"
+            class="list__main"
           >
             <span class="list__media">
               <img
@@ -45,8 +45,17 @@
               <span v-if="est.address" class="list__addr">{{ est.address }}</span>
             </span>
           </NuxtLink>
+          <StoreFollowBell
+            :establishment-id="est.id"
+            :store-name="est.name"
+          />
         </li>
       </ul>
+      <p
+        v-if="followHint && hintFor"
+        class="list__hint"
+        aria-live="polite"
+      >{{ followHint }}</p>
     </main>
   </div>
 </template>
@@ -96,9 +105,12 @@ const filtered = computed(() => {
   return items.value.filter(e => normalizeText(e.name).includes(term))
 })
 
-useSeoMeta({
+const { hint: followHint, hintFor } = useJboStoreFollow()
+
+useJboSeo({
   title: 'Lojas | Joinville Boas Ofertas',
   description: 'Lista de lojas com ofertas em Joinville e região.',
+  path: '/lojas',
 })
 </script>
 
@@ -151,19 +163,27 @@ useSeoMeta({
 
 .list__item {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.35rem;
   padding: 0.85rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
   background: rgba(255, 255, 255, 0.02);
 }
 
 .list__item:hover {
   border-color: var(--yellow);
+}
+
+.list__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 .list__media {
@@ -201,6 +221,12 @@ useSeoMeta({
 }
 
 .list__addr {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.list__hint {
+  margin: 0;
   color: var(--muted);
   font-size: 0.85rem;
 }

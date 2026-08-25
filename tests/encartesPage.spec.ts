@@ -166,8 +166,8 @@ describe('encartes públicos', () => {
   it('tem página pública /encarte/[id] com OG e fetch do detalhe', () => {
     const page = source('app/pages/encarte/[id].vue')
     expect(page).toContain("jboGet<JboEncarte>(`/encartes/${")
-    expect(page).toContain('og:image')
-    expect(page).toContain('useSeoMeta')
+    expect(page).toContain('image:')
+    expect(page).toContain('useJboSeo')
   })
 
   it('compartilha o encarte na página de detalhe', () => {

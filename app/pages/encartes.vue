@@ -192,9 +192,10 @@ async function loadMore() {
   }
 }
 
-useSeoMeta({
+useJboSeo({
   title: 'Encartes | Joinville Boas Ofertas',
   description: 'Encartes das lojas de Joinville e região.',
+  path: '/encartes',
 })
 </script>
 

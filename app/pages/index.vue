@@ -15,10 +15,12 @@
     />
 
     <section class="home__deals" aria-label="Ofertas em Joinville">
-      <header class="home__intro">
-        <h1>Ofertas em Joinville</h1>
-        <p>Último preço por produto e supermercado — inclui ofertas já expiradas.</p>
-      </header>
+      <StoryShortcuts
+        :q="filters.state.value.q"
+        :category-ids="filters.state.value.category_ids"
+        :categories="facets.categories"
+        @select="onShortcut"
+      />
 
       <OfferCard
         v-for="offer in items"
@@ -27,6 +29,14 @@
       />
 
       <div v-if="hasMore" ref="sentinelRef" class="home__sentinel" />
+
+      <div
+        v-if="loadingMore"
+        class="home__loading home__loading--more"
+        aria-live="polite"
+      >
+        Carregando mais produtos
+      </div>
 
       <div v-if="pending" class="home__loading" aria-live="polite">
         Carregando ofertas…
@@ -58,6 +68,10 @@
 
 <script setup lang="ts">
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
+import {
+  nextShortcutPatch,
+  type StoryShortcut,
+} from '~/utils/storyShortcuts'
 
 const filters = useOfferFilters()
 const sentinelRef = ref<HTMLElement | null>(null)
@@ -69,39 +83,42 @@ const extraItems = ref<JboOffer[]>([])
 const nextCursor = ref<string | null>(null)
 const loadingMore = ref(false)
 
-useSeoMeta({
+useJboSeo({
   title: 'Ofertas em Joinville | Joinville Boas Ofertas',
   description: 'Compare preços vigentes nos supermercados de Joinville e região.',
-  ogTitle: 'Ofertas em Joinville | Joinville Boas Ofertas',
-  ogDescription: 'Compare preços vigentes nos supermercados de Joinville e região.',
-})
-
-useHead({
-  script: [
-    {
-      type: 'application/ld+json',
-      children: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: 'Joinville Boas Ofertas',
-        url: config.public.siteUrl,
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: `${config.public.siteUrl}/?q={search_term_string}`,
-          'query-input': 'required name=search_term_string',
-        },
-      }),
+  path: '/',
+  jsonLd: {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Joinville Boas Ofertas',
+    url: config.public.siteUrl,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${config.public.siteUrl}/?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
     },
-  ],
+  },
 })
 
-const { data: facetsData } = await useAsyncData(
-  'jbo-facets',
-  () => jboGet<JboFacets>('/offers/facets').catch(() => ({
-    categories: [],
-    establishments: [],
-  })),
-)
+const [facetsResult, offersResult] = await Promise.all([
+  useAsyncData(
+    'jbo-facets',
+    () => jboGet<JboFacets>('/offers/facets').catch(() => ({
+      categories: [],
+      establishments: [],
+    })),
+  ),
+  useAsyncData(
+    'jbo-offers',
+    () => jboGet<JboOffersPage>('/offers', {
+      ...filters.apiParams.value,
+      page_size: 20,
+    }),
+    { watch: [() => JSON.stringify(filters.apiParams.value)] },
+  ),
+])
+
+const facetsData = facetsResult.data
 const facets = computed<JboFacets>(() => facetsData.value || {
   categories: [],
   establishments: [],
@@ -112,14 +129,9 @@ const {
   pending,
   error: pageError,
   refresh,
-} = await useAsyncData(
-  'jbo-offers',
-  () => jboGet<JboOffersPage>('/offers', {
-    ...filters.apiParams.value,
-    page_size: 20,
-  }),
-  { watch: [() => JSON.stringify(filters.apiParams.value)] },
-)
+} = offersResult
+
+useSyncLoadingIndicator(pending)
 
 const items = computed(() => [
   ...(pageData.value?.items || []),
@@ -167,6 +179,21 @@ async function onApplyEstablishments(ids: string[]) {
 }
 
 /**
+ * Aplica (ou desliga) um atalho estático da faixa Stories.
+ */
+async function onShortcut(item: StoryShortcut) {
+  const patch = nextShortcutPatch(
+    item,
+    {
+      q: filters.state.value.q,
+      category_ids: filters.state.value.category_ids,
+    },
+    facets.value.categories,
+  )
+  await filters.patch(patch)
+}
+
+/**
  * Carrega a próxima página do cursor.
  */
 async function loadMore() {
@@ -207,18 +234,6 @@ onMounted(() => {
   gap: 0.75rem;
   max-width: 720px;
   margin: 0 auto;
-}
-
-.home__intro h1 {
-  margin: 0 0 0.35rem;
-  font-size: 1.35rem;
-  font-weight: 900;
-}
-
-.home__intro p {
-  margin: 0 0 0.75rem;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 
 .home__sentinel {

@@ -60,11 +60,11 @@
 </template>
 
 <script setup lang="ts">
-useSeoMeta({
+useJboSeo({
   title: 'Termos de uso | Joinville Boas Ofertas',
   description: 'Condições de uso do catálogo público Joinville Boas Ofertas.',
-})
-</script>
+  path: '/termos',
+})</script>
 
 <style scoped>
 .page__main {

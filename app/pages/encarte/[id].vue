@@ -42,33 +42,40 @@
           <span>{{ encarte.establishment_name }}</span>
         </NuxtLink>
       </p>
-      <p class="validity" :class="{ 'validity--expired': encarte.promo_active === false }">
-        <template v-if="encarte.promo_active === false">
-          Expirou em {{ formatDate(encarte.promo_ends_on) }}
-        </template>
-        <template v-else-if="encarte.promo_starts_on">
-          De {{ formatDate(encarte.promo_starts_on) }} até {{ formatDate(encarte.promo_ends_on) }}
-        </template>
-        <template v-else>
-          Válido até {{ formatDate(encarte.promo_ends_on) }}
-        </template>
+      <p
+        class="validity"
+        :class="{
+          'validity--expired': isExpired,
+          'validity--upcoming': isUpcoming,
+        }"
+      >
+        {{ validityLabel }}
       </p>
+      <p v-if="isExpired" class="phase-badge phase-badge--expired">Expirado</p>
+      <p v-else-if="isUpcoming" class="phase-badge phase-badge--upcoming">Em breve</p>
       <p class="registered">
         {{ formatRegisteredAt(encarte.created_at, new Date(renderedAt)) }}
       </p>
-      <img
-        v-if="photoUrl"
-        class="photo"
-        :src="photoUrl"
-        :alt="`Encarte ${encarte.establishment_name}`"
-        loading="lazy"
-      >
+      <div v-if="photoUrl" class="photo">
+        <img
+          class="photo__img"
+          :src="photoUrl"
+          :alt="`Encarte ${encarte.establishment_name}`"
+          loading="lazy"
+        >
+        <EncarteRefBadge :scan-id="encarte.id" />
+      </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
 import { jboGet, type JboEncarte } from '~/utils/jboApi'
+import {
+  formatPromoValidityLabel,
+  getPromoPhase,
+  isPromoExpired,
+} from '~/utils/promoPhase'
 import { formatRegisteredAt } from '~/utils/relativeTime'
 import { shareEncarte } from '~/utils/shareEncarte'
 
@@ -87,8 +94,18 @@ if (error.value) {
 }
 
 const photoUrl = computed(() => encarte.value?.image_url_xl || encarte.value?.image_url || '')
+const promoPhase = computed(() =>
+  encarte.value ? getPromoPhase(encarte.value) : 'active',
+)
+const isExpired = computed(() =>
+  encarte.value ? isPromoExpired(encarte.value) : false,
+)
+const isUpcoming = computed(() => promoPhase.value === 'upcoming')
+const validityLabel = computed(() =>
+  encarte.value ? formatPromoValidityLabel(encarte.value) : '',
+)
 
-const { isFollowing, toggle, hint: followHint, hintFor } = useJboStoreFollow()
+const { isFollowing, requestToggle, hint: followHint, hintFor } = useJboStoreFollow()
 
 const copied = ref(false)
 let copiedTimer: ReturnType<typeof setTimeout> | undefined
@@ -96,7 +113,7 @@ let copiedTimer: ReturnType<typeof setTimeout> | undefined
 /** Liga ou desliga avisos da loja deste encarte. */
 async function onBell() {
   if (!encarte.value) return
-  await toggle(encarte.value.establishment_id)
+  await requestToggle(encarte.value.establishment_id, encarte.value.establishment_name)
 }
 
 /** Folha nativa ou copiar link `{origin}/encarte/{id}`. */
@@ -116,26 +133,13 @@ async function onShare() {
   }, 2000)
 }
 
-/** Formata uma data ISO curta sem conversão de fuso horário. */
-function formatDate(iso: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
-  return match ? `${match[3]}/${match[2]}/${match[1]}` : iso
-}
-
-const site = String(useRuntimeConfig().public.siteUrl || '').replace(/\/$/, '')
-
-function absoluteOgImage(url?: string | null): string | undefined {
-  if (!url) return undefined
-  if (url.startsWith('/')) return `${site}${url}`
-  return url
-}
-
-useSeoMeta({
+useJboSeo({
   title: () => `Encarte ${encarte.value?.establishment_name || ''} | Joinville Boas Ofertas`,
-  ogImage: () => absoluteOgImage(encarte.value?.image_url_xl || encarte.value?.image_url), // og:image
   description: () => encarte.value
-    ? `Encarte válido até ${formatDate(encarte.value.promo_ends_on)}`
-    : undefined,
+    ? `Encarte ${formatValidUntil(encarte.value.promo_ends_on).toLowerCase()}`
+    : '',
+  path: () => `/encarte/${String(route.params.id)}`,
+  image: () => encarte.value?.image_url_xl || encarte.value?.image_url,
 })
 </script>
 
@@ -253,12 +257,44 @@ h1 {
   color: rgba(255, 255, 255, 0.55);
 }
 
+.validity--upcoming {
+  color: var(--upcoming-light);
+}
+
+.phase-badge {
+  margin: 0.35rem 0 0;
+  padding: 0.2rem 0.45rem;
+  width: fit-content;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.phase-badge--expired {
+  background: #3a4454;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.phase-badge--upcoming {
+  background: var(--upcoming);
+  color: #fff;
+}
+
 .photo {
+  position: relative;
+  display: block;
+  margin: 1rem 0;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.photo__img {
   display: block;
   max-width: 100%;
   height: auto;
   border-radius: 12px;
-  margin: 1rem 0;
   border: 1px solid var(--border);
 }
 </style>

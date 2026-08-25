@@ -7,7 +7,30 @@
           {{ data.product.category.name }}
         </NuxtLink>
       </p>
-      <h1>{{ data.product.name }}</h1>
+      <div class="heading">
+        <h1>{{ data.product.name }}</h1>
+        <button
+          type="button"
+          class="share"
+          aria-label="Compartilhar oferta"
+          data-test="product-share"
+          @click="onShare"
+        >
+          <svg class="share__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <circle cx="18" cy="5" r="2.5" fill="currentColor" />
+            <circle cx="6" cy="12" r="2.5" fill="currentColor" />
+            <circle cx="18" cy="19" r="2.5" fill="currentColor" />
+            <path
+              d="M8.4 10.8 15.6 6.7M8.4 13.2l7.2 4.1"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+      <p class="copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</p>
 
       <section v-if="selected" class="proof" aria-label="Trecho do encarte">
         <div class="proof__frame">
@@ -23,6 +46,9 @@
           <span class="proof__stamp">No encarte</span>
           <EncarteRefBadge :scan-id="selected.encarte_id" />
         </div>
+        <p v-if="selected.encarte_id" class="proof__hint">
+          Verifique todas as condições no encarte
+        </p>
         <button
           v-if="selected.encarte_id"
           type="button"
@@ -30,7 +56,7 @@
           :disabled="openingEncarte"
           @click="openFullEncarte"
         >
-          {{ openingEncarte ? 'Abrindo…' : 'Ver encarte inteiro' }}
+          {{ openingEncarte ? 'Abrindo…' : 'Ver encarte completo' }}
         </button>
         <p v-if="encarteError" class="proof__error" role="status">
           Não foi possível abrir o encarte completo.
@@ -68,7 +94,7 @@
       </section>
 
       <section v-if="otherStores.length" class="list" aria-label="Preços por supermercado">
-        <h2>Onde encontrar mais {{ data.product.name }}</h2>
+        <h2 class="section-heading">Onde encontrar mais {{ data.product.name }}</h2>
         <NuxtLink
           v-for="offer in otherStores"
           :key="offer.id"
@@ -112,12 +138,22 @@
       </section>
 
       <section v-if="related.length" class="related" aria-label="Outros produtos nesta loja">
-        <h2>Outros produtos de {{ selected?.establishment_name }}</h2>
+        <h2 class="section-heading">
+          Outros produtos de {{ selected?.establishment_name }}
+        </h2>
         <OfferCard
           v-for="offer in related"
           :key="offer.id"
           :offer="offer"
+          hide-store
         />
+        <NuxtLink
+          v-if="selected?.establishment_slug"
+          class="related__all"
+          :to="`/loja/${selected.establishment_slug}`"
+        >
+          Veja todos os produtos do supermercado
+        </NuxtLink>
       </section>
     </main>
 
@@ -142,6 +178,7 @@ import {
   isPromoUpcoming,
 } from '~/utils/promoPhase'
 import { formatOfferPrice, formatOfferPriceParts, formatUnitPrice } from '~/utils/unitPrice'
+import { shareEncarte } from '~/utils/shareEncarte'
 
 type ProductPage = {
   product: {
@@ -164,6 +201,8 @@ const config = useRuntimeConfig()
 const openEncarte = ref<JboEncarte | null>(null)
 const openingEncarte = ref(false)
 const encarteError = ref(false)
+const copied = ref(false)
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
 
 const { data, error } = await useAsyncData(
   () => `product-${slug.value}`,
@@ -207,7 +246,7 @@ const { data: relatedPage } = await useAsyncData(
     if (!relatedQuery.value) return { items: [] as JboOffer[], next_cursor: null }
     return jboGet<JboOffersPage>('/offers', {
       establishment_ids: relatedQuery.value,
-      page_size: 24,
+      page_size: 12,
       sort: 'recent',
     })
   },
@@ -218,7 +257,7 @@ const related = computed(() =>
   relatedStoreOffers(
     relatedPage.value?.items || [],
     data.value?.product.id,
-    8,
+    5,
     data.value?.product.category?.name,
   ),
 )
@@ -226,6 +265,29 @@ const related = computed(() =>
 watch(lojaSlug, () => {
   encarteError.value = false
 })
+
+/** Folha nativa ou copiar URL da página do produto. */
+async function onShare() {
+  if (!data.value) return
+  const origin = import.meta.client ? window.location.origin : ''
+  const path = productOfferPath({
+    product_id: data.value.product.id,
+    product_slug: data.value.product.slug,
+    establishment_slug: selected.value?.establishment_slug || lojaSlug.value || '',
+  })
+  const store = selected.value?.establishment_name
+  const result = await shareEncarte({
+    title: data.value.product.name,
+    text: store ? `Oferta em ${store}` : 'Joinville Boas Ofertas',
+    url: `${origin}${path}`,
+  }).catch(() => undefined)
+  if (result !== 'copied') return
+  copied.value = true
+  clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => {
+    copied.value = false
+  }, 2000)
+}
 
 /** Iniciais quando a loja ainda não tem logo. */
 function initials(name: string): string {
@@ -287,7 +349,7 @@ async function openFullEncarte() {
   }
 }
 
-useSeoMeta({
+useJboSeo({
   title: () => {
     if (!data.value) return 'Produto'
     if (selected.value?.establishment_name) {
@@ -302,35 +364,32 @@ useSeoMeta({
     }
     return `Compare preços de ${data.value.product.name} nos supermercados de Joinville.`
   },
-  ogImage: () => selected.value?.image_url || undefined,
-})
-
-watchEffect(() => {
-  const offer = selected.value
-  if (!offer || !data.value) return
-  useHead({
-    script: [
-      {
-        type: 'application/ld+json',
-        children: JSON.stringify({
-          '@context': 'https://schema.org',
-          '@type': 'Product',
-          name: data.value.product.name,
-          offers: {
-            '@type': 'Offer',
-            priceCurrency: 'BRL',
-            price: Number(offer.price),
-            availability: 'https://schema.org/InStock',
-            seller: {
-              '@type': 'Organization',
-              name: offer.establishment_name,
-            },
-            url: `${config.public.siteUrl}${productOfferPath(offer)}`,
-          },
-        }),
+  path: () => {
+    if (selected.value) return productOfferPath(selected.value)
+    const s = String(route.params.slug || '')
+    return s ? `/produto/${s}` : '/'
+  },
+  image: () => selected.value?.image_url || undefined,
+  jsonLd: () => {
+    const offer = selected.value
+    if (!offer || !data.value) return null
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: data.value.product.name,
+      offers: {
+        '@type': 'Offer',
+        priceCurrency: 'BRL',
+        price: Number(offer.price),
+        availability: 'https://schema.org/InStock',
+        seller: {
+          '@type': 'Organization',
+          name: offer.establishment_name,
+        },
+        url: `${config.public.siteUrl}${productOfferPath(offer)}`,
       },
-    ],
-  })
+    }
+  },
 })
 </script>
 
@@ -351,11 +410,60 @@ watchEffect(() => {
   letter-spacing: 0.04em;
 }
 
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
 h1 {
+  flex: 1;
   margin: 0;
   font-size: 1.65rem;
   font-weight: 900;
   line-height: 1.2;
+}
+
+.share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 0.1rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--navy-light);
+  color: var(--yellow);
+  cursor: pointer;
+}
+
+.share__icon {
+  display: block;
+}
+
+.share:hover {
+  border-color: var(--yellow);
+}
+
+.share:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+.copied {
+  min-height: 1.2em;
+  margin: -0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.copied:empty {
+  display: none;
 }
 
 .proof {
@@ -404,6 +512,14 @@ h1 {
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.proof__hint {
+  margin: 0 0 -0.35rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
 }
 
 .proof__open {
@@ -519,10 +635,13 @@ h1 {
   gap: 0.55rem;
 }
 
-h2 {
+h2,
+.section-heading {
   margin: 0.4rem 0 0.15rem;
   font-size: 1rem;
   color: var(--yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .row {
@@ -634,5 +753,25 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+}
+
+.related__all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.35rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--navy-light);
+  color: var(--yellow);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.related__all:hover {
+  border-color: var(--yellow);
 }
 </style>
