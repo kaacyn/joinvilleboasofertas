@@ -1,39 +1,53 @@
-
 /**
  * Gera sitemap.xml a partir da API pública JBO.
  */
+import { isValidLastmod } from '../../app/utils/jboSeo'
+
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   const site = String(config.public.siteUrl || '').replace(/\/$/, '')
   const apiBase = String(config.apiBase || '').replace(/\/$/, '')
 
-  let paths: string[] = ['/', '/lojas', '/encartes', '/perguntas-frequentes', '/privacidade', '/termos']
+  const entries = new Map<string, string | null>()
+  for (const loc of [
+    '/',
+    '/lojas',
+    '/encartes',
+    '/perguntas-frequentes',
+    '/envie-um-encarte',
+    '/privacidade',
+    '/termos',
+  ]) {
+    entries.set(loc, null)
+  }
+
   try {
-    const data = await $fetch<{ urls: { loc: string }[] }>(
+    const data = await $fetch<{ urls: { loc: string, lastmod?: string | null }[] }>(
       `${apiBase}/api/public/jbo/sitemap`,
     )
-    const fromApi = (data.urls || [])
-      .filter(u => u.loc !== '/estabelecimentos')
-      .map(u => u.loc.replace(/^\/mercado\//, '/loja/'))
-    paths = [
-      ...new Set([
-        '/',
-        '/lojas',
-        '/encartes',
-        '/perguntas-frequentes',
-        '/privacidade',
-        '/termos',
-        ...fromApi,
-      ]),
-    ]
+    for (const u of data.urls || []) {
+      const loc = u.loc.replace(/^\/mercado\//, '/loja/')
+      if (loc === '/estabelecimentos') continue
+      const lm = isValidLastmod(u.lastmod)
+        ? u.lastmod!.trim().slice(0, 10)
+        : null
+      const prev = entries.get(loc) ?? null
+      if (!entries.has(loc)) {
+        entries.set(loc, lm)
+      }
+      else if (lm && (!prev || lm > prev)) {
+        entries.set(loc, lm)
+      }
+    }
   }
   catch {
     // Mantém paths mínimos se a API estiver indisponível no build/SSR.
   }
 
-  const urls = paths.map((loc) => {
+  const urls = [...entries.entries()].map(([loc, lastmod]) => {
     const path = loc.startsWith('http') ? loc : `${site}${loc}`
-    return `  <url><loc>${escapeXml(path)}</loc></url>`
+    const lm = lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : ''
+    return `  <url><loc>${escapeXml(path)}</loc>${lm}</url>`
   })
 
   const xml = [
