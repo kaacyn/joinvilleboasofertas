@@ -55,7 +55,7 @@ export default defineNuxtConfig({
     },
     manifest: {
       name: 'Joinville Boas Ofertas',
-      short_name: 'JBO',
+      short_name: 'Joinville Boas Ofertas',
       description: 'Ofertas de supermercados em Joinville e região.',
       lang: 'pt-BR',
       start_url: '/',

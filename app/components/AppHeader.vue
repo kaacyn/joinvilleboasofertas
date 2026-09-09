@@ -14,8 +14,28 @@
     </div>
     <InstallAppButton />
     <HeaderMenu />
+    <div
+      class="header__loading"
+      :class="{ 'header__loading--active': isLoading }"
+      :style="{ transform: `scaleX(${Math.max(progress, 2) / 100})` }"
+      role="progressbar"
+      :aria-valuenow="Math.round(progress)"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-label="Carregando página"
+      :aria-hidden="isLoading ? 'false' : 'true'"
+    />
   </header>
 </template>
+
+<script setup lang="ts">
+/** Barra fina sob o menu durante navegação entre páginas. */
+const { progress, isLoading } = useLoadingIndicator({
+  duration: 2500,
+  throttle: 120,
+  hideDelay: 350,
+})
+</script>
 
 <style scoped>
 .header {
@@ -38,6 +58,7 @@
   text-decoration: none;
   flex-shrink: 0;
   margin-right: auto;
+  cursor: pointer;
 }
 
 .header__logo {
@@ -48,5 +69,23 @@
 .header__slot {
   flex: 1;
   min-width: 0;
+}
+
+.header__loading {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  pointer-events: none;
+  background: var(--yellow);
+  transform: scaleX(0);
+  transform-origin: left center;
+  opacity: 0;
+  transition: transform 0.12s ease-out, opacity 0.35s ease;
+}
+
+.header__loading--active {
+  opacity: 1;
 }
 </style>

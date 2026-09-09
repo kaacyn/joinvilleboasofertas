@@ -30,6 +30,24 @@ async function getPushRegistration(): Promise<ServiceWorkerRegistration | null> 
   return Promise.race([navigator.serviceWorker.ready, timeout])
 }
 
+export type FollowInstructionMode =
+  | 'ios-install'
+  | 'request-permission'
+  | 'permission-denied'
+  | 'ready'
+
+/** Define o texto de instruções do modal conforme plataforma e permissão. */
+export function followInstructionMode(
+  isIos: boolean,
+  isStandalone: boolean,
+): FollowInstructionMode {
+  if (typeof window === 'undefined') return 'request-permission'
+  if (!detectPushSupport() || (isIos && !isStandalone)) return 'ios-install'
+  if (Notification.permission === 'denied') return 'permission-denied'
+  if (Notification.permission === 'default') return 'request-permission'
+  return 'ready'
+}
+
 /**
  * Seguir loja no Web Push anônimo: VAPID + follows compartilhados entre cards.
  */
@@ -39,7 +57,14 @@ export function useJboStoreFollow() {
   const hint = useState('jbo:follow-hint', () => '')
   const hintFor = useState('jbo:follow-hint-for', () => '')
   const pushSupported = useState('jbo:push-supported', () => true)
-  const { isIos, isStandalone } = usePwaInstall()
+  const confirmOpen = useState('jbo:follow-confirm-open', () => false)
+  const confirmStoreId = useState('jbo:follow-confirm-id', () => '')
+  const confirmStoreName = useState('jbo:follow-confirm-name', () => '')
+  const { isIos, isStandalone, promptInstall } = usePwaInstall()
+
+  const instructionMode = computed<FollowInstructionMode>(() =>
+    followInstructionMode(isIos.value, isStandalone.value),
+  )
 
   function applyFollow(establishmentId: string, following: boolean) {
     if (following) {
@@ -98,6 +123,54 @@ export function useJboStoreFollow() {
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(key),
     })
+  }
+
+  function closeConfirm() {
+    confirmOpen.value = false
+    confirmStoreId.value = ''
+    confirmStoreName.value = ''
+  }
+
+  /** Abre confirmação ao seguir; deixa de seguir sem modal. */
+  async function requestToggle(establishmentId: string, storeName: string): Promise<void> {
+    hint.value = ''
+    hintFor.value = establishmentId
+    await loadOnce()
+
+    if (isFollowing(establishmentId)) {
+      await toggle(establishmentId)
+      return
+    }
+
+    confirmStoreId.value = establishmentId
+    confirmStoreName.value = storeName.trim() || 'esta loja'
+    confirmOpen.value = true
+  }
+
+  async function confirmFollow(): Promise<void> {
+    const establishmentId = confirmStoreId.value
+    const mode = instructionMode.value
+    closeConfirm()
+    if (!establishmentId) return
+
+    if (mode === 'ios-install') {
+      hintFor.value = establishmentId
+      hint.value = 'Depois de instalar o app, toque no sino novamente para seguir a loja.'
+      await promptInstall()
+      return
+    }
+
+    if (mode === 'permission-denied') {
+      hintFor.value = establishmentId
+      hint.value = 'Ative as notificações nas configurações do site e tente de novo.'
+      return
+    }
+
+    await toggle(establishmentId)
+  }
+
+  function cancelFollow() {
+    closeConfirm()
   }
 
   async function toggle(establishmentId: string): Promise<void> {
@@ -174,9 +247,16 @@ export function useJboStoreFollow() {
   return {
     isFollowing,
     toggle,
+    requestToggle,
+    confirmFollow,
+    cancelFollow,
     hint,
     hintFor,
     pushSupported,
+    confirmOpen,
+    confirmStoreId,
+    confirmStoreName,
+    instructionMode,
   }
 }
 

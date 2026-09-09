@@ -28,7 +28,7 @@
       <div class="deal__name">
         {{ offer.product_name }}
       </div>
-      <div class="deal__meta">
+      <div v-if="!hideStore" class="deal__meta">
         <span class="deal__store">
           <img
             v-if="offer.establishment_logo_url"
@@ -75,7 +75,13 @@ import {
   isPromoExpired,
 } from '~/utils/promoPhase'
 
-const props = defineProps<{ offer: JboOffer }>()
+const props = withDefaults(defineProps<{
+  offer: JboOffer
+  /** Esconde logo/nome da loja (ex.: já no título da seção). */
+  hideStore?: boolean
+}>(), {
+  hideStore: false,
+})
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 

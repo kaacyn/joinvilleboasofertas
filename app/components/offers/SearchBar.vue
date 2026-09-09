@@ -1,32 +1,50 @@
 <template>
-  <form class="search" role="search" @submit.prevent="emit('submit')">
+  <div class="search" role="search">
     <label class="sr-only" for="jbo-search">Buscar ofertas</label>
-    <input
-      id="jbo-search"
-      :value="modelValue"
-      type="search"
-      class="search__input"
+    <SearchAutocomplete
+      ref="acRef"
+      class="search__field"
+      :model-value="modelValue"
+      input-id="jbo-search"
       placeholder="Buscar produto ou loja…"
-      autocomplete="off"
-      enterkeyhint="search"
-      @input="onInput"
+      :fetcher="fetchProductSuggestions"
+      :min-chars="1"
+      @update:model-value="onUpdate"
+      @select="onSelect"
+      @submit="onSubmit"
     >
-  </form>
+      <template #empty>Nenhum resultado para “{{ modelValue }}”</template>
+    </SearchAutocomplete>
+  </div>
 </template>
 
 <script setup lang="ts">
+import { fetchProductSuggestions, type JboSuggestItem } from '~/utils/jboApi'
+
 defineProps<{ modelValue: string }>()
 const emit = defineEmits<{
   'update:modelValue': [string]
   submit: []
 }>()
 
-/**
- * Emite o texto digitado para o v-model do pai.
- */
-function onInput(e: Event) {
-  const t = e.target as HTMLInputElement
-  emit('update:modelValue', t.value)
+const acRef = ref<{ focus?: () => void, blur?: () => void } | null>(null)
+
+function onUpdate(v: string) {
+  emit('update:modelValue', v)
+}
+
+/** Escolhe sugestão e aplica a busca imediatamente. */
+function onSelect(item: JboSuggestItem) {
+  emit('update:modelValue', item.name)
+  acRef.value?.blur?.()
+  nextTick(() => emit('submit'))
+}
+
+/** Aplica a busca pelo texto digitado e fecha o teclado no smartphone. */
+function onSubmit(q: string) {
+  emit('update:modelValue', (q || '').trim())
+  acRef.value?.blur?.()
+  nextTick(() => emit('submit'))
 }
 </script>
 
@@ -36,21 +54,9 @@ function onInput(e: Event) {
   width: 100%;
 }
 
-.search__input {
+.search__field {
   flex: 1;
   min-width: 0;
-  border: 1px solid var(--border);
-  background: var(--navy-light);
-  color: var(--white);
-  border-radius: 10px;
-  padding: 0.65rem 0.85rem;
-  font: inherit;
-  font-size: 0.95rem;
-}
-
-.search__input:focus {
-  outline: 2px solid var(--yellow);
-  outline-offset: 1px;
 }
 
 .sr-only {

@@ -2,6 +2,7 @@
   <div class="filterbar">
     <div class="filterbar__chips">
       <FilterChipDropdown
+        v-if="showCategories"
         label="Categorias"
         :active-count="categoryIds.length"
         @open="catSearch = ''"
@@ -53,6 +54,7 @@
       </FilterChipDropdown>
 
       <FilterChipDropdown
+        v-if="showEstablishments"
         label="Lojas"
         :active-count="establishmentIds.length"
         @open="estSearch = ''"
@@ -104,34 +106,24 @@
       </FilterChipDropdown>
 
       <FilterChipDropdown
+        v-if="showSort"
         :label="sortLabel"
-        :active-count="sort !== 'recent' ? 1 : 0"
+        :active-count="sort !== sortDefault ? 1 : 0"
         @open="draftSort = sort"
       >
         <template #default="{ close }">
           <div class="popover">
+            <p class="popover__title">Ordenar por</p>
             <div class="popover__list">
               <button
-                v-for="opt in sortOptions"
+                v-for="opt in resolvedSortOptions"
                 :key="opt.value"
                 type="button"
                 class="popover__opt"
                 :class="{ 'popover__opt--on': draftSort === opt.value }"
-                @click="draftSort = opt.value"
+                @click="pickSort(opt.value, close)"
               >
                 {{ opt.label }}
-              </button>
-            </div>
-            <div class="popover__actions">
-              <button type="button" class="popover__clear" @click="draftSort = 'recent'">
-                Limpar
-              </button>
-              <button
-                type="button"
-                class="popover__apply"
-                @click="applySort(close)"
-              >
-                Aplicar
               </button>
             </div>
           </div>
@@ -144,12 +136,29 @@
 <script setup lang="ts">
 import type { JboFacets } from '~/utils/jboApi'
 
-const props = defineProps<{
+const DEFAULT_SORT_OPTIONS = [
+  { value: 'recent', label: 'Mais recentes' },
+  { value: 'price', label: 'Menor preço' },
+  { value: 'savings', label: 'Maior economia' },
+]
+
+const props = withDefaults(defineProps<{
   facets: JboFacets
   categoryIds: string[]
   establishmentIds: string[]
   sort: string
-}>()
+  showCategories?: boolean
+  showEstablishments?: boolean
+  showSort?: boolean
+  sortDefault?: string
+  sortOptions?: { value: string, label: string }[]
+}>(), {
+  showCategories: true,
+  showEstablishments: true,
+  showSort: true,
+  sortDefault: 'recent',
+  sortOptions: () => [],
+})
 
 const emit = defineEmits<{
   'update:sort': [string]
@@ -157,11 +166,9 @@ const emit = defineEmits<{
   applyEstablishments: [string[]]
 }>()
 
-const sortOptions = [
-  { value: 'recent', label: 'Mais recentes' },
-  { value: 'price', label: 'Menor preço' },
-  { value: 'savings', label: 'Maior economia' },
-] as const
+const resolvedSortOptions = computed(() =>
+  props.sortOptions.length ? props.sortOptions : DEFAULT_SORT_OPTIONS,
+)
 
 const draftCatIds = ref<string[]>([...props.categoryIds])
 const draftEstIds = ref<string[]>([...props.establishmentIds])
@@ -173,9 +180,13 @@ watch(() => props.categoryIds, (v) => { draftCatIds.value = [...v] })
 watch(() => props.establishmentIds, (v) => { draftEstIds.value = [...v] })
 watch(() => props.sort, (v) => { draftSort.value = v })
 
-const sortLabel = computed(() =>
-  sortOptions.find(o => o.value === props.sort)?.label || 'Mais recentes',
+const sortChoiceLabel = computed(() =>
+  resolvedSortOptions.value.find(o => o.value === props.sort)?.label
+  || resolvedSortOptions.value[0]?.label
+  || 'Vencimento',
 )
+
+const sortLabel = computed(() => `Ordenar: ${sortChoiceLabel.value}`)
 
 /**
  * Normaliza texto para busca sem acento.
@@ -230,10 +241,11 @@ function applyEstablishments(close: () => void) {
 }
 
 /**
- * Aplica ordenação escolhida e fecha o chip.
+ * Aplica a ordenação escolhida e fecha o chip.
  */
-function applySort(close: () => void) {
-  emit('update:sort', draftSort.value)
+function pickSort(value: string, close: () => void) {
+  draftSort.value = value
+  emit('update:sort', value)
   close()
 }
 </script>
@@ -282,6 +294,15 @@ function applySort(close: () => void) {
   flex: 1;
   min-height: 0;
   height: 100%;
+}
+
+.popover__title {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .popover__search {

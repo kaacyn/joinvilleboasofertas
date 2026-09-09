@@ -41,11 +41,20 @@ describe('página de produto a partir do card da home', () => {
     expect(card).not.toContain('`/oferta/${offer.id}`')
   })
 
-  it('mostra o recorte do encarte e abre o encarte inteiro', () => {
+  it('compartilha a oferta ao lado do título', () => {
+    const page = source('app/pages/produto/[slug]/[[loja]].vue')
+    expect(page).toContain('shareEncarte')
+    expect(page).toContain('data-test="product-share"')
+    expect(page).toContain('Compartilhar oferta')
+    expect(page).toContain('class="heading"')
+  })
+
+  it('mostra o recorte do encarte e abre o encarte completo', () => {
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
 
     expect(page).toContain('selected.image_url')
-    expect(page).toContain('Ver encarte inteiro')
+    expect(page).toContain('Verifique todas as condições no encarte')
+    expect(page).toContain('Ver encarte completo')
     expect(page).toContain('openFullEncarte')
     expect(page).toContain('EncarteLightbox')
     expect(page).toContain('`/encartes/${encarteId}`')
@@ -78,6 +87,11 @@ describe('página de produto a partir do card da home', () => {
       ],
       'loja-a',
     ).map(o => o.id)).toEqual(['ok', 'exp'])
+
+    const manyStores = Array.from({ length: 7 }, (_, i) =>
+      offer({ id: `s${i}`, establishment_id: `loja-${i}`, promo_ends_on: '2099-12-31' }),
+    )
+    expect(otherStoreOffers([current, ...manyStores], 'loja-a')).toHaveLength(5)
 
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
     expect(page).toContain('Onde encontrar mais {{ data.product.name }}')
@@ -116,9 +130,9 @@ describe('página de produto a partir do card da home', () => {
 
     expect(relatedStoreOffers([same, otherCat], 'prod-1').map(o => o.id)).toEqual(['2'])
     expect(relatedStoreOffers(
-      [same, otherCat, sameCat], 'prod-1', 8, 'Frios',
+      [same, otherCat, sameCat], 'prod-1', 5, 'Frios',
     ).map(o => o.id)).toEqual(['3', '2'])
-    expect(relatedStoreOffers(extras, 'prod-1', 8)).toHaveLength(8)
+    expect(relatedStoreOffers(extras, 'prod-1', 5)).toHaveLength(5)
     expect(relatedStoreOffers(
       [
         offer({ id: 'exp', product_id: 'p-exp', category_name: 'Frios', promo_ends_on: '2000-01-01' }),
@@ -126,17 +140,29 @@ describe('página de produto a partir do card da home', () => {
         offer({ id: 'nodate', product_id: 'p-nd', promo_ends_on: null }),
       ],
       'prod-1',
-      8,
+      5,
       'Frios',
     ).map(o => o.id)).toEqual(['ok', 'exp'])
 
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
     expect(page).toContain('Outros produtos de')
+    expect(page).not.toContain('section-heading--store')
+    expect(page).not.toContain('section-heading__logo')
+    expect(page).toContain('hide-store')
     expect(page).toContain('OfferCard')
     expect(page).toContain('relatedStoreOffers')
+    expect(page).toMatch(/relatedStoreOffers\(\s*[\s\S]*?\b5\b/)
+    expect(page).toContain('Veja todos os produtos do supermercado')
+    expect(page).toContain('related__all')
+    expect(page).toContain('`/loja/${selected.establishment_slug}`')
     expect(page).toContain('establishment_ids')
     expect(page).not.toContain('category_ids')
     expect(page).toContain('v-if="related.length"')
+    expect(page).toContain('text-transform: uppercase')
+
+    const card = source('app/components/offers/OfferCard.vue')
+    expect(card).toContain('hideStore')
+    expect(card).toContain('v-if="!hideStore"')
   })
 
   it('mostra o mercado atual num box com sino, endereço e expansão', () => {

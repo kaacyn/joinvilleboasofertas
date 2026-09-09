@@ -30,6 +30,14 @@
       aria-label="Menu do site"
     >
       <NuxtLink
+        to="/"
+        class="hmenu__item"
+        role="menuitem"
+        @click="close"
+      >
+        Início
+      </NuxtLink>
+      <NuxtLink
         to="/lojas"
         class="hmenu__item"
         role="menuitem"

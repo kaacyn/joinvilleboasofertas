@@ -14,7 +14,7 @@ describe('PWA JBO', () => {
     expect(config).toContain('@vite-pwa/nuxt')
     expect(config).toContain("injectManifest")
     expect(config).toContain("srcDir: '.'")
-    expect(config).toContain("short_name: 'JBO'")
+    expect(config).toContain("short_name: 'Joinville Boas Ofertas'")
     expect(config).toContain("theme_color: '#0D131D'")
     expect(config).toContain("display: 'standalone'")
     expect(config).not.toContain('pwaNavigation')

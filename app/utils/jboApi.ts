@@ -103,11 +103,28 @@ function apiOrigin(): string {
 export async function jboGet<T>(
   path: string,
   query: Record<string, unknown> = {},
+  opts: { signal?: AbortSignal } = {},
 ): Promise<T> {
   const cleaned = Object.fromEntries(
     Object.entries(query).filter(([, v]) => v !== undefined && v !== null && v !== ''),
   )
-  return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, { query: cleaned })
+  return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, {
+    query: cleaned,
+    signal: opts.signal,
+  })
+}
+
+export type JboSuggestItem = {
+  id: string
+  name: string
+}
+
+/** Sugestões de produto para o autocomplete da busca (estilo Snap). */
+export function fetchProductSuggestions(
+  q: string,
+  opts: { signal?: AbortSignal } = {},
+): Promise<JboSuggestItem[]> {
+  return jboGet<JboSuggestItem[]>('/products/suggest', { q }, opts)
 }
 
 /**

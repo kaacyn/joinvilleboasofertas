@@ -1,7 +1,10 @@
 <template>
   <article
     class="card"
-    :class="{ 'card--expired': !encarte.promo_active }"
+    :class="{
+      'card--expired': isExpired,
+      'card--upcoming': isUpcoming,
+    }"
   >
     <span class="card__media">
       <img
@@ -19,6 +22,7 @@
         loading="lazy"
       >
       <span v-else class="card__placeholder">Imagem indisponível</span>
+      <EncarteRefBadge :scan-id="encarte.id" />
       <button
         type="button"
         class="card__open card__open--media"
@@ -69,13 +73,20 @@
           </span>
           <span class="card__store-name">{{ encarte.establishment_name }}</span>
         </span>
-        <span class="card__dates">
-          Válido até {{ formatDate(encarte.promo_ends_on) }}
+        <span
+          class="card__dates"
+          :class="{
+            'card__dates--expired': isExpired,
+            'card__dates--upcoming': isUpcoming,
+          }"
+        >
+          {{ validityLabel }}
         </span>
         <span class="card__registered">
           {{ formatRegisteredAt(encarte.created_at, new Date(renderedAt)) }}
         </span>
-        <span v-if="!encarte.promo_active" class="card__expired">Expirado</span>
+        <span v-if="isExpired" class="card__badge card__badge--expired">Expirado</span>
+        <span v-else-if="isUpcoming" class="card__badge card__badge--upcoming">Em breve</span>
         <span class="card__copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</span>
       </span>
     </button>
@@ -84,17 +95,27 @@
 
 <script setup lang="ts">
 import type { JboEncarte } from '~/utils/jboApi'
+import {
+  formatPromoValidityLabel,
+  getPromoPhase,
+  isPromoExpired,
+} from '~/utils/promoPhase'
 import { formatRegisteredAt } from '~/utils/relativeTime'
 import { shareEncarte } from '~/utils/shareEncarte'
 
 const props = defineProps<{ encarte: JboEncarte }>()
 defineEmits<{ open: [encarte: JboEncarte] }>()
 
-const { isFollowing, toggle, hint: followHint, hintFor } = useJboStoreFollow()
+const { isFollowing, requestToggle, hint: followHint, hintFor } = useJboStoreFollow()
+
+const promoPhase = computed(() => getPromoPhase(props.encarte))
+const isExpired = computed(() => isPromoExpired(props.encarte))
+const isUpcoming = computed(() => promoPhase.value === 'upcoming')
+const validityLabel = computed(() => formatPromoValidityLabel(props.encarte))
 
 /** Liga ou desliga avisos da loja sem abrir o lightbox. */
 async function onBell() {
-  await toggle(props.encarte.establishment_id)
+  await requestToggle(props.encarte.establishment_id, props.encarte.establishment_name)
 }
 
 /** Instante serializado no payload: SSR e hidratação usam a mesma referência de tempo. */
@@ -125,12 +146,6 @@ function initials(name: string): string {
   if (!parts.length) return '?'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[1][0]).toUpperCase()
-}
-
-/** Formata uma data ISO curta sem conversão de fuso horário. */
-function formatDate(iso: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
-  return match ? `${match[3]}/${match[2]}/${match[1]}` : iso
 }
 </script>
 
@@ -340,18 +355,34 @@ function formatDate(iso: string): string {
   font-size: 0.78rem;
 }
 
+.card__dates--expired {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.card__dates--upcoming {
+  color: var(--upcoming-light);
+}
+
 .card__copied:empty {
   display: none;
 }
 
-.card__expired {
+.card__badge {
   padding: 0.2rem 0.45rem;
   border-radius: 999px;
-  background: #3a4454;
-  color: rgba(255, 255, 255, 0.9);
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.card__badge--expired {
+  background: #3a4454;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.card__badge--upcoming {
+  background: var(--upcoming);
+  color: #fff;
 }
 </style>

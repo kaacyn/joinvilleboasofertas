@@ -25,6 +25,9 @@ describe('sino anônimo segue loja', () => {
     expect(src).toContain("useState<string[]>('jbo:followed-stores'")
     expect(src).toContain('isFollowing')
     expect(src).toContain('function toggle')
+    expect(src).toContain('requestToggle')
+    expect(src).toContain('confirmFollow')
+    expect(src).toContain("useState('jbo:follow-confirm-open'")
     expect(src).toContain("'/push/vapid-public-key'")
     expect(src).toContain("'/push/follows/query'")
     expect(src).toContain('urlBase64ToUint8Array')
@@ -119,5 +122,54 @@ describe('sino anônimo segue loja', () => {
     expect(card).toContain('--yellow')
     expect(card).toContain('--navy-light')
     expect(card).toContain('[aria-pressed="true"]')
+  })
+
+  it('tem componente reutilizável do sino com alvo 44px e aria-pressed', () => {
+    const bell = source('app/components/StoreFollowBell.vue')
+    expect(bell).toContain('aria-label="Receber avisos desta loja"')
+    expect(bell).toContain('aria-pressed')
+    expect(bell).toContain('requestToggle')
+    expect(bell).toContain('storeName')
+    expect(bell).toContain('@click.stop')
+    expect(bell).toMatch(/(?:min-width|width):\s*44px/)
+  })
+
+  it('tem modal de confirmação com nome da loja e instruções', () => {
+    const modal = source('app/components/StoreFollowConfirmModal.vue')
+    expect(modal).toContain('Seguir esta loja?')
+    expect(modal).toContain('{{ storeName }}')
+    expect(modal).toContain('instructionMode')
+    expect(modal).toContain('useDialogLock')
+    expect(modal).toContain('Agora não')
+    expect(source('app/app.vue')).toContain('StoreFollowConfirmModal')
+  })
+
+  it('abre confirmação ao seguir e usa requestToggle nos sinos', () => {
+    const composable = source('app/composables/useJboStoreFollow.ts')
+    expect(composable).toContain('confirmOpen.value = true')
+    expect(composable).toMatch(/if \(isFollowing\(establishmentId\)\)/)
+
+    expect(source('app/components/encartes/EncarteCard.vue')).toContain('requestToggle')
+    expect(source('app/pages/encarte/[id].vue')).toContain('requestToggle')
+  })
+
+  it('mostra sino dentro do box de cada loja na listagem', () => {
+    const page = source('app/pages/lojas.vue')
+    expect(page).toContain('StoreFollowBell')
+    expect(page).toContain(':store-name="est.name"')
+    expect(page).toContain('class="list__item"')
+    expect(page).toContain('class="list__main"')
+    const itemBlock = page.slice(page.indexOf('class="list__item"'))
+    expect(itemBlock.indexOf('StoreFollowBell')).toBeGreaterThan(-1)
+    expect(itemBlock.indexOf('</NuxtLink>')).toBeLessThan(itemBlock.indexOf('StoreFollowBell'))
+  })
+
+  it('mostra sino à direita do nome na página da loja', () => {
+    const page = source('app/pages/loja/[slug].vue')
+    expect(page).toContain('StoreFollowBell')
+    expect(page).toContain(':establishment-id="data.establishment.id"')
+    expect(page).toContain('loja-head__body')
+    expect(page).toContain('show-hint')
+    expect(page).toContain('hide-store')
   })
 })

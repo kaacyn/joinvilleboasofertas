@@ -16,12 +16,14 @@
     >
       ×
     </button>
-    <img
-      v-if="encarte.image_url_xl || encarte.image_url"
-      class="lb__img"
-      :src="encarte.image_url_xl || encarte.image_url || ''"
-      :alt="`Encarte ${encarte.establishment_name}`"
-    >
+    <div v-if="encarte.image_url_xl || encarte.image_url" class="lb__frame">
+      <img
+        class="lb__img"
+        :src="encarte.image_url_xl || encarte.image_url || ''"
+        :alt="`Encarte ${encarte.establishment_name}`"
+      >
+      <EncarteRefBadge :scan-id="encarte.id" />
+    </div>
     <p v-else class="lb__empty">Imagem indisponível.</p>
   </div>
 </template>
@@ -137,8 +139,15 @@ onBeforeUnmount(() => {
   outline-offset: 2px;
 }
 
-.lb__img {
+.lb__frame {
+  position: relative;
   max-width: min(100%, 1100px);
+  max-height: calc(100vh - 4.5rem);
+}
+
+.lb__img {
+  display: block;
+  max-width: 100%;
   max-height: calc(100vh - 4.5rem);
   object-fit: contain;
   border-radius: 8px;
