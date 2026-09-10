@@ -28,6 +28,9 @@
       <div class="deal__name">
         {{ offer.product_name }}
       </div>
+      <div v-if="subtitle" class="deal__subtitle">
+        {{ subtitle }}
+      </div>
       <div v-if="!hideStore" class="deal__meta">
         <span class="deal__store">
           <img
@@ -50,25 +53,47 @@
       <div class="deal__price">
         <div class="deal__price-stack">
           <span class="deal__price-now">
-            {{ priceParts.amount }}<span
-              v-if="priceParts.volumeSuffix"
+            <span v-if="priceParts.prefix" class="deal__price-prefix">{{ priceParts.prefix }} </span>{{ priceParts.amount }}<span
+              v-if="priceParts.suffix"
               class="deal__price-vol"
-            >/{{ priceParts.volumeSuffix }}</span>
+            >{{ priceParts.suffix }}</span>
           </span>
+          <span v-if="priceParts.each" class="deal__price-each">{{ priceParts.each }}</span>
           <span v-if="unitPriceLabel" class="deal__price-unit">{{ unitPriceLabel }}</span>
         </div>
-        <span v-if="offer.is_club_price" class="deal__club">{{ clubLabel }}</span>
+        <span v-if="clubLabel" class="deal__club">{{ clubLabel }}</span>
+        <s
+          v-if="priceParts.regular"
+          class="deal__price-regular"
+          :title="`${priceParts.regular} sem o ${clubLabel}`"
+        >{{ priceParts.regular }}</s>
         <span v-if="hasSavings && avgLabel" class="deal__price-avg">
           média {{ avgLabel }}
         </span>
       </div>
+      <ul v-if="chips.length" class="deal__chips" aria-label="Condições da oferta">
+        <li
+          v-for="chip in chips"
+          :key="chip.key"
+          class="deal__chip"
+          :class="`deal__chip--${chip.key}`"
+          :title="chip.title"
+        >
+          {{ chip.label }}
+        </li>
+      </ul>
     </div>
   </NuxtLink>
 </template>
 
 <script setup lang="ts">
 import { clubBadgeLabel, productOfferPath, type JboOffer } from '~/utils/jboApi'
-import { formatOfferPriceParts, formatUnitPrice } from '~/utils/unitPrice'
+import {
+  formatOfferPriceParts,
+  formatOfferSubtitle,
+  formatUnitPrice,
+  offerChips,
+} from '~/utils/offerPrice'
 import {
   formatPromoValidityLabel,
   getPromoPhase,
@@ -92,12 +117,10 @@ const isExpired = computed(() => isPromoExpired(props.offer))
 const isUpcoming = computed(() => promoPhase.value === 'upcoming')
 const hasSavings = computed(() => promoPhase.value === 'active' && Number(props.offer.diff_percent) < 0)
 const pctLabel = computed(() => `${Math.abs(Math.round(Number(props.offer.diff_percent || 0)))}%`)
+const subtitle = computed(() => formatOfferSubtitle(props.offer))
 const priceParts = computed(() => formatOfferPriceParts(props.offer))
-const unitPriceLabel = computed(() => formatUnitPrice({
-  priceVolumeMin: props.offer.price_volume_min,
-  volumeUnitMin: props.offer.volume_unit_min,
-  comparisonBase: props.offer.comparison_base,
-}))
+const unitPriceLabel = computed(() => formatUnitPrice(props.offer))
+const chips = computed(() => offerChips(props.offer))
 const avgLabel = computed(() =>
   props.offer.avg_price != null ? BRL.format(Number(props.offer.avg_price)) : '',
 )
@@ -203,11 +226,17 @@ const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
   font-weight: 800;
   font-size: 1rem;
   color: var(--white);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.2rem;
 }
 
 .deal:hover .deal__name {
   color: var(--yellow);
+}
+
+.deal__subtitle {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
 }
 
 .deal__meta {
@@ -266,6 +295,12 @@ const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
   color: var(--yellow);
 }
 
+.deal__price-prefix {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
 .deal__price-vol {
   font-size: 0.72rem;
   font-weight: 600;
@@ -277,6 +312,7 @@ const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
   color: rgba(255, 255, 255, 0.75);
 }
 
+.deal__price-each,
 .deal__price-unit {
   font-size: 0.72rem;
   font-weight: 500;
@@ -294,9 +330,41 @@ const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
   border-radius: 4px;
 }
 
+.deal__price-regular,
 .deal__price-avg {
   font-size: 0.75rem;
   color: var(--muted);
+}
+
+.deal__price-avg {
   text-decoration: line-through;
+}
+
+.deal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deal__chip {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.3;
+  border: 1px solid var(--border);
+  color: var(--white);
+}
+
+.deal__chip--promotion {
+  border-color: rgba(255, 200, 0, 0.45);
+  color: var(--yellow);
+}
+
+.deal__chip--addresses {
+  color: var(--muted);
 }
 </style>

@@ -57,20 +57,65 @@
         {{ formatRegisteredAt(encarte.created_at, new Date(renderedAt)) }}
       </p>
       <div v-if="photoUrl" class="photo">
-        <img
-          class="photo__img"
-          :src="photoUrl"
-          :alt="`Encarte ${encarte.establishment_name}`"
-          loading="lazy"
+        <button
+          type="button"
+          class="photo__open"
+          aria-label="Ampliar encarte"
+          data-test="encarte-open"
+          @click="openLightbox(null)"
         >
+          <img
+            class="photo__img"
+            :src="photoUrl"
+            :alt="`Encarte ${encarte.establishment_name}`"
+            loading="lazy"
+          >
+        </button>
         <EncarteRefBadge :scan-id="encarte.id" />
       </div>
+
+      <section v-if="offers.length" class="offers" aria-label="Ofertas deste encarte">
+        <h2 class="section-heading">Ofertas deste encarte</h2>
+        <p class="offers__hint">
+          {{ hotspots.length ? 'Toque na foto para ver onde cada oferta está no encarte.' : 'Preços extraídos do encarte; confira as condições na foto.' }}
+        </p>
+        <div
+          v-for="offer in offers"
+          :id="`oferta-${offer.id}`"
+          :key="offer.id"
+          class="offers__item"
+          :class="{ 'offers__item--flash': flashId === offer.id }"
+        >
+          <OfferCard :offer="offer" hide-store />
+          <button
+            v-if="offer.encarte_bbox"
+            type="button"
+            class="offers__locate"
+            :data-test="`offer-locate-${offer.id}`"
+            @click="openLightbox(offer.id)"
+          >
+            Ver no encarte
+          </button>
+        </div>
+      </section>
     </main>
+
+    <EncarteLightbox
+      v-if="lightboxOpen && encarte"
+      :encarte="encarte"
+      :highlight="highlightBox"
+      :hotspots="hotspots"
+      :active-id="activeOfferId"
+      @close="lightboxOpen = false"
+      @select="onSelectOffer"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { jboGet, type JboEncarte } from '~/utils/jboApi'
+import type { EncarteHotspot } from '~/components/encartes/EncarteLightbox.vue'
+import { formatOfferPrice } from '~/utils/offerPrice'
+import { jboGet, type JboEncarte, type JboEncarteOffers, type JboOffer } from '~/utils/jboApi'
 import {
   formatPromoValidityLabel,
   getPromoPhase,
@@ -91,6 +136,57 @@ const { data: encarte, error } = await useAsyncData(
 
 if (error.value) {
   throw createError({ statusCode: 404, statusMessage: 'Encarte não encontrado' })
+}
+
+const { data: offersPage } = await useAsyncData(
+  () => `encarte-offers-${id.value}`,
+  () => jboGet<JboEncarteOffers>(`/encartes/${id.value}/offers`).catch(() => ({ items: [] as JboOffer[] })),
+  { watch: [id] },
+)
+
+const offers = computed<JboOffer[]>(() => offersPage.value?.items || [])
+
+/** Ofertas com posição conhecida viram áreas clicáveis sobre a foto. */
+const hotspots = computed<EncarteHotspot[]>(() =>
+  offers.value
+    .filter(offer => offer.encarte_bbox)
+    .map(offer => ({
+      id: offer.id,
+      bbox: offer.encarte_bbox!,
+      label: `${offer.product_name} · ${formatOfferPrice(offer)}`,
+    })),
+)
+
+const lightboxOpen = ref(false)
+const activeOfferId = ref<string | null>(null)
+const flashId = ref<string | null>(null)
+let flashTimer: ReturnType<typeof setTimeout> | undefined
+
+const highlightBox = computed(() => {
+  if (!activeOfferId.value) return null
+  return offers.value.find(offer => offer.id === activeOfferId.value)?.encarte_bbox || null
+})
+
+/** Abre a foto ampliada, opcionalmente já destacando uma oferta. */
+function openLightbox(offerId: string | null) {
+  activeOfferId.value = offerId
+  lightboxOpen.value = true
+}
+
+/** Hotspot clicado: fecha a foto e rola até o card da oferta. */
+function onSelectOffer(offerId: string) {
+  lightboxOpen.value = false
+  activeOfferId.value = offerId
+  flashId.value = offerId
+  clearTimeout(flashTimer)
+  flashTimer = setTimeout(() => {
+    flashId.value = null
+  }, 2400)
+  if (import.meta.client) {
+    nextTick(() => {
+      document.getElementById(`oferta-${offerId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
 }
 
 const photoUrl = computed(() => encarte.value?.image_url_xl || encarte.value?.image_url || '')
@@ -290,11 +386,78 @@ h1 {
   border-radius: 12px;
 }
 
+.photo__open {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.photo__open:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
 .photo__img {
   display: block;
   max-width: 100%;
   height: auto;
   border-radius: 12px;
   border: 1px solid var(--border);
+}
+
+.offers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+}
+
+.section-heading {
+  margin: 0.4rem 0 0;
+  font-size: 1rem;
+  color: var(--yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.offers__hint {
+  margin: 0 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.offers__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  border-radius: 12px;
+  transition: box-shadow 0.3s ease;
+}
+
+.offers__item--flash {
+  box-shadow: 0 0 0 3px var(--yellow);
+}
+
+.offers__locate {
+  align-self: flex-end;
+  margin: 0;
+  padding: 0.2rem 0.1rem;
+  border: 0;
+  background: none;
+  color: var(--yellow);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.offers__locate:hover,
+.offers__locate:focus-visible {
+  text-decoration: underline;
 }
 </style>

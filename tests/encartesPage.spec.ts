@@ -170,6 +170,23 @@ describe('encartes públicos', () => {
     expect(page).toContain('useJboSeo')
   })
 
+  it('lista as ofertas do encarte e abre a foto com hotspots', () => {
+    const page = source('app/pages/encarte/[id].vue')
+    expect(page).toContain('/offers`')
+    expect(page).toContain('Ofertas deste encarte')
+    expect(page).toContain('<OfferCard :offer="offer" hide-store />')
+    expect(page).toContain(':hotspots="hotspots"')
+    expect(page).toContain('@select="onSelectOffer"')
+    expect(page).toContain('scrollIntoView')
+    expect(page).toContain('data-test="encarte-open"')
+
+    const lightbox = source('app/components/encartes/EncarteLightbox.vue')
+    expect(lightbox).toContain('lb__highlight')
+    expect(lightbox).toContain('lb__hotspot')
+    expect(lightbox).toContain("emit('select', spot.id)")
+    expect(lightbox).toContain('box-shadow: 0 0 0 9999px')
+  })
+
   it('compartilha o encarte na página de detalhe', () => {
     const page = source('app/pages/encarte/[id].vue')
     expect(page).toContain('shareEncarte')

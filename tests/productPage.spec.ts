@@ -54,10 +54,23 @@ describe('página de produto a partir do card da home', () => {
 
     expect(page).toContain('selected.image_url')
     expect(page).toContain('Verifique todas as condições no encarte')
-    expect(page).toContain('Ver encarte completo')
+    expect(page).toContain('Ver no encarte')
     expect(page).toContain('openFullEncarte')
     expect(page).toContain('EncarteLightbox')
+    expect(page).toContain(':highlight="selected?.encarte_bbox || null"')
     expect(page).toContain('`/encartes/${encarteId}`')
+  })
+
+  it('mostra base do preço, clube com regular riscado e chips de condição', () => {
+    const page = source('app/pages/produto/[slug]/[[loja]].vue')
+    expect(page).toContain('priceParts(selected).prefix')
+    expect(page).toContain('priceParts(selected).each')
+    expect(page).toContain('priceParts(selected).regular')
+    expect(page).toContain('price-box__club')
+    expect(page).toContain('hero__chips')
+    expect(page).toContain('offerChips')
+    expect(page).toContain('formatOfferSubtitle')
+    expect(page).toContain('offerMainPrice')
   })
 
   it('expõe o link institucional da loja só no hero e o exclusivo em Onde encontrar', () => {
@@ -207,12 +220,20 @@ describe('página de produto a partir do card da home', () => {
     expect(api).toContain('/produto/${product}/${offer.establishment_slug}')
   })
 
-  it('mostra sufixo de volume e preço unitário no card', () => {
+  it('mostra base do preço, unitário, clube e chips no card', () => {
     const card = source('app/components/offers/OfferCard.vue')
     expect(card).toContain('formatOfferPriceParts')
     expect(card).toContain('formatUnitPrice')
     expect(card).toContain('deal__price-unit')
     expect(card).toContain('deal__price-vol')
+    expect(card).toContain('deal__price-prefix')
+    expect(card).toContain('deal__price-each')
+    expect(card).toContain('deal__price-regular')
+    expect(card).toContain('deal__subtitle')
+    expect(card).toContain('deal__chips')
+    expect(card).toContain('offerChips')
+    expect(card).not.toContain('pricing_mode')
+    expect(card).not.toContain('price_volume_min')
   })
 
   it('mostra volume e unitário no hero e em Onde encontrar', () => {

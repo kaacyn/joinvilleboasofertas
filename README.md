@@ -31,18 +31,36 @@ Serviços:
 | Rota | Função |
 |------|--------|
 | `/` | Home: busca, filtros, listagem |
-| `/oferta/{id}` | Detalhe da oferta |
-| `/produto/{slug}` | Produto + mais barato + preços por loja |
+| `/oferta/{id}` | Redireciona para o produto naquela loja |
+| `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja |
 | `/loja/{slug}` | Ofertas da loja |
 | `/lojas` | Lista de lojas |
 | `/encartes` | Lista de encartes (filtro por loja) |
+| `/encarte/{id}` | Foto do encarte + ofertas extraídas, com hotspots clicáveis na foto |
 | `/envie-um-encarte` | Formulário Envie um encarte (lead Instagram) |
 | `/perguntas-frequentes` | Perguntas frequentes (FAQ) |
 | `/categoria/{slug}` | Ofertas da categoria |
 | `/privacidade` | Política de privacidade |
 | `/robots.txt`, `/sitemap.xml` | SEO |
 
+## Ofertas (contrato do snap-api)
+
+As ofertas vêm da extração do encarte pelo Mega Brain (`/api/public/jbo/offers`,
+`/products/{slug}`, `/encartes/{id}/offers`). Campos que a vitrine usa:
+
+- `price` / `club_price`: o card destaca o preço de clube quando existe (rótulo do
+  programa da loja em `establishment_loyalty_program_name`) e risca o regular ao lado.
+- `pricing.basis`: `unit` (R$ 9,99), `lot` ("2 por R$ 10,00" + "R$ 5,00 cada") ou
+  `per_fraction` ("R$ 39,90/kg", "R$ 3,99 a cada 100 g") — helpers em
+  `app/utils/offerPrice.ts`.
+- `brand` + `quantity_label`: linha secundária "marca · embalagem".
+- `unit_price` + `unit_price_base`: preço por 100 g / 100 ml / un para comparação.
+- `promotion` e `offer_addresses`: chips "Leve 3 pague 2" e "Só em {bairro}".
+- `encarte_bbox`: posição (0..1) da oferta na foto; a página do produto abre o
+  lightbox já destacando essa área e a página do encarte mostra hotspots.
+
 ## Spec / plano
 
 - `docs/superpowers/specs/2026-08-12-jbo-plataforma-publica-design.md`
 - `docs/superpowers/plans/2026-08-12-jbo-nuxt-platform.md`
+- Integração Mega Brain (contrato de ofertas): `snap-api/docs/superpowers/specs/2026-09-09-integracao-mega-brain-design.md`

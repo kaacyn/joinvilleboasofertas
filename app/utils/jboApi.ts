@@ -1,10 +1,37 @@
 /** Tipos e client HTTP da API pública JBO. */
 
+export type JboPricingReference = {
+  value: string | number
+  unit: string
+}
+
+/** Base do preço: `unit` (1 unidade), `lot` (N por R$ X) ou `per_fraction` (por kg / a cada 100 g). */
+export type JboPricing = {
+  basis: 'unit' | 'lot' | 'per_fraction' | string
+  lot_quantity?: number | null
+  reference?: JboPricingReference | null
+}
+
+export type JboQuantity = {
+  value?: number | string | null
+  unit?: string | null
+  contains?: number | null
+}
+
+/** Caixa normalizada (0..1) da oferta dentro da foto do encarte. */
+export type JboBbox = {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export type JboOffer = {
   id: string
   product_id: string
   product_name: string
   product_slug: string
+  brand?: string
   category_name?: string | null
   category_slug?: string | null
   establishment_id: string
@@ -14,42 +41,54 @@ export type JboOffer = {
   establishment_logo_url?: string | null
   establishment_address?: string | null
   establishment_addresses?: string[]
-  price: string | number
+  /** Endereços onde a oferta vale, quando restrita a parte das lojas. */
+  offer_addresses?: string[]
+  price?: string | number | null
+  club_price?: string | number | null
   is_club_price?: boolean
+  currency?: string
+  pricing?: JboPricing | null
+  quantity?: JboQuantity | null
+  quantity_label?: string
+  promotion?: string
+  loyalty_program?: boolean | null
+  quantity_discount?: Record<string, unknown> | null
   promo_starts_on?: string | null
   promo_ends_on?: string | null
   promo_active?: boolean
+  unit_price?: string | number | null
+  unit_price_base?: string
   avg_price?: string | number | null
   diff_percent?: number
   diff_amount?: string | number | null
   recorded_at: string
   image_url?: string | null
   encarte_id?: string | null
-  price_volume_min?: string | number | null
-  volume_unit_min?: string
-  comparison_base?: number | null
-  volume_value?: string | number | null
-  volume_unit?: string
-  pricing_mode?: string
+  encarte_bbox?: JboBbox | null
 }
 
 export const DEFAULT_CLUB_LABEL = 'Clube'
 
-/** Rótulo do badge de preço de fidelidade (programa do mercado ou "Clube"). */
-export function clubBadgeLabel(offer: {
+type ClubSource = {
   is_club_price?: boolean
+  club_price?: string | number | null
   establishment_loyalty_program_name?: string | null
-}): string {
-  if (!offer.is_club_price) return ''
+}
+
+/** True quando a oferta tem preço de clube (exclusivo ou ao lado do regular). */
+export function hasClubPrice(offer: ClubSource): boolean {
+  return Boolean(offer.is_club_price) || (offer.club_price != null && offer.club_price !== '')
+}
+
+/** Rótulo do badge de preço de fidelidade (programa do mercado ou "Clube"). */
+export function clubBadgeLabel(offer: ClubSource): string {
+  if (!hasClubPrice(offer)) return ''
   const custom = String(offer.establishment_loyalty_program_name || '').trim()
   return custom || DEFAULT_CLUB_LABEL
 }
 
 /** Texto descritivo na página do produto (ex.: "Preço cooperado"). */
-export function clubPriceHint(offer: {
-  is_club_price?: boolean
-  establishment_loyalty_program_name?: string | null
-}): string {
+export function clubPriceHint(offer: ClubSource): string {
   const label = clubBadgeLabel(offer)
   if (!label) return ''
   if (label === DEFAULT_CLUB_LABEL) return 'Preço de clube'
@@ -78,6 +117,11 @@ export type JboEncarte = {
 export type JboEncartesPage = {
   items: JboEncarte[]
   next_cursor: string | null
+}
+
+/** Ofertas publicadas de um encarte, na ordem em que aparecem na foto. */
+export type JboEncarteOffers = {
+  items: JboOffer[]
 }
 
 export type JboFacets = {

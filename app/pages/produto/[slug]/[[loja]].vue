@@ -33,7 +33,15 @@
       <p class="copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</p>
 
       <section v-if="selected" class="proof" aria-label="Trecho do encarte">
-        <div class="proof__frame">
+        <div
+          class="proof__frame"
+          :class="{ 'proof__frame--clickable': selected.encarte_id }"
+          :role="selected.encarte_id ? 'button' : undefined"
+          :tabindex="selected.encarte_id ? 0 : undefined"
+          :aria-label="selected.encarte_id ? 'Ver no encarte' : undefined"
+          @click="selected.encarte_id && openFullEncarte()"
+          @keydown.enter.prevent="selected.encarte_id && openFullEncarte()"
+        >
           <img
             v-if="selected.image_url"
             class="proof__img"
@@ -53,10 +61,11 @@
           v-if="selected.encarte_id"
           type="button"
           class="proof__open"
+          data-test="product-open-encarte"
           :disabled="openingEncarte"
           @click="openFullEncarte"
         >
-          {{ openingEncarte ? 'Abrindo…' : 'Ver encarte completo' }}
+          {{ openingEncarte ? 'Abrindo…' : 'Ver no encarte' }}
         </button>
         <p v-if="encarteError" class="proof__error" role="status">
           Não foi possível abrir o encarte completo.
@@ -65,20 +74,42 @@
 
       <section v-if="selected" class="hero" aria-label="Oferta nesta loja">
         <div class="price-box" aria-label="Preço da oferta">
+          <p v-if="subtitle" class="hero__subtitle">{{ subtitle }}</p>
           <div class="price-box__row">
             <div class="price-box__main">
               <p class="hero__price">
-                {{ priceParts(selected).amount }}<span
-                  v-if="priceParts(selected).volumeSuffix"
+                <span v-if="priceParts(selected).prefix" class="hero__price-prefix">{{ priceParts(selected).prefix }} </span>{{ priceParts(selected).amount }}<span
+                  v-if="priceParts(selected).suffix"
                   class="hero__price-vol"
-                >/{{ priceParts(selected).volumeSuffix }}</span>
+                >{{ priceParts(selected).suffix }}</span>
+              </p>
+              <p v-if="priceParts(selected).each" class="hero__price-unit">
+                {{ priceParts(selected).each }}
               </p>
               <p v-if="unitPriceLabel(selected)" class="hero__price-unit">
                 {{ unitPriceLabel(selected) }}
               </p>
             </div>
-            <span v-if="selected.is_club_price" class="price-box__club">{{ clubHint }}</span>
+            <div v-if="clubHint" class="price-box__club-wrap">
+              <span class="price-box__club">{{ clubHint }}</span>
+              <s
+                v-if="priceParts(selected).regular"
+                class="price-box__regular"
+                :title="`${priceParts(selected).regular} sem o clube`"
+              >{{ priceParts(selected).regular }} sem clube</s>
+            </div>
           </div>
+          <ul v-if="chips.length" class="hero__chips" aria-label="Condições da oferta">
+            <li
+              v-for="chip in chips"
+              :key="chip.key"
+              class="hero__chip"
+              :class="`hero__chip--${chip.key}`"
+              :title="chip.title"
+            >
+              {{ chip.label }}
+            </li>
+          </ul>
           <p
             v-if="validityLabel(selected)"
             class="hero__validity"
@@ -124,11 +155,12 @@
             </span>
             <span class="row__price" :class="{ 'row__price--expired': isOfferExpired(offer) }">
               <span class="row__price-main">
-                {{ priceParts(offer).amount }}<span
-                  v-if="priceParts(offer).volumeSuffix"
+                <span v-if="priceParts(offer).prefix" class="row__price-prefix">{{ priceParts(offer).prefix }} </span>{{ priceParts(offer).amount }}<span
+                  v-if="priceParts(offer).suffix"
                   class="row__price-vol"
-                >/{{ priceParts(offer).volumeSuffix }}</span>
+                >{{ priceParts(offer).suffix }}</span>
               </span>
+              <span v-if="priceParts(offer).isClub" class="row__price-club">{{ clubBadgeLabel(offer) }}</span>
               <span v-if="unitPriceLabel(offer)" class="row__price-unit">
                 {{ unitPriceLabel(offer) }}
               </span>
@@ -160,13 +192,14 @@
     <EncarteLightbox
       v-if="openEncarte"
       :encarte="openEncarte"
+      :highlight="selected?.encarte_bbox || null"
       @close="openEncarte = null"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { clubPriceHint, jboGet, productOfferPath, type JboEncarte, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
+import { clubBadgeLabel, clubPriceHint, jboGet, productOfferPath, type JboEncarte, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
 import {
   isOfferExpired,
   otherStoreOffers,
@@ -177,7 +210,14 @@ import {
   isPromoExpired,
   isPromoUpcoming,
 } from '~/utils/promoPhase'
-import { formatOfferPrice, formatOfferPriceParts, formatUnitPrice } from '~/utils/unitPrice'
+import {
+  formatOfferPrice,
+  formatOfferPriceParts,
+  formatOfferSubtitle,
+  formatUnitPrice,
+  offerChips,
+  offerMainPrice,
+} from '~/utils/offerPrice'
 import { shareEncarte } from '~/utils/shareEncarte'
 
 type ProductPage = {
@@ -229,6 +269,8 @@ const selected = computed(() => {
 const clubHint = computed(() =>
   selected.value ? clubPriceHint(selected.value) : '',
 )
+const subtitle = computed(() => (selected.value ? formatOfferSubtitle(selected.value) : ''))
+const chips = computed(() => (selected.value ? offerChips(selected.value) : []))
 
 if (data.value && lojaSlug.value && !selected.value) {
   throw createError({ statusCode: 404, statusMessage: 'Oferta não encontrada nesta loja' })
@@ -312,14 +354,10 @@ function priceParts(offer: JboOffer) {
 }
 
 /**
- * Preço por 100ml/100g/un quando a oferta tem normalização.
+ * Preço por 100 ml/100 g/un quando a oferta tem base de comparação.
  */
 function unitPriceLabel(offer: JboOffer) {
-  return formatUnitPrice({
-    priceVolumeMin: offer.price_volume_min,
-    volumeUnitMin: offer.volume_unit_min,
-    comparisonBase: offer.comparison_base,
-  })
+  return formatUnitPrice(offer)
 }
 
 /**
@@ -330,7 +368,7 @@ function validityLabel(offer: JboOffer) {
 }
 
 /**
- * Abre o encarte inteiro no lightbox a partir do recorte.
+ * Abre o encarte inteiro no lightbox, já com a oferta destacada na foto.
  */
 async function openFullEncarte() {
   const encarteId = selected.value?.encarte_id
@@ -372,15 +410,17 @@ useJboSeo({
   image: () => selected.value?.image_url || undefined,
   jsonLd: () => {
     const offer = selected.value
-    if (!offer || !data.value) return null
+    const main = offer ? offerMainPrice(offer) : null
+    if (!offer || !data.value || !main) return null
     return {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: data.value.product.name,
+      brand: offer.brand ? { '@type': 'Brand', name: offer.brand } : undefined,
       offers: {
         '@type': 'Offer',
         priceCurrency: 'BRL',
-        price: Number(offer.price),
+        price: main.value,
         availability: 'https://schema.org/InStock',
         seller: {
           '@type': 'Organization',
@@ -481,6 +521,15 @@ h1 {
     radial-gradient(circle at 20% 0%, rgba(255, 200, 0, 0.12), transparent 45%),
     var(--navy-light);
   min-height: 220px;
+}
+
+.proof__frame--clickable {
+  cursor: zoom-in;
+}
+
+.proof__frame--clickable:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
 }
 
 .proof__img {
@@ -587,6 +636,18 @@ h1 {
   line-height: 1.15;
 }
 
+.hero__subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.hero__price-prefix {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
 .hero__price-vol {
   font-size: 0.95rem;
   font-weight: 600;
@@ -611,6 +672,46 @@ h1 {
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.2;
+}
+
+.price-box__club-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  align-self: center;
+}
+
+.price-box__regular {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero__chip {
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--white);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.hero__chip--promotion {
+  border-color: rgba(255, 200, 0, 0.45);
+  color: var(--yellow);
+}
+
+.hero__chip--addresses {
+  color: var(--muted);
 }
 
 .hero__validity {
@@ -729,6 +830,22 @@ h2,
   font-weight: 900;
   color: var(--yellow);
   white-space: nowrap;
+}
+
+.row__price-prefix {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.row__price-club {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--yellow);
+  background: rgba(255, 200, 0, 0.15);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
 }
 
 .row__price-vol {
