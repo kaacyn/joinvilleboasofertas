@@ -120,7 +120,7 @@ describe('sino anônimo segue loja', () => {
     expect(card).toMatch(/\.card__bell[^{]*\{[^}]*z-index:\s*2/)
     expect(card).toMatch(/\.card__bell[^{]*\{[^}]*(?:min-width|width):\s*44px/)
     expect(card).toContain('--yellow')
-    expect(card).toContain('--navy-light')
+    expect(card).toContain('--surface')
     expect(card).toContain('[aria-pressed="true"]')
   })
 
