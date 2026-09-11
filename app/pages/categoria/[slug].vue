@@ -2,13 +2,18 @@
   <div class="page">
     <AppHeader />
     <main v-if="data" class="page__main">
-      <h1>{{ data.category.name }}</h1>
+      <div class="page__heading">
+        <span class="page__icon" :style="{ background: icon.bg }" aria-hidden="true">{{ icon.emoji }}</span>
+        <h1>{{ data.category.name }}</h1>
+      </div>
       <OfferCard
-        v-for="offer in data.items"
+        v-for="offer in items"
         :key="offer.id"
         :offer="offer"
       />
-      <p v-if="!data.items.length" class="empty">
+      <div v-if="hasMore" ref="sentinelRef" class="page__sentinel" />
+      <p v-if="loadingMore" class="page__loading" aria-live="polite">Carregando mais…</p>
+      <p v-if="!items.length" class="empty">
         Sem ofertas vigentes nesta categoria.
       </p>
     </main>
@@ -16,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import { categoryIcon } from '~/utils/categoryIcons'
 import { jboGet, type JboOffer } from '~/utils/jboApi'
 
 type CatPage = {
@@ -50,6 +56,55 @@ useJboSeo({
       : '',
   path: () => `/categoria/${slug.value}`,
 })
+
+const icon = computed(() => categoryIcon(slug.value))
+
+const sentinelRef = ref<HTMLElement | null>(null)
+const extraItems = ref<JboOffer[]>([])
+const nextCursor = ref<string | null>(null)
+const loadingMore = ref(false)
+
+const items = computed(() => [...(data.value?.items || []), ...extraItems.value])
+const hasMore = computed(() => Boolean(nextCursor.value))
+
+watch(data, (page) => {
+  extraItems.value = []
+  nextCursor.value = page?.next_cursor ?? null
+}, { immediate: true })
+
+/**
+ * Carrega a próxima página do cursor; erro é silencioso (mantém o que já carregou).
+ */
+async function loadMore() {
+  if (!nextCursor.value || loadingMore.value) return
+  loadingMore.value = true
+  try {
+    const page = await jboGet<CatPage>(`/categories/${slug.value}`, {
+      cursor: nextCursor.value,
+      page_size: 20,
+    })
+    extraItems.value = [...extraItems.value, ...(page.items || [])]
+    nextCursor.value = page.next_cursor
+  }
+  catch {
+    nextCursor.value = null
+  }
+  finally {
+    loadingMore.value = false
+  }
+}
+
+onMounted(() => {
+  const io = new IntersectionObserver((entries) => {
+    if (entries.some(e => e.isIntersecting)) loadMore()
+  }, { rootMargin: '200px' })
+
+  watch(sentinelRef, (el, _, onCleanup) => {
+    if (!el) return
+    io.observe(el)
+    onCleanup(() => io.unobserve(el))
+  }, { immediate: true })
+})
 </script>
 
 <style scoped>
@@ -62,13 +117,37 @@ useJboSeo({
   gap: 0.75rem;
 }
 
-h1 {
-  margin: 0 0 0.5rem;
-  font-size: 1.45rem;
-  font-weight: 900;
+.page__heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.5rem;
 }
 
+.page__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  font-size: 26px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.page__sentinel {
+  height: 1px;
+}
+
+.page__loading,
 .empty {
-  color: var(--muted);
+  text-align: center;
+  color: var(--ink-3);
 }
 </style>
