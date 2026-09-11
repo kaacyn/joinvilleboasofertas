@@ -14,64 +14,92 @@
       @apply-establishments="onApplyEstablishments"
     />
 
-    <section class="home__deals" aria-label="Ofertas em Joinville">
-      <StoryShortcuts
-        :q="filters.state.value.q"
-        :category-ids="filters.state.value.category_ids"
-        :categories="facets.categories"
-        @select="onShortcut"
-      />
-
-      <OfferCard
-        v-for="offer in items"
-        :key="offer.id"
-        :offer="offer"
-      />
-
-      <div v-if="hasMore" ref="sentinelRef" class="home__sentinel" />
-
-      <div
-        v-if="loadingMore"
-        class="home__loading home__loading--more"
-        aria-live="polite"
-      >
-        Carregando mais produtos
+    <template v-if="isVitrine">
+      <div v-if="hero" class="home__hero">
+        <HeroSavings :offer="hero" />
       </div>
 
-      <div v-if="pending" class="home__loading" aria-live="polite">
-        Carregando ofertas…
-      </div>
+      <HomeSection v-if="categoriesWithSlug.length" title="Categorias">
+        <template v-if="canExpandCategories" #aside>
+          <button type="button" data-test="home-cats-toggle" @click="catsExpanded = !catsExpanded">
+            {{ catsExpanded ? 'Ver menos' : 'Ver todas' }}
+          </button>
+        </template>
+        <CategoryGrid :categories="facets.categories" :expanded="catsExpanded" />
+      </HomeSection>
 
-      <div v-if="!pending && !loadError && items.length === 0" class="home__empty">
-        <p v-if="filters.state.value.q">
-          Nenhuma oferta para “{{ filters.state.value.q }}”.
-        </p>
-        <p v-else-if="activeCount > 0">Nenhuma oferta com esses filtros.</p>
-        <p v-else>Nenhuma oferta disponível no momento.</p>
-        <button
-          v-if="filters.state.value.q || activeCount > 0"
-          type="button"
-          @click="filters.clear()"
-        >
-          Limpar filtros
-        </button>
-      </div>
+      <HomeSection v-if="topSavings.length" title="Maiores descontos" bleed>
+        <template #aside>
+          <NuxtLink to="/?sort=savings">Ver todos</NuxtLink>
+        </template>
+        <OfferCarousel :offers="topSavings" />
+      </HomeSection>
 
-      <div v-if="loadError" class="home__error">
-        <p>Não foi possível carregar as ofertas.</p>
-        <button type="button" @click="refresh">Tentar de novo</button>
-      </div>
-    </section>
+      <HomeSection v-if="endingCount > 0 && endingItems.length" title="Termina hoje">
+        <template #aside>
+          <span class="home__pill">⏱ {{ endingCount }} {{ endingCount === 1 ? 'oferta' : 'ofertas' }}</span>
+        </template>
+        <div class="home__list">
+          <OfferCard v-for="offer in endingItems" :key="offer.id" :offer="offer" />
+        </div>
+        <NuxtLink v-if="endingCount > endingItems.length" class="home__more" to="/?ends_today=1">
+          Ver todas as {{ endingCount }} ofertas
+        </NuxtLink>
+      </HomeSection>
+    </template>
 
+    <div v-else-if="filters.state.value.ends_today" class="home__heading">
+      <h1>Termina hoje</h1>
+      <button type="button" class="home__clear" @click="filters.clear()">Limpar</button>
+    </div>
+
+    <HomeSection :title="isVitrine ? 'Novas ofertas' : ''">
+      <section class="home__deals" aria-label="Ofertas em Joinville">
+        <OfferCard
+          v-for="offer in items"
+          :key="offer.id"
+          :offer="offer"
+        />
+
+        <div v-if="hasMore" ref="sentinelRef" class="home__sentinel" />
+
+        <div v-if="loadingMore" class="home__loading home__loading--more" aria-live="polite">
+          Carregando mais produtos
+        </div>
+
+        <div v-if="pending" class="home__loading" aria-live="polite">
+          Carregando ofertas…
+        </div>
+
+        <div v-if="!pending && !loadError && items.length === 0" class="home__empty">
+          <p v-if="filters.state.value.q">
+            Nenhuma oferta para “{{ filters.state.value.q }}”.
+          </p>
+          <p v-else-if="activeCount > 0">Nenhuma oferta com esses filtros.</p>
+          <p v-else>Nenhuma oferta disponível no momento.</p>
+          <button
+            v-if="filters.state.value.q || activeCount > 0"
+            type="button"
+            @click="filters.clear()"
+          >
+            Limpar filtros
+          </button>
+        </div>
+
+        <div v-if="loadError" class="home__error">
+          <p>Não foi possível carregar as ofertas.</p>
+          <button type="button" @click="refresh">Tentar de novo</button>
+        </div>
+      </section>
+    </HomeSection>
   </div>
 </template>
 
 <script setup lang="ts">
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
-import {
-  nextShortcutPatch,
-  type StoryShortcut,
-} from '~/utils/storyShortcuts'
+import { isVitrineState, pickHero, pickTopSavings } from '~/utils/homeVitrine'
+
+type CountResponse = { count: number }
 
 const filters = useOfferFilters()
 const sentinelRef = ref<HTMLElement | null>(null)
@@ -82,6 +110,13 @@ const config = useRuntimeConfig()
 const extraItems = ref<JboOffer[]>([])
 const nextCursor = ref<string | null>(null)
 const loadingMore = ref(false)
+const catsExpanded = ref(false)
+
+/** Instante único para SSR e hidratação decidirem fase/hero com o mesmo "agora". */
+const renderedAt = useState('home:rendered-at', () => new Date().toISOString())
+const now = computed(() => new Date(renderedAt.value))
+
+const isVitrine = computed(() => isVitrineState(filters.state.value))
 
 useJboSeo({
   title: 'Ofertas em Joinville | Joinville Boas Ofertas',
@@ -100,7 +135,7 @@ useJboSeo({
   },
 })
 
-const [facetsResult, offersResult] = await Promise.all([
+const [facetsResult, offersResult, savingsResult, endingResult, endingCountResult] = await Promise.all([
   useAsyncData(
     'jbo-facets',
     () => jboGet<JboFacets>('/offers/facets').catch(() => ({
@@ -115,6 +150,27 @@ const [facetsResult, offersResult] = await Promise.all([
       page_size: 20,
     }),
     { watch: [() => JSON.stringify(filters.apiParams.value)] },
+  ),
+  useAsyncData(
+    'jbo-home-savings',
+    () => isVitrine.value
+      ? jboGet<JboOffersPage>('/offers', { sort: 'savings', page_size: 10 }).catch(() => null)
+      : Promise.resolve(null),
+    { watch: [isVitrine] },
+  ),
+  useAsyncData(
+    'jbo-home-ending',
+    () => isVitrine.value
+      ? jboGet<JboOffersPage>('/offers', { ends_today: true, sort: 'recent', page_size: 6 }).catch(() => null)
+      : Promise.resolve(null),
+    { watch: [isVitrine] },
+  ),
+  useAsyncData(
+    'jbo-home-ending-count',
+    () => isVitrine.value
+      ? jboGet<CountResponse>('/offers/count', { ends_today: true }).catch(() => null)
+      : Promise.resolve(null),
+    { watch: [isVitrine] },
   ),
 ])
 
@@ -139,6 +195,15 @@ const items = computed(() => [
 ])
 const hasMore = computed(() => Boolean(nextCursor.value))
 const loadError = computed(() => Boolean(pageError.value))
+
+/** Seções da vitrine (vazias fora dela ou quando a chamada falhou). */
+const savingsItems = computed<JboOffer[]>(() => savingsResult.data.value?.items || [])
+const hero = computed(() => pickHero(savingsItems.value, now.value))
+const topSavings = computed(() => pickTopSavings(savingsItems.value, hero.value?.id ?? null, 8, now.value))
+const endingItems = computed<JboOffer[]>(() => endingResult.data.value?.items || [])
+const endingCount = computed(() => endingCountResult.data.value?.count ?? 0)
+const categoriesWithSlug = computed(() => facets.value.categories.filter(c => Boolean(c.slug)))
+const canExpandCategories = computed(() => categoriesWithSlug.value.length > 8)
 
 watch(pageData, (page) => {
   extraItems.value = []
@@ -179,21 +244,6 @@ async function onApplyEstablishments(ids: string[]) {
 }
 
 /**
- * Aplica (ou desliga) um atalho estático da faixa Stories.
- */
-async function onShortcut(item: StoryShortcut) {
-  const patch = nextShortcutPatch(
-    item,
-    {
-      q: filters.state.value.q,
-      category_ids: filters.state.value.category_ids,
-    },
-    facets.value.categories,
-  )
-  await filters.patch(patch)
-}
-
-/**
  * Carrega a próxima página do cursor.
  */
 async function loadMore() {
@@ -227,13 +277,74 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.home__deals {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.home__hero {
   max-width: 720px;
   margin: 0 auto;
+  padding: 16px 16px 0;
+}
+
+.home__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.home__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--red-soft);
+  color: var(--red);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.home__more {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--blue);
+  text-align: center;
+}
+
+.home__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 22px 16px 0;
+}
+
+.home__heading h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.home__clear {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.home__deals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .home__sentinel {
@@ -244,7 +355,7 @@ onMounted(() => {
 .home__empty,
 .home__error {
   text-align: center;
-  color: var(--muted);
+  color: var(--ink-3);
   padding: 1.5rem 0.5rem;
 }
 
