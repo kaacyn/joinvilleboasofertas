@@ -477,8 +477,8 @@ h1 {
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink-2);
   cursor: pointer;
 }
 
@@ -487,7 +487,7 @@ h1 {
 }
 
 .share:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .share:focus-visible {
@@ -517,9 +517,7 @@ h1 {
   overflow: hidden;
   border-radius: 18px;
   border: 1px solid var(--border);
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255, 200, 0, 0.12), transparent 45%),
-    var(--navy-light);
+  background: var(--surface);
   min-height: 220px;
 }
 
@@ -537,7 +535,7 @@ h1 {
   width: 100%;
   max-height: 420px;
   object-fit: contain;
-  background: #0a0f17;
+  background: #EEF0F3;
 }
 
 .proof__empty {
@@ -593,7 +591,7 @@ h1 {
 .proof__error {
   margin: 0;
   text-align: center;
-  color: #ffb2b5;
+  color: var(--red);
   font-size: 0.82rem;
 }
 
@@ -610,7 +608,7 @@ h1 {
   padding: 1rem 1.05rem;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface);
 }
 
 .price-box__row {
@@ -632,7 +630,7 @@ h1 {
   margin: 0;
   font-size: 2.1rem;
   font-weight: 900;
-  color: var(--yellow);
+  color: var(--ink);
   line-height: 1.15;
 }
 
@@ -645,7 +643,7 @@ h1 {
 .hero__price-prefix {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .hero__price-vol {
@@ -667,8 +665,8 @@ h1 {
   align-self: center;
   padding: 0.3rem 0.55rem;
   border-radius: 6px;
-  background: rgba(255, 200, 0, 0.15);
-  color: var(--yellow);
+  background: var(--yellow-soft);
+  color: var(--yellow-ink);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.2;
@@ -700,14 +698,14 @@ h1 {
   padding: 0.2rem 0.55rem;
   border: 1px solid var(--border);
   border-radius: 999px;
-  color: var(--white);
+  color: var(--ink);
   font-size: 0.75rem;
   font-weight: 700;
 }
 
 .hero__chip--promotion {
-  border-color: rgba(255, 200, 0, 0.45);
-  color: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--yellow-ink);
 }
 
 .hero__chip--addresses {
@@ -723,11 +721,11 @@ h1 {
 }
 
 .hero__validity--expired {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--ink-3);
 }
 
 .hero__validity--upcoming {
-  color: var(--upcoming-light);
+  color: var(--blue);
 }
 
 .list {
@@ -740,7 +738,7 @@ h2,
 .section-heading {
   margin: 0.4rem 0 0.15rem;
   font-size: 1rem;
-  color: var(--yellow);
+  color: var(--ink);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -770,8 +768,8 @@ h2,
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   box-sizing: border-box;
-  background: #3a4454;
-  color: rgba(255, 255, 255, 0.85);
+  background: #EEF0F3;
+  color: var(--ink-2);
   font-size: 0.65rem;
   font-weight: 900;
   writing-mode: vertical-rl;
@@ -780,8 +778,8 @@ h2,
 }
 
 .row__stripe--upcoming {
-  background: var(--upcoming);
-  color: var(--white);
+  background: var(--blue-soft);
+  color: var(--blue);
 }
 
 .row__body {
@@ -800,7 +798,7 @@ h2,
   gap: 0.5rem;
   min-width: 0;
   font-weight: 700;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .row__logo {
@@ -808,7 +806,7 @@ h2,
   height: 32px;
   object-fit: contain;
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   flex: 0 0 auto;
 }
@@ -828,22 +826,22 @@ h2,
   align-items: flex-end;
   gap: 0.1rem;
   font-weight: 900;
-  color: var(--yellow);
+  color: var(--ink);
   white-space: nowrap;
 }
 
 .row__price-prefix {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .row__price-club {
   font-size: 0.6rem;
   font-weight: 800;
   text-transform: uppercase;
-  color: var(--yellow);
-  background: rgba(255, 200, 0, 0.15);
+  color: var(--yellow-ink);
+  background: var(--yellow-soft);
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
 }
@@ -863,7 +861,7 @@ h2,
 }
 
 .row__price--expired {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--ink-3);
 }
 
 .related {
@@ -880,8 +878,8 @@ h2,
   padding: 0.85rem 1rem;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink-2);
   font-size: 0.95rem;
   font-weight: 700;
   text-align: center;
@@ -889,6 +887,6 @@ h2,
 }
 
 .related__all:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 </style>

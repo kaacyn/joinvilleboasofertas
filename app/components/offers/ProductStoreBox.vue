@@ -87,7 +87,7 @@ function initials(name: string): string {
   padding: 0.85rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface);
 }
 
 .store-box__row {
@@ -102,13 +102,13 @@ function initials(name: string): string {
   gap: 0.5rem;
   min-width: 0;
   flex: 1;
-  color: var(--white);
+  color: var(--ink);
   font-weight: 700;
   text-decoration: none;
 }
 
 a.store-box__main:hover {
-  color: var(--yellow);
+  color: var(--ink);
   text-decoration: none;
 }
 
@@ -121,7 +121,7 @@ a.store-box__main:hover {
   height: 36px;
   object-fit: contain;
   border-radius: 8px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   flex: 0 0 auto;
 }
@@ -157,7 +157,7 @@ a.store-box__main:hover {
   padding: 0;
   border: 0;
   background: none;
-  color: var(--yellow);
+  color: var(--blue);
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
