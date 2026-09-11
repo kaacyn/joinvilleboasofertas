@@ -124,9 +124,11 @@ export type JboEncarteOffers = {
   items: JboOffer[]
 }
 
+export type JboFacetItem = { id: string, name: string, slug?: string | null }
+
 export type JboFacets = {
-  categories: { id: string, name: string }[]
-  establishments: { id: string, name: string }[]
+  categories: JboFacetItem[]
+  establishments: JboFacetItem[]
 }
 
 /**
