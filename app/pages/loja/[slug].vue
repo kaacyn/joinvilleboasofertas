@@ -148,7 +148,7 @@ h1 {
   height: 64px;
   object-fit: contain;
   border-radius: 14px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   flex: 0 0 auto;
 }

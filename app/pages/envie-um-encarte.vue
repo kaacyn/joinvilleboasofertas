@@ -188,7 +188,7 @@ async function onSubmit() {
 .field input[type='text'],
 .field input[type='email'] {
   border: 1px solid var(--border);
-  background: var(--navy-light);
+  background: var(--surface);
   border-radius: 10px;
   padding: 0.65rem 0.85rem;
   color: inherit;
@@ -233,7 +233,7 @@ async function onSubmit() {
 
 .error {
   margin: 0;
-  color: #ffb2b5;
+  color: var(--red);
   font-size: 0.85rem;
 }
 
@@ -242,7 +242,7 @@ async function onSubmit() {
   padding: 1rem;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--navy-light);
+  background: var(--surface);
   font-size: 0.95rem;
   line-height: 1.4;
 }

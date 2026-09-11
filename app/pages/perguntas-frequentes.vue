@@ -245,13 +245,13 @@ h1 {
 h2 {
   margin: 0 0 0.65rem;
   font-size: 1.05rem;
-  color: var(--yellow);
+  color: var(--ink);
 }
 
 .faq {
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--navy-light);
+  background: var(--surface);
   padding: 0.55rem 0.85rem;
   margin: 0 0 0.5rem;
 }
@@ -269,11 +269,11 @@ h2 {
 .faq p {
   margin: 0.55rem 0 0.25rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--ink-2);
   font-size: 0.92rem;
 }
 
 .faq a {
-  color: var(--yellow);
+  color: var(--blue);
 }
 </style>

@@ -85,15 +85,15 @@ useJboSeo({
 .prose h2 {
   margin-top: 1.25rem;
   font-size: 1.05rem;
-  color: var(--yellow);
+  color: var(--ink);
 }
 
 .prose p {
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--ink-2);
 }
 
 .prose a {
-  color: var(--yellow);
+  color: var(--blue);
 }
 </style>

@@ -78,6 +78,7 @@
           :class="{
             'card__dates--expired': isExpired,
             'card__dates--upcoming': isUpcoming,
+            'card__dates--hot': endingToday,
           }"
         >
           {{ validityLabel }}
@@ -87,6 +88,7 @@
         </span>
         <span v-if="isExpired" class="card__badge card__badge--expired">Expirado</span>
         <span v-else-if="isUpcoming" class="card__badge card__badge--upcoming">Em breve</span>
+        <span v-else-if="endingToday" class="card__badge card__badge--hot">Termina hoje</span>
         <span class="card__copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</span>
       </span>
     </button>
@@ -98,6 +100,7 @@ import type { JboEncarte } from '~/utils/jboApi'
 import {
   formatPromoValidityLabel,
   getPromoPhase,
+  isEndingToday,
   isPromoExpired,
 } from '~/utils/promoPhase'
 import { formatRegisteredAt } from '~/utils/relativeTime'
@@ -111,6 +114,7 @@ const { isFollowing, requestToggle, hint: followHint, hintFor } = useJboStoreFol
 const promoPhase = computed(() => getPromoPhase(props.encarte))
 const isExpired = computed(() => isPromoExpired(props.encarte))
 const isUpcoming = computed(() => promoPhase.value === 'upcoming')
+const endingToday = computed(() => isEndingToday(props.encarte))
 const validityLabel = computed(() => formatPromoValidityLabel(props.encarte))
 
 /** Liga ou desliga avisos da loja sem abrir o lightbox. */
@@ -156,15 +160,15 @@ function initials(name: string): string {
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
-  color: var(--white);
+  color: var(--ink);
 }
 
 .card:hover,
 .card:focus-within {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .card--expired {
@@ -177,7 +181,7 @@ function initials(name: string): string {
   width: 100%;
   aspect-ratio: 9 / 16;
   overflow: hidden;
-  background: #0a1018;
+  background: #EEF0F3;
 }
 
 .card__fill {
@@ -206,7 +210,7 @@ function initials(name: string): string {
   display: grid;
   place-items: center;
   padding: 1rem;
-  color: #8a96a8;
+  color: var(--ink-3);
   font-size: 0.8rem;
   text-align: center;
 }
@@ -224,13 +228,19 @@ function initials(name: string): string {
   min-width: 44px;
   min-height: 44px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink-2);
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
+}
+
+.card__bell[aria-pressed="true"] {
+  background: var(--yellow-soft);
+  border-color: var(--yellow);
+  color: var(--yellow-ink);
 }
 
 .card__bell {
@@ -260,17 +270,17 @@ function initials(name: string): string {
   max-width: calc(100% - 0.8rem);
   margin: 0;
   padding: 0.35rem 0.5rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--navy-light);
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
   font-size: 0.72rem;
   line-height: 1.3;
 }
 
 .card__bell:hover,
 .card__share:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .card__bell:focus-visible,
@@ -328,14 +338,14 @@ function initials(name: string): string {
   flex: 0 0 auto;
   border-radius: 4px;
   object-fit: contain;
-  background: #fff;
+  background: var(--surface);
 }
 
 .card__logo--fallback {
   display: grid;
   place-items: center;
-  background: #2b3546;
-  color: rgba(255, 255, 255, 0.85);
+  background: var(--navy);
+  color: var(--on-dark);
   font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -351,16 +361,21 @@ function initials(name: string): string {
 .card__dates,
 .card__registered,
 .card__copied {
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.78rem;
 }
 
 .card__dates--expired {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--ink-3);
 }
 
 .card__dates--upcoming {
-  color: var(--upcoming-light);
+  color: var(--blue);
+}
+
+.card__dates--hot {
+  color: var(--red);
+  font-weight: 600;
 }
 
 .card__copied:empty {
@@ -377,12 +392,17 @@ function initials(name: string): string {
 }
 
 .card__badge--expired {
-  background: #3a4454;
-  color: rgba(255, 255, 255, 0.9);
+  background: #EEF0F3;
+  color: var(--ink-2);
 }
 
 .card__badge--upcoming {
-  background: var(--upcoming);
-  color: #fff;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.card__badge--hot {
+  background: var(--red-soft);
+  color: var(--red);
 }
 </style>

@@ -236,7 +236,7 @@ useJboSeo({
 
 .filter-error {
   margin: 0;
-  color: #ffb2b5;
+  color: var(--red);
   font-size: 0.82rem;
 }
 
@@ -267,7 +267,7 @@ useJboSeo({
 
 .more-error {
   margin: 0;
-  color: #ffb2b5;
+  color: var(--red);
   font-size: 0.82rem;
   text-align: center;
 }

@@ -196,8 +196,8 @@ onBeforeUnmount(() => {
   place-items: center;
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 50%;
-  background: var(--navy-light);
-  color: var(--white);
+  background: var(--navy-2);
+  color: var(--on-dark);
   font-size: 1.8rem;
   line-height: 1;
   cursor: pointer;

@@ -139,8 +139,8 @@ useJboSeo({
 .search__input {
   width: 100%;
   border: 1px solid var(--border);
-  background: var(--navy-light);
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 10px;
   padding: 0.65rem 0.85rem;
   font: inherit;
@@ -168,11 +168,11 @@ useJboSeo({
   padding: 0.85rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface);
 }
 
 .list__item:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .list__main {
@@ -195,7 +195,7 @@ useJboSeo({
   height: 44px;
   object-fit: contain;
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 

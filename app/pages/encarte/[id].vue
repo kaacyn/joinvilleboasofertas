@@ -47,12 +47,14 @@
         :class="{
           'validity--expired': isExpired,
           'validity--upcoming': isUpcoming,
+          'validity--hot': endingToday,
         }"
       >
         {{ validityLabel }}
       </p>
       <p v-if="isExpired" class="phase-badge phase-badge--expired">Expirado</p>
       <p v-else-if="isUpcoming" class="phase-badge phase-badge--upcoming">Em breve</p>
+      <p v-else-if="endingToday" class="phase-badge phase-badge--hot">Termina hoje</p>
       <p class="registered">
         {{ formatRegisteredAt(encarte.created_at, new Date(renderedAt)) }}
       </p>
@@ -119,6 +121,7 @@ import { jboGet, type JboEncarte, type JboEncarteOffers, type JboOffer } from '~
 import {
   formatPromoValidityLabel,
   getPromoPhase,
+  isEndingToday,
   isPromoExpired,
 } from '~/utils/promoPhase'
 import { formatRegisteredAt } from '~/utils/relativeTime'
@@ -197,6 +200,9 @@ const isExpired = computed(() =>
   encarte.value ? isPromoExpired(encarte.value) : false,
 )
 const isUpcoming = computed(() => promoPhase.value === 'upcoming')
+const endingToday = computed(() =>
+  encarte.value ? isEndingToday(encarte.value) : false,
+)
 const validityLabel = computed(() =>
   encarte.value ? formatPromoValidityLabel(encarte.value) : '',
 )
@@ -271,10 +277,10 @@ h1 {
   min-height: 44px;
   margin-top: 0.15rem;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink-2);
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
@@ -291,9 +297,15 @@ h1 {
   fill: currentColor;
 }
 
+.bell[aria-pressed="true"] {
+  background: var(--yellow-soft);
+  border-color: var(--yellow);
+  color: var(--yellow-ink);
+}
+
 .bell:hover,
 .share:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .bell:focus-visible,
@@ -332,7 +344,7 @@ h1 {
 }
 
 .meta__store:hover {
-  color: var(--yellow);
+  color: var(--ink);
 }
 
 .meta__logo {
@@ -340,7 +352,7 @@ h1 {
   height: 22px;
   object-fit: contain;
   border-radius: 5px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .validity,
@@ -350,11 +362,16 @@ h1 {
 }
 
 .validity--expired {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--ink-3);
 }
 
 .validity--upcoming {
-  color: var(--upcoming-light);
+  color: var(--blue);
+}
+
+.validity--hot {
+  color: var(--red);
+  font-weight: 600;
 }
 
 .phase-badge {
@@ -369,13 +386,18 @@ h1 {
 }
 
 .phase-badge--expired {
-  background: #3a4454;
-  color: rgba(255, 255, 255, 0.9);
+  background: #EEF0F3;
+  color: var(--ink-2);
 }
 
 .phase-badge--upcoming {
-  background: var(--upcoming);
-  color: #fff;
+  background: var(--blue-soft);
+  color: var(--blue);
+}
+
+.phase-badge--hot {
+  background: var(--red-soft);
+  color: var(--red);
 }
 
 .photo {
@@ -407,7 +429,7 @@ h1 {
   max-width: 100%;
   height: auto;
   border-radius: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
 }
 
 .offers {
@@ -420,7 +442,7 @@ h1 {
 .section-heading {
   margin: 0.4rem 0 0;
   font-size: 1rem;
-  color: var(--yellow);
+  color: var(--ink);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -449,7 +471,7 @@ h1 {
   padding: 0.2rem 0.1rem;
   border: 0;
   background: none;
-  color: var(--yellow);
+  color: var(--blue);
   font: inherit;
   font-size: 0.8rem;
   font-weight: 700;
