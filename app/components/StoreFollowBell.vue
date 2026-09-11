@@ -53,10 +53,10 @@ async function onBell() {
   min-width: 44px;
   min-height: 44px;
   padding: 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink-2);
   cursor: pointer;
 }
 
@@ -71,8 +71,14 @@ async function onBell() {
   fill: currentColor;
 }
 
-.store-bell__btn:hover {
+.store-bell__btn[aria-pressed="true"] {
+  background: var(--yellow-soft);
   border-color: var(--yellow);
+  color: var(--yellow-ink);
+}
+
+.store-bell__btn:hover {
+  border-color: var(--ink-3);
 }
 
 .store-bell__btn:focus-visible {
@@ -83,7 +89,7 @@ async function onBell() {
 .store-bell__hint {
   margin: 0;
   max-width: 14rem;
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.78rem;
   line-height: 1.3;
   text-align: right;

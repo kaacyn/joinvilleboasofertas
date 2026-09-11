@@ -137,15 +137,15 @@ useDialogLock(toRef(props, 'open'), overlay, confirmButton, onCancel)
 .follow-modal__panel {
   position: relative;
   width: min(440px, 100%);
-  background: linear-gradient(180deg, #152238 0%, var(--navy-light) 100%);
-  color: var(--white);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
   border-radius: 18px 18px 14px 14px;
   padding: 1.35rem 1.15rem 1.15rem;
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
 }
 
 @media (min-width: 560px) {
@@ -162,9 +162,9 @@ useDialogLock(toRef(props, 'open'), overlay, confirmButton, onCancel)
   width: 52px;
   height: 52px;
   border-radius: 14px;
-  background: rgba(255, 200, 0, 0.14);
-  border: 1px solid rgba(255, 200, 0, 0.35);
-  color: var(--yellow);
+  background: var(--yellow-soft);
+  border: 1px solid var(--yellow);
+  color: var(--yellow-ink);
 }
 
 .follow-modal__icon {
@@ -189,15 +189,15 @@ useDialogLock(toRef(props, 'open'), overlay, confirmButton, onCancel)
 }
 
 .follow-modal__lead strong {
-  color: var(--white);
+  color: var(--ink);
   font-weight: 800;
 }
 
 .follow-modal__steps {
   padding: 0.85rem 0.95rem;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg);
+  border: 1px solid var(--line);
 }
 
 .follow-modal__steps-title {
@@ -206,7 +206,7 @@ useDialogLock(toRef(props, 'open'), overlay, confirmButton, onCancel)
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--yellow);
+  color: var(--yellow-ink);
 }
 
 .follow-modal__list {
@@ -221,7 +221,7 @@ useDialogLock(toRef(props, 'open'), overlay, confirmButton, onCancel)
 }
 
 .follow-modal__list strong {
-  color: var(--white);
+  color: var(--ink);
   font-weight: 700;
 }
 
@@ -242,12 +242,12 @@ useDialogLock(toRef(props, 'open'), overlay, confirmButton, onCancel)
 
 .follow-modal__btn--ghost {
   border: 1px solid var(--border);
-  background: transparent;
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .follow-modal__btn--ghost:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .follow-modal__btn--primary {

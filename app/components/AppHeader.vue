@@ -44,9 +44,8 @@ const { progress, isLoading } = useLoadingIndicator({
   align-items: center;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(13, 19, 29, 0.85);
-  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
   position: sticky;
   top: 0;
   z-index: 20;

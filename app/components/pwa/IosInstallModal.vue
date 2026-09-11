@@ -90,11 +90,12 @@ useDialogLock(toRef(props, 'open'), overlay, okButton, close)
 .ios-install__panel {
   position: relative;
   width: min(520px, 100%);
-  background: var(--navy-light);
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 16px 16px 0 0;
   padding: 1.25rem 1rem 1.5rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -104,17 +105,17 @@ useDialogLock(toRef(props, 'open'), overlay, okButton, close)
   margin: 0;
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .ios-install__warn {
   margin: 0;
   padding: 0.75rem;
-  background: rgba(255, 200, 0, 0.12);
+  background: var(--yellow-soft);
   border-left: 3px solid var(--yellow);
   border-radius: 8px;
   font-size: 0.85rem;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .ios-install__steps {

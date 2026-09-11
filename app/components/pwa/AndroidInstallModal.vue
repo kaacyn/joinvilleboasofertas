@@ -74,11 +74,12 @@ useDialogLock(toRef(props, 'open'), overlay, okButton, close)
 .android-install__panel {
   position: relative;
   width: min(520px, 100%);
-  background: var(--navy-light);
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 16px 16px 0 0;
   padding: 1.25rem 1rem 1.5rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -88,7 +89,7 @@ useDialogLock(toRef(props, 'open'), overlay, okButton, close)
   margin: 0;
   font-size: 1.15rem;
   font-weight: 800;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .android-install__steps {

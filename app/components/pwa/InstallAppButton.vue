@@ -54,13 +54,13 @@ const {
   min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink);
   cursor: pointer;
 }
 
 .install__btn:hover {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .install__btn:focus-visible {

@@ -168,14 +168,20 @@ defineExpose({
 .ac__input {
   width: 100%;
   min-width: 0;
-  border: 1px solid var(--border);
-  background: var(--navy-light);
-  color: var(--white);
-  border-radius: 10px;
-  padding: 0.65rem 0.85rem;
+  height: 50px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: 16px;
+  padding: 0 14px;
   font: inherit;
   font-size: 0.95rem;
+  box-shadow: var(--shadow);
   box-sizing: border-box;
+}
+
+.ac__input::placeholder {
+  color: var(--ink-3);
 }
 
 .ac__input:focus {
@@ -197,35 +203,35 @@ defineExpose({
   list-style: none;
   max-height: 50vh;
   overflow-y: auto;
-  background: var(--navy-light);
-  border: 1px solid var(--border);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
 }
 
 .ac__item {
   padding: 0.65rem 0.85rem;
   font-size: 0.95rem;
   cursor: pointer;
-  color: var(--white);
+  color: var(--ink);
 }
 
 .ac__item--active,
 .ac__item:hover {
-  background: rgba(255, 200, 0, 0.12);
-  color: var(--yellow);
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .ac__status {
   padding: 0.75rem 0.85rem;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: var(--navy-light);
+  background: var(--surface);
   color: var(--muted);
   font-size: 0.85rem;
 }
 
 .ac__status--error {
-  color: #fca5a5;
+  color: var(--red);
 }
 </style>

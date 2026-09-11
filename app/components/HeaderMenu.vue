@@ -148,16 +148,16 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--navy-light);
-  color: var(--yellow);
+  background: var(--surface);
+  color: var(--ink);
   cursor: pointer;
 }
 
 .hmenu__trigger:hover,
 .hmenu__trigger[aria-expanded="true"] {
-  border-color: var(--yellow);
+  border-color: var(--ink-3);
 }
 
 .hmenu__panel {
@@ -167,10 +167,10 @@ onBeforeUnmount(() => {
   min-width: 220px;
   display: flex;
   flex-direction: column;
-  background: var(--navy-light, #151d2b);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
   padding: 6px;
   z-index: 30;
 }
@@ -179,7 +179,7 @@ onBeforeUnmount(() => {
   display: block;
   padding: 0.7rem 0.85rem;
   border-radius: 8px;
-  color: #fff;
+  color: var(--ink);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -187,7 +187,7 @@ onBeforeUnmount(() => {
 
 .hmenu__item:hover,
 .hmenu__item.router-link-active {
-  background: rgba(255, 200, 0, 0.12);
-  color: var(--yellow);
+  background: var(--yellow-soft);
+  color: var(--yellow-ink);
 }
 </style>

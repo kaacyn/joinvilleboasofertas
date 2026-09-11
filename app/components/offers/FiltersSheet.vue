@@ -214,7 +214,7 @@ function apply() {
   width: min(520px, 100%);
   max-height: 85vh;
   overflow: auto;
-  background: var(--navy-light);
+  background: var(--surface);
   border-radius: 16px 16px 0 0;
   padding: 1rem 1rem 1.25rem;
   border: 1px solid var(--border);
@@ -256,8 +256,8 @@ function apply() {
   width: 100%;
   margin-bottom: 0.5rem;
   border: 1px solid var(--border);
-  background: var(--navy);
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 8px;
   padding: 0.5rem 0.65rem;
   font: inherit;
@@ -294,8 +294,8 @@ function apply() {
 
 .sheet__row input {
   border: 1px solid var(--border);
-  background: var(--navy);
-  color: var(--white);
+  background: var(--surface);
+  color: var(--ink);
   border-radius: 8px;
   padding: 0.5rem;
   font: inherit;
@@ -318,9 +318,9 @@ function apply() {
 }
 
 .sheet__ghost {
-  background: transparent;
+  background: var(--surface);
   border: 1px solid var(--border);
-  color: var(--white);
+  color: var(--ink);
 }
 
 .sheet__apply {

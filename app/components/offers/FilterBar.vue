@@ -255,19 +255,17 @@ function pickSort(value: string, close: () => void) {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 10px 16px;
   position: sticky;
   top: 64px;
   z-index: 15;
-  background: rgba(13, 19, 29, 0.92);
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(8px);
+  background: var(--bg);
 }
 
 .filterbar__chips {
   display: flex;
   flex-wrap: nowrap;
-  gap: 0;
+  gap: 8px;
   overflow-x: auto;
   overflow-y: hidden;
   flex: 1;
@@ -283,10 +281,6 @@ function pickSort(value: string, close: () => void) {
   display: none;
 }
 
-.filterbar__chips > * + * {
-  border-left: 1px solid var(--border);
-}
-
 .popover {
   display: flex;
   flex-direction: column;
@@ -298,7 +292,7 @@ function pickSort(value: string, close: () => void) {
 
 .popover__title {
   margin: 0 0 8px;
-  color: var(--muted);
+  color: var(--ink-3);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -314,12 +308,12 @@ function pickSort(value: string, close: () => void) {
   width: 100%;
   height: 36px;
   padding: 0 10px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--line);
   border-radius: 8px;
   font: inherit;
   font-size: 0.85rem;
-  color: #fff;
-  background: var(--navy, #0d131d);
+  color: var(--ink);
+  background: var(--surface);
   outline: none;
 }
 
@@ -368,18 +362,18 @@ function pickSort(value: string, close: () => void) {
   padding: 8px 12px;
   text-align: left;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  color: #fff;
+  color: var(--ink);
   cursor: pointer;
   font: inherit;
   font-size: 0.85rem;
 }
 
 .popover__opt--on {
-  background: rgba(255, 200, 0, 0.15);
-  border-color: var(--yellow, #ffc800);
-  color: var(--yellow, #ffc800);
+  background: var(--yellow-soft);
+  border-color: var(--yellow);
+  color: var(--yellow-ink);
   font-weight: 700;
 }
 
@@ -388,7 +382,7 @@ function pickSort(value: string, close: () => void) {
   gap: 8px;
   flex-shrink: 0;
   margin-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--line);
   padding-top: 8px;
 }
 
@@ -404,9 +398,9 @@ function pickSort(value: string, close: () => void) {
 }
 
 .popover__clear {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
 }
 
 .popover__apply {
@@ -416,7 +410,7 @@ function pickSort(value: string, close: () => void) {
 }
 
 .popover__empty {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--ink-3);
   font-size: 0.85rem;
   margin: 0;
   padding: 8px 4px;

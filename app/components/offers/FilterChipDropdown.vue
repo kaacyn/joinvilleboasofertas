@@ -180,22 +180,24 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 40px;
+  height: 34px;
   padding: 0 14px;
-  background: transparent;
-  border: none;
-  border-radius: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--ink-2);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .chipdd__trigger--active {
-  color: var(--yellow);
-  font-weight: 800;
+  background: var(--navy);
+  border-color: var(--navy);
+  color: var(--on-dark);
+  font-weight: 600;
 }
 
 .chipdd__badge {
@@ -220,16 +222,16 @@ onBeforeUnmount(() => {
   position: fixed;
   display: flex;
   flex-direction: column;
-  background: var(--navy-light, #151d2b);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow);
   padding: 12px;
   max-height: 360px;
   overflow-x: hidden;
   overflow-y: hidden;
   z-index: 1000;
-  color: #fff;
+  color: var(--ink);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
