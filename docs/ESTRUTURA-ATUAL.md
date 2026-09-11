@@ -19,7 +19,7 @@ Shell global (`app/app.vue`): `<NuxtPage />` + modal global `StoreFollowConfirmM
 
 | Rota | Página | Screenshot |
 |------|--------|------------|
-| `/` | Home de ofertas | `docs/screens/01-home.png` |
+| `/` | Home vitrine | `docs/screens/01-home.png` |
 | `/lojas` | Lista de lojas | `docs/screens/02-lojas.png` |
 | `/loja/[slug]` | Página da loja | `docs/screens/03-loja.png` |
 | `/categoria/[slug]` | Página da categoria | `docs/screens/04-categoria.png` |
@@ -40,6 +40,8 @@ Overlays / estados extras:
 | Chip de filtro Categorias aberto (home) | `docs/screens/13-filtro-categorias.png` |
 | Lightbox de encarte | `docs/screens/14-encarte-lightbox.png` |
 | Modal “Seguir esta loja?” | `docs/screens/15-follow-modal.png` |
+| Home em modo lista (busca `?q=arroz`) | `docs/screens/16-home-filtro.png` |
+| Home “Termina hoje” (`?ends_today=1`) | `docs/screens/17-home-termina-hoje.png` |
 
 ---
 
@@ -51,7 +53,7 @@ O template original citava loja+admin, PIN, enum de status de pedido e tipos Pro
 |--------------------|-----------------|
 | Rotas loja | Todas as rotas públicas acima |
 | Rotas admin + PIN | **Não existem neste front** |
-| Categorias com cores | Categorias vêm da API **sem cor**; atalhos Stories têm anel amarelo/vermelho quando ativos |
+| Categorias com cores | Emoji + fundo suave por slug em `app/utils/categoryIcons.ts` (grade da home e título da página de categoria) |
 | Enum status de pedido | Não há pedidos; há **`PromoPhase`**: `active` \| `upcoming` \| `expired` |
 | Tipos Produto/Pedido/Cliente | **`JboOffer`**, **`JboEncarte`**, produto em `ProductPage`, estabelecimento (`EstItem` / `EstPage`) |
 | Tokens `tailwind.config` | Tokens em **`tokens.css`** (abaixo) |
@@ -88,30 +90,39 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
 
 ---
 
-## 1. `/` — Home de ofertas
+## 1. `/` — Home vitrine
 
 **Arquivo:** `app/pages/index.vue`  
-**Componentes:** `AppHeader`, `SearchBar` (+ `SearchAutocomplete`), `FilterBar` (+ `FilterChipDropdown`), `StoryShortcuts`, `OfferCard`
+**Componentes:** `AppHeader`, `SearchBar` (+ `SearchAutocomplete`), `FilterBar` (+ `FilterChipDropdown`), `HomeSection`, `HeroSavings`, `CategoryGrid`, `OfferCarousel` (+ `OfferTile`), `OfferCard`
 
 ### Estrutura (cima → baixo)
 1. Header sticky + busca
-2. FilterBar sticky (Categorias | Lojas | Ordenar)
-3. Seção “Ofertas em Joinville”
-4. Faixa Stories (atalhos)
-5. Lista de `OfferCard` + sentinel infinite scroll
+2. FilterBar sticky (Categorias | Lojas | Ordenar) — pills claras, chip ativo em navy
+3. **Só em vitrine** (sem busca, filtros, faixa de preço, `ends_today` e `sort=recent`):
+   - Hero “Maior economia da semana” (`HeroSavings`) — primeira oferta vigente com economia real
+   - Seção “Categorias” (`CategoryGrid`, 8 + “Ver todas”)
+   - Seção “Maiores descontos” (`OfferCarousel` de até 8 `OfferTile`, exclui o hero)
+   - Seção “Termina hoje” (até 6 `OfferCard` + pill com a contagem + “Ver todas”)
+4. Seção “Novas ofertas” = feed infinito de `OfferCard` (título só em vitrine)
+5. Com `?ends_today=1`: título “Termina hoje” + botão Limpar em vez das seções
 6. Estados loading / empty / error
+
+Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavings`).
 
 ### Dados exibidos
 
 | UI | Origem |
 |----|--------|
-| Facets categorias/lojas | `GET /offers/facets` → `JboFacets` |
-| Lista de ofertas | `GET /offers` (`q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort`, `page_size=20`, `cursor`) → `JboOffersPage` |
-| Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`) |
-| Stories | estático `STORY_SHORTCUTS` |
+| Facets categorias/lojas (com `slug`) | `GET /offers/facets` → `JboFacets` |
+| Feed | `GET /offers` (`q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort`, `ends_today`, `page_size=20`, `cursor`) → `JboOffersPage` |
+| Hero + carrossel (vitrine) | `GET /offers?sort=savings&page_size=10` |
+| Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=recent&page_size=6` + `GET /offers/count?ends_today=true` |
+| Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`), `ends_today` (`1`) |
 | Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` |
 
-**Card (`JboOffer`):** faixa (economia `%` / OFERTA / EXPIRADO / EM BREVE), `category_name`, `product_name`, logo+nome loja, validade, preço + volume, unitário, badge clube, `avg_price` riscado.
+As três chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`); falha em uma esconde só a seção.
+
+**Card horizontal (`OfferCard`):** imagem do recorte 92×92 (ou emoji da categoria) com badge (`offerBadge`: `-28%` vermelho, `CLUBE -28%`/`CLUBE` amarelo, `EM BREVE` azul, `EXPIRADO` cinza), categoria, nome, marca · embalagem, preço (Montserrat) + regular/média riscados, “cada”/unitário, loja, validade (“Termina hoje” em vermelho), chips.
 
 ### Ações
 | Controle | Efeito |
@@ -119,8 +130,10 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
 | Busca / suggest | `filters.patch({ q })` |
 | Chips Categorias / Lojas | `patch` dos ids |
 | Ordenar | `recent` / `price` / `savings` |
-| Story | aplica ou limpa `q` + `category_ids` |
-| OfferCard | `/produto/{slug}/{loja}` |
+| Hero / tile / card | `/produto/{slug}/{loja}` |
+| Categoria da grade | `/categoria/{slug}` |
+| “Ver todos” (descontos) | `/?sort=savings` |
+| “Ver todas as N ofertas” | `/?ends_today=1` |
 | Limpar filtros | `filters.clear()` |
 | Tentar de novo | `refresh()` |
 | Scroll sentinel | próxima página com `cursor` |
@@ -129,7 +142,7 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
 - Loading: “Carregando ofertas…” / “Carregando mais produtos”
 - Empty: mensagens por `q` / filtros / sem ofertas + limpar
 - Error: “Não foi possível carregar as ofertas.”
-- Sem abas
+- Sem hero/carrossel quando nenhuma oferta tem economia real; sem “Termina hoje” quando `count=0`
 
 ---
 
@@ -182,16 +195,16 @@ Loading no header · Error API → **404** “Loja não encontrada” · Empty �
 **Componentes:** `AppHeader`, `OfferCard`
 
 ### Estrutura
-Header → h1 `category.name` → cards → empty
+Header → título com emoji/fundo da categoria (`categoryIcon(slug)`) → cards → sentinela de scroll infinito (`cursor`, `page_size=20`) → empty
 
 ### Dados
 `GET /categories/{slug}` → `{ category: { id, name, slug }, items: JboOffer[], next_cursor }`
 
 ### Ações
-OfferCard → `/produto/{slug}/{loja}`
+OfferCard → `/produto/{slug}/{loja}` · scroll → próxima página
 
 ### Estados
-Loading header · 404 “Categoria não encontrada” · Empty “Sem ofertas vigentes nesta categoria.”
+Loading header · “Carregando mais…” · 404 “Categoria não encontrada” · Empty “Sem ofertas vigentes nesta categoria.”
 
 ---
 
@@ -317,20 +330,9 @@ Texto legal estático + `AppHeader`. Links cruzados e Instagram / home.
 
 Lista tipicamente: Açougue, Bebidas, Bebê, Congelados, Frios, Higiene, Hortifruti, Laticínios, Limpeza, Mercearia, Outros, Padaria, Pet.
 
-### Atalhos Stories (home) — estáticos
+### Ícones (front — `app/utils/categoryIcons.ts`)
 
-| id | label | `q` | categoryNames | imagem |
-|----|-------|-----|---------------|--------|
-| ovos | Ovos | Ovos | Hortifruti, Mercearia | `/shortcuts/ovos.webp` |
-| cafe | Café | Café | Mercearia | `/shortcuts/cafe.webp` |
-| leite | Leite | Leite | Laticínios | `/shortcuts/leite.webp` |
-| arroz | Arroz | Arroz | Mercearia | `/shortcuts/arroz.webp` |
-| feijao | Feijão | Feijão | Mercearia | `/shortcuts/feijao.webp` |
-| oleo | Óleo | Óleo | Mercearia | `/shortcuts/oleo.webp` |
-| frango | Frango | Frango | Açougue | `/shortcuts/frango.webp` |
-| acougue | Açougue | *(vazio)* | Açougue | `/shortcuts/acougue.webp` |
-
-**Cor do atalho ativo:** anel `linear-gradient(135deg, var(--yellow), var(--red))`; label `var(--yellow)`.
+Emoji e fundo suave por slug (açougue 🥩, hortifruti 🥦, laticinios 🧀, bebidas 🧃, padaria 🥖, limpeza 🧴, higiene 🧼, mercearia 🛒, congelados 🧊, frios 🥓, bebe 🍼, pet 🐾, outros 🧺); fallback 🛒 cinza. `orderCategories` segue essa ordem, desconhecidos por nome e `outros` por último. Os atalhos Stories foram removidos da home.
 
 ---
 
@@ -342,9 +344,9 @@ type PromoPhase = 'active' | 'upcoming' | 'expired'
 
 | Valor | Regra | UI |
 |-------|-------|-----|
-| `active` | hoje ∈ [start, end] | stripe `--yellow` ou `--red` (economia) |
-| `upcoming` | start > hoje | “Em breve”, `--upcoming` |
-| `expired` | end < hoje | stripe `#3a4454`, opacidade ↓ |
+| `active` | hoje ∈ [start, end] | badge `-N%` (`--red`) ou `CLUBE` (`--yellow`); “Termina hoje” em `--red` quando vence hoje |
+| `upcoming` | start > hoje | “Em breve”, `--blue-soft` / `--blue` |
+| `expired` | end < hoje | badge `#EEF0F3` / `--ink-2`, opacidade ↓ |
 
 Ordenação ofertas: `recent` \| `price` \| `savings`  
 Ordenação encartes: `created` \| `ends`  
@@ -355,7 +357,7 @@ Role lead: `user` \| `merchant`
 ## Tipos principais (`app/utils/jboApi.ts`)
 
 ### `JboOffer` (oferta / “produto na loja”)
-`id`, `product_id`, `product_name`, `product_slug`, `category_name?`, `category_slug?`, `establishment_id/name/slug`, `establishment_loyalty_program_name?`, `establishment_logo_url?`, `establishment_address?`, `establishment_addresses?`, `price`, `is_club_price?`, `promo_starts_on/ends_on?`, `promo_active?`, `avg_price?`, `diff_percent?`, `diff_amount?`, `recorded_at`, `image_url?`, `encarte_id?`, `price_volume_min?`, `volume_unit_min?`, `comparison_base?`, `volume_value?`, `volume_unit?`, `pricing_mode?`
+`id`, `product_id`, `product_name`, `product_slug`, `brand?`, `category_name?`, `category_slug?`, `establishment_id/name/slug`, `establishment_loyalty_program_name?`, `establishment_logo_url?`, `establishment_address?`, `establishment_addresses?`, `offer_addresses?`, `price?`, `club_price?`, `pricing?` (`basis`, `lot_quantity`, `reference`), `quantity?`, `quantity_label?`, `promotion?`, `quantity_discount?`, `promo_starts_on/ends_on?`, `promo_active?`, `unit_price?`, `unit_price_base?`, `avg_price?`, `diff_percent?`, `diff_amount?`, `recorded_at`, `image_url?`, `encarte_id?`, `encarte_bbox?`
 
 ### `JboEncarte`
 `id`, `establishment_id/name/slug`, `establishment_logo_url?`, `promo_starts_on?`, `promo_ends_on`, `promo_active`, `image_url?`, `image_url_xl?`, `created_at`
@@ -368,34 +370,38 @@ Role lead: `user` \| `merchant`
 `EstPage`: `{ establishment, items: JboOffer[], next_cursor }`
 
 ### Outros
-`JboOffersPage` / `JboEncartesPage` · `JboFacets` · `JboSuggestItem` · `pricing_mode` tratado em `unitPrice.ts` (`by_measure`, `bandeja`, `pacote`, `caixa`, `fardo`, `fixed_package`)
+`JboOffersPage` / `JboEncartesPage` · `JboFacets` (`{ id, name, slug? }`) · `JboSuggestItem` · preço por base em `offerPrice.ts`; badge em `offerBadge.ts`
 
 ---
 
 ## Tokens de design (`app/assets/css/tokens.css`)
 
-Não há Tailwind. Variáveis:
+Não há Tailwind. Tema claro (protótipo):
 
 ```css
 :root {
-  --navy: #0D131D;
-  --navy-light: #151d2b;
-  --yellow: #FFC800;
-  --red: #E61E25;
-  --upcoming: #0284c7;
-  --upcoming-light: #38bdf8;
-  --white: #FFFFFF;
-  --muted: rgba(255, 255, 255, 0.65);
-  --surface: #151d2b;
-  --border: rgba(255, 255, 255, 0.08);
+  --navy: #0D131D;      --navy-2: #2A3341;
+  --yellow: #FFC800;    --yellow-soft: #FFF3BF;  --yellow-ink: #7A5B00;
+  --red: #E61E25;       --red-soft: #FDE7E8;
+  --green: #15803D;     --green-soft: #DCFCE7;
+  --blue: #0284C7;      --blue-soft: #E0F2FE;
+  --bg: #F3F4F6;  --surface: #FFFFFF;  --line: #E6E8EC;
+  --ink: #0D131D; --ink-2: #4B5563;    --ink-3: #8A94A3;
+  --on-dark: #FFFFFF;
+  --border: var(--line);  --muted: var(--ink-3);
+  --upcoming: var(--blue); --upcoming-light: var(--blue);
+  --r: 14px; --r-sm: 10px;
+  --shadow: 0 1px 2px rgba(13,19,29,.05), 0 4px 14px rgba(13,19,29,.06);
+  --head: "Montserrat", system-ui, sans-serif;
+  --body: "Inter", system-ui, sans-serif;
 }
 ```
 
-- Fonte: Montserrat 600–900 + system-ui  
-- Body: radiais amarelo/vermelho + gradiente navy → `#0a0f17`  
-- Links: `--yellow`  
-- PWA `theme_color` / `background_color`: `#0D131D`  
-- Spacing/shadow/radius: valores locais nos componentes (ex. radius 8–18px)
+- Fontes: Inter 400–700 no corpo; Montserrat 700–900 em títulos, marca e preços  
+- Body: `--bg` liso, texto `--ink`; links `--blue`  
+- `--white` e `--navy-light` não existem; texto sobre navy/vermelho usa `--on-dark`  
+- PWA `theme_color` / `background_color`: `#F3F4F6`  
+- Raio `--r` 14px / `--r-sm` 10px; sombra `--shadow` em popovers/modais
 
 ---
 
@@ -403,7 +409,7 @@ Não há Tailwind. Variáveis:
 
 | Método | Path |
 |--------|------|
-| GET | `/offers`, `/offers/facets`, `/offers/{id}` |
+| GET | `/offers` (inclui `ends_today`), `/offers/count`, `/offers/facets`, `/offers/{id}` |
 | GET | `/products/suggest`, `/products/{slug}` |
 | GET | `/establishments`, `/establishments/{slug}` |
 | GET | `/categories/{slug}` |

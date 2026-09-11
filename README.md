@@ -30,7 +30,7 @@ Serviços:
 
 | Rota | Função |
 |------|--------|
-| `/` | Home: busca, filtros, listagem |
+| `/` | Home vitrine: hero da maior economia, categorias, maiores descontos, termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
 | `/oferta/{id}` | Redireciona para o produto naquela loja |
 | `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja |
 | `/loja/{slug}` | Ofertas da loja |
@@ -59,8 +59,19 @@ As ofertas vêm da extração do encarte pelo Mega Brain (`/api/public/jbo/offer
 - `encarte_bbox`: posição (0..1) da oferta na foto; a página do produto abre o
   lightbox já destacando essa área e a página do encarte mostra hotspots.
 
+## Tema e tipografia
+
+Tokens em `app/assets/css/tokens.css` (tema claro): `--bg #F3F4F6`, `--surface #FFFFFF`,
+`--line #E6E8EC`, texto `--ink/--ink-2/--ink-3`, marca `--navy`, destaque `--yellow` /
+`--yellow-soft` / `--yellow-ink`, alerta `--red` / `--red-soft`, informação `--blue` / `--blue-soft`.
+Inter no corpo (`--body`), Montserrat em títulos, marca e preços (`--head`).
+`--white` e `--navy-light` não existem mais — texto sobre fundo escuro usa `--on-dark`.
+
+Capturas: `npm run screens` (ver cabeçalho de `scripts/screens.cjs`).
+
 ## Spec / plano
 
 - `docs/superpowers/specs/2026-08-12-jbo-plataforma-publica-design.md`
 - `docs/superpowers/plans/2026-08-12-jbo-nuxt-platform.md`
+- `docs/superpowers/specs/2026-09-11-jbo-home-vitrine-tema-claro-design.md` e `docs/superpowers/plans/2026-09-11-jbo-home-vitrine-tema-claro.md` (home vitrine + tema claro)
 - Integração Mega Brain (contrato de ofertas): `snap-api/docs/superpowers/specs/2026-09-09-integracao-mega-brain-design.md`

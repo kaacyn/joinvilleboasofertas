@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "icons": "node scripts/generate-pwa-icons.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "screens": "node scripts/screens.cjs"
   },
   "dependencies": {
     "nuxt": "^4.5.2",
