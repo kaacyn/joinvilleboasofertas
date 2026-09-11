@@ -15,7 +15,7 @@ describe('PWA JBO', () => {
     expect(config).toContain("injectManifest")
     expect(config).toContain("srcDir: '.'")
     expect(config).toContain("short_name: 'Joinville Boas Ofertas'")
-    expect(config).toContain("theme_color: '#0D131D'")
+    expect(config).toContain("theme_color: '#F3F4F6'")
     expect(config).toContain("display: 'standalone'")
     expect(config).not.toContain('pwaNavigation')
   })

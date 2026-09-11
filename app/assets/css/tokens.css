@@ -1,14 +1,35 @@
 :root {
+  /* marca */
   --navy: #0D131D;
-  --navy-light: #151d2b;
+  --navy-2: #2A3341;
   --yellow: #FFC800;
+  --yellow-soft: #FFF3BF;
+  --yellow-ink: #7A5B00;
   --red: #E61E25;
-  --upcoming: #0284c7;
-  --upcoming-light: #38bdf8;
-  --white: #FFFFFF;
-  --muted: rgba(255, 255, 255, 0.65);
-  --surface: #151d2b;
-  --border: rgba(255, 255, 255, 0.08);
+  --red-soft: #FDE7E8;
+  --green: #15803D;
+  --green-soft: #DCFCE7;
+  --blue: #0284C7;
+  --blue-soft: #E0F2FE;
+  /* superfícies e texto */
+  --bg: #F3F4F6;
+  --surface: #FFFFFF;
+  --line: #E6E8EC;
+  --ink: #0D131D;
+  --ink-2: #4B5563;
+  --ink-3: #8A94A3;
+  --on-dark: #FFFFFF; /* texto sobre navy/vermelho */
+  /* apelidos mantidos */
+  --border: var(--line);
+  --muted: var(--ink-3);
+  --upcoming: var(--blue);
+  --upcoming-light: var(--blue);
+  /* forma */
+  --r: 14px;
+  --r-sm: 10px;
+  --shadow: 0 1px 2px rgba(13, 19, 29, 0.05), 0 4px 14px rgba(13, 19, 29, 0.06);
+  --head: "Montserrat", system-ui, sans-serif;
+  --body: "Inter", system-ui, sans-serif;
 }
 
 *,
@@ -24,17 +45,20 @@ body {
 }
 
 body {
-  font-family: "Montserrat", system-ui, sans-serif;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(255, 200, 0, 0.07) 0%, transparent 45%),
-    radial-gradient(circle at 80% 90%, rgba(230, 30, 37, 0.06) 0%, transparent 40%),
-    linear-gradient(180deg, var(--navy) 0%, #0a0f17 100%);
-  background-attachment: fixed;
-  color: var(--white);
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--head);
 }
 
 a {
-  color: var(--yellow);
+  color: var(--blue);
   text-decoration: none;
 }
 

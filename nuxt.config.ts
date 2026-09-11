@@ -15,7 +15,7 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'pt-BR' },
       title: 'Joinville Boas Ofertas',
       meta: [
-        { name: 'theme-color', content: '#0D131D' },
+        { name: 'theme-color', content: '#F3F4F6' },
         {
           name: 'description',
           content: 'Ofertas de supermercados em Joinville e região.',
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800;900&display=swap',
         },
       ],
     },
@@ -61,8 +61,8 @@ export default defineNuxtConfig({
       start_url: '/',
       scope: '/',
       display: 'standalone',
-      background_color: '#0D131D',
-      theme_color: '#0D131D',
+      background_color: '#F3F4F6',
+      theme_color: '#F3F4F6',
       icons: [
         { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
         { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
