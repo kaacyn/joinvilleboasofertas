@@ -7,6 +7,8 @@ export type OfferFiltersState = {
   price_min: number | null
   price_max: number | null
   sort: string
+  /** Só ofertas cuja validade termina hoje (seção "Termina hoje" da home). */
+  ends_today: boolean
 }
 
 /**
@@ -33,6 +35,7 @@ export function filtersFromQuery(query: LocationQuery): OfferFiltersState {
     price_min: num('price_min'),
     price_max: num('price_max'),
     sort: String(query.sort || 'recent'),
+    ends_today: ['1', 'true'].includes(String(query.ends_today || '')),
   }
 }
 
@@ -47,6 +50,7 @@ export function filtersToQuery(f: OfferFiltersState): Record<string, string> {
   if (f.price_min != null) out.price_min = String(f.price_min)
   if (f.price_max != null) out.price_max = String(f.price_max)
   if (f.sort && f.sort !== 'recent') out.sort = f.sort
+  if (f.ends_today) out.ends_today = '1'
   return out
 }
 
@@ -63,11 +67,12 @@ export function filtersToApiParams(f: OfferFiltersState): Record<string, unknown
     price_min: f.price_min ?? undefined,
     price_max: f.price_max ?? undefined,
     sort: f.sort || 'recent',
+    ends_today: f.ends_today ? true : undefined,
   }
 }
 
 /**
- * Quantidade de filtros ativos (exceto busca e sort).
+ * Quantidade de filtros ativos (exceto busca e sort); `ends_today` conta.
  */
 export function filtersActiveCount(f: OfferFiltersState): number {
   let n = 0
@@ -75,6 +80,7 @@ export function filtersActiveCount(f: OfferFiltersState): number {
   n += f.establishment_ids.length
   if (f.price_min != null) n += 1
   if (f.price_max != null) n += 1
+  if (f.ends_today) n += 1
   return n
 }
 
