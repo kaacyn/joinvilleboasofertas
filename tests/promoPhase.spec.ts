@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   formatPromoValidityLabel,
   getPromoPhase,
+  isEndingToday,
   isPromoExpired,
   isPromoUpcoming,
 } from '../app/utils/promoPhase'
@@ -33,5 +34,25 @@ describe('promoPhase', () => {
     expect(formatPromoValidityLabel(offer, now)).toBe(
       'A partir de 20/08/2026 · válido até 02/09/2026',
     )
+  })
+
+  it('rotula Termina hoje quando a promo vence na data civil de hoje', () => {
+    const offer = { promo_starts_on: '2026-08-15', promo_ends_on: '2026-08-19' }
+    expect(isEndingToday(offer, now)).toBe(true)
+    expect(formatPromoValidityLabel(offer, now)).toBe('Termina hoje')
+  })
+
+  it('usa a data civil de São Paulo, não o UTC', () => {
+    const lateNightUtc = new Date('2026-08-20T01:00:00.000Z') // 22h do dia 19 em Joinville
+    const offer = { promo_ends_on: '2026-08-19' }
+    expect(isEndingToday(offer, lateNightUtc)).toBe(true)
+  })
+
+  it('não é Termina hoje quando vence amanhã, já venceu ou ainda não começou', () => {
+    expect(isEndingToday({ promo_ends_on: '2026-08-20' }, now)).toBe(false)
+    expect(formatPromoValidityLabel({ promo_ends_on: '2026-08-20' }, now)).toBe('Válido até amanhã')
+    expect(isEndingToday({ promo_ends_on: '2026-08-18' }, now)).toBe(false)
+    expect(isEndingToday({ promo_starts_on: '2026-08-25', promo_ends_on: '2026-08-25' }, now)).toBe(false)
+    expect(isEndingToday({ promo_ends_on: null }, now)).toBe(false)
   })
 })

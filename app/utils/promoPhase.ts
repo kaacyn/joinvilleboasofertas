@@ -33,6 +33,15 @@ export function isPromoUpcoming(offer: PromoDates, now = new Date()): boolean {
   return getPromoPhase(offer, now) === 'upcoming'
 }
 
+/** True quando a promo está vigente e termina na data civil de hoje (Joinville). */
+export function isEndingToday(offer: PromoDates, now = new Date()): boolean {
+  if (!offer.promo_ends_on) return false
+  const end = parseDateOnly(offer.promo_ends_on)
+  if (!end) return false
+  if (getPromoPhase(offer, now) !== 'active') return false
+  return daysBetween(civilToday(now), end) === 0
+}
+
 /** Texto de validade coerente com a fase (não trata "em breve" como expirado). */
 export function formatPromoValidityLabel(offer: PromoDates, now = new Date()): string {
   if (!offer.promo_ends_on) return ''
@@ -42,5 +51,6 @@ export function formatPromoValidityLabel(offer: PromoDates, now = new Date()): s
   if (phase === 'upcoming' && offer.promo_starts_on) {
     return `A partir de ${formatCivilDate(offer.promo_starts_on)} · válido até ${formatCivilDate(offer.promo_ends_on)}`
   }
+  if (isEndingToday(offer, now)) return 'Termina hoje'
   return formatValidUntil(offer.promo_ends_on, now)
 }
