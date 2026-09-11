@@ -4,21 +4,16 @@
     :class="{ 'deal--expired': isExpired }"
     :to="productHref"
   >
-    <div
-      class="deal__stripe"
-      :class="stripeClass"
-    >
-      <template v-if="isExpired">
-        <span class="deal__stripe-main deal__stripe-main--word">EXPIRADO</span>
-      </template>
-      <template v-else-if="isUpcoming">
-        <span class="deal__stripe-main deal__stripe-main--word">EM BREVE</span>
-      </template>
-      <template v-else-if="hasSavings">
-        <span class="deal__stripe-label">economia</span>
-        <span class="deal__stripe-main">{{ pctLabel }}</span>
-      </template>
-      <span v-else class="deal__stripe-main deal__stripe-main--word">OFERTA</span>
+    <div class="deal__media" :style="mediaStyle">
+      <img
+        v-if="offer.image_url"
+        class="deal__img"
+        :src="offer.image_url"
+        :alt="offer.product_name"
+        loading="lazy"
+      >
+      <span v-else class="deal__emoji" aria-hidden="true">{{ icon.emoji }}</span>
+      <span v-if="badge" class="deal__badge" :class="badgeClass">{{ badge.label }}</span>
     </div>
 
     <div class="deal__body">
@@ -31,46 +26,49 @@
       <div v-if="subtitle" class="deal__subtitle">
         {{ subtitle }}
       </div>
-      <div v-if="!hideStore" class="deal__meta">
-        <span class="deal__store">
-          <img
-            v-if="offer.establishment_logo_url"
-            class="deal__store-logo"
-            :src="offer.establishment_logo_url"
-            :alt="`Logo ${offer.establishment_name}`"
-            loading="lazy"
-          >
-          <span>{{ offer.establishment_name }}</span>
-        </span>
-      </div>
-      <p
-        v-if="validityLabel"
-        class="deal__validity"
-        :class="{ 'deal__validity--expired': isExpired, 'deal__validity--upcoming': isUpcoming }"
-      >
-        {{ validityLabel }}
-      </p>
       <div class="deal__price">
-        <div class="deal__price-stack">
-          <span class="deal__price-now">
-            <span v-if="priceParts.prefix" class="deal__price-prefix">{{ priceParts.prefix }} </span>{{ priceParts.amount }}<span
-              v-if="priceParts.suffix"
-              class="deal__price-vol"
-            >{{ priceParts.suffix }}</span>
-          </span>
-          <span v-if="priceParts.each" class="deal__price-each">{{ priceParts.each }}</span>
-          <span v-if="unitPriceLabel" class="deal__price-unit">{{ unitPriceLabel }}</span>
-        </div>
-        <span v-if="clubLabel" class="deal__club">{{ clubLabel }}</span>
+        <span class="deal__price-now">
+          <span v-if="priceParts.prefix" class="deal__price-prefix">{{ priceParts.prefix }} </span>{{ priceParts.amount }}<span
+            v-if="priceParts.suffix"
+            class="deal__price-vol"
+          >{{ priceParts.suffix }}</span>
+        </span>
         <s
           v-if="priceParts.regular"
           class="deal__price-regular"
           :title="`${priceParts.regular} sem o ${clubLabel}`"
         >{{ priceParts.regular }}</s>
-        <span v-if="hasSavings && avgLabel" class="deal__price-avg">
-          média {{ avgLabel }}
-        </span>
+        <s
+          v-else-if="hasSavings && avgLabel"
+          class="deal__price-avg"
+          :title="`Média nos mercados: ${avgLabel}`"
+        >{{ avgLabel }}</s>
       </div>
+      <div v-if="priceParts.each || unitPriceLabel" class="deal__secondary">
+        <span v-if="priceParts.each" class="deal__price-each">{{ priceParts.each }}</span>
+        <span v-if="unitPriceLabel" class="deal__price-unit">{{ unitPriceLabel }}</span>
+      </div>
+      <div v-if="!hideStore" class="deal__store">
+        <img
+          v-if="offer.establishment_logo_url"
+          class="deal__store-logo"
+          :src="offer.establishment_logo_url"
+          :alt="`Logo ${offer.establishment_name}`"
+          loading="lazy"
+        >
+        <span>{{ offer.establishment_name }}</span>
+      </div>
+      <p
+        v-if="validityLabel"
+        class="deal__validity"
+        :class="{
+          'deal__validity--hot': endingToday,
+          'deal__validity--expired': isExpired,
+          'deal__validity--upcoming': isUpcoming,
+        }"
+      >
+        {{ validityLabel }}
+      </p>
       <ul v-if="chips.length" class="deal__chips" aria-label="Condições da oferta">
         <li
           v-for="chip in chips"
@@ -87,8 +85,11 @@
 </template>
 
 <script setup lang="ts">
+import { categoryIcon } from '~/utils/categoryIcons'
 import { clubBadgeLabel, productOfferPath, type JboOffer } from '~/utils/jboApi'
+import { offerBadge } from '~/utils/offerBadge'
 import {
+  formatMoney,
   formatOfferPriceParts,
   formatOfferSubtitle,
   formatUnitPrice,
@@ -97,6 +98,7 @@ import {
 import {
   formatPromoValidityLabel,
   getPromoPhase,
+  isEndingToday,
   isPromoExpired,
 } from '~/utils/promoPhase'
 
@@ -108,263 +110,243 @@ const props = withDefaults(defineProps<{
   hideStore: false,
 })
 
-const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
-
 const clubLabel = computed(() => clubBadgeLabel(props.offer))
 const productHref = computed(() => productOfferPath(props.offer))
 const promoPhase = computed(() => getPromoPhase(props.offer))
 const isExpired = computed(() => isPromoExpired(props.offer))
 const isUpcoming = computed(() => promoPhase.value === 'upcoming')
+const endingToday = computed(() => isEndingToday(props.offer))
 const hasSavings = computed(() => promoPhase.value === 'active' && Number(props.offer.diff_percent) < 0)
-const pctLabel = computed(() => `${Math.abs(Math.round(Number(props.offer.diff_percent || 0)))}%`)
 const subtitle = computed(() => formatOfferSubtitle(props.offer))
 const priceParts = computed(() => formatOfferPriceParts(props.offer))
 const unitPriceLabel = computed(() => formatUnitPrice(props.offer))
 const chips = computed(() => offerChips(props.offer))
-const avgLabel = computed(() =>
-  props.offer.avg_price != null ? BRL.format(Number(props.offer.avg_price)) : '',
-)
-const stripeClass = computed(() => {
-  if (isExpired.value) return 'deal__stripe--expired'
-  if (isUpcoming.value) return 'deal__stripe--upcoming'
-  if (hasSavings.value) return 'deal__stripe--savings'
-  return 'deal__stripe--brand'
-})
-
+const avgLabel = computed(() => formatMoney(props.offer.avg_price))
 const validityLabel = computed(() => formatPromoValidityLabel(props.offer))
+const badge = computed(() => offerBadge(props.offer))
+/** Badge amarelo quando o preço principal é de clube; senão a cor da fase/economia. */
+const badgeClass = computed(() => badge.value
+  ? (badge.value.club ? 'deal__badge--club' : `deal__badge--${badge.value.kind}`)
+  : '')
+const icon = computed(() => categoryIcon(props.offer.category_slug))
+/** Fundo neutro com imagem; fundo suave da categoria no fallback de emoji. */
+const mediaStyle = computed(() => ({ background: props.offer.image_url ? '#F7F8FA' : icon.value.bg }))
 </script>
 
 <style scoped>
 .deal {
   display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  align-items: stretch;
+  padding: 10px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: inherit;
   text-align: left;
   text-decoration: none;
-  color: inherit;
 }
 
 .deal:hover {
   text-decoration: none;
-  border-color: rgba(255, 200, 0, 0.35);
+  border-color: var(--ink-3);
 }
 
 .deal--expired {
   opacity: 0.82;
 }
 
-.deal__stripe {
-  flex: 0 0 64px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 0.25rem;
-  gap: 0.15rem;
+.deal__media {
+  position: relative;
+  flex: none;
+  width: 92px;
+  height: 92px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
 }
 
-.deal__stripe--savings {
+.deal__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.deal__emoji {
+  font-size: 36px;
+  line-height: 1;
+}
+
+.deal__badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 3px 6px;
+  border-radius: 8px;
+  font-family: var(--head);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.deal__badge--savings {
   background: var(--red);
-  color: var(--white);
+  color: var(--on-dark);
 }
 
-.deal__stripe--brand {
+.deal__badge--club {
   background: var(--yellow);
   color: var(--navy);
 }
 
-.deal__stripe--expired {
-  background: #3a4454;
-  color: rgba(255, 255, 255, 0.85);
+.deal__badge--upcoming {
+  background: var(--blue);
+  color: var(--on-dark);
 }
 
-.deal__stripe--upcoming {
-  background: var(--upcoming);
-  color: var(--white);
-}
-
-.deal__stripe-label {
-  font-size: 0.55rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 700;
-}
-
-.deal__stripe-main {
-  font-weight: 900;
-  font-size: 1.05rem;
-  line-height: 1;
-}
-
-.deal__stripe-main--word {
-  font-size: 0.65rem;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  letter-spacing: 0.08em;
+.deal__badge--expired {
+  background: #EEF0F3;
+  color: var(--ink-2);
 }
 
 .deal__body {
   flex: 1;
-  padding: 0.85rem 1rem;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .deal__category {
-  font-size: 0.7rem;
-  color: var(--muted);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.04em;
-  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  color: var(--ink-3);
 }
 
 .deal__name {
-  display: block;
-  font-weight: 800;
-  font-size: 1rem;
-  color: var(--white);
-  margin-bottom: 0.2rem;
-}
-
-.deal:hover .deal__name {
-  color: var(--yellow);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
 }
 
 .deal__subtitle {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 0.35rem;
-}
-
-.deal__meta {
-  font-size: 0.8rem;
-  color: var(--muted);
-  margin-bottom: 0.35rem;
-}
-
-.deal__store {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--muted);
-  min-width: 0;
-}
-
-.deal__store-logo {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  border-radius: 4px;
-  background: #fff;
-  flex: 0 0 auto;
-}
-
-.deal__validity {
-  margin: 0 0 0.4rem;
-  font-size: 0.75rem;
-  color: var(--yellow);
-}
-
-.deal__validity--expired {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.deal__validity--upcoming {
-  color: var(--upcoming-light);
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .deal__price {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.45rem;
-}
-
-.deal__price-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  gap: 8px;
 }
 
 .deal__price-now {
-  font-size: 1.25rem;
+  font-family: var(--head);
+  font-size: 18px;
   font-weight: 900;
-  color: var(--yellow);
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
-.deal__price-prefix {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--white);
-}
-
+.deal__price-prefix,
 .deal__price-vol {
-  font-size: 0.72rem;
+  font-family: var(--body);
+  font-size: 11px;
   font-weight: 600;
-  color: var(--muted);
-  margin-left: 0.05rem;
-}
-
-.deal--expired .deal__price-now {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.deal__price-each,
-.deal__price-unit {
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--muted);
-  line-height: 1.2;
-}
-
-.deal__club {
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  background: rgba(255, 200, 0, 0.15);
-  color: var(--yellow);
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
+  letter-spacing: 0;
+  color: var(--ink-3);
 }
 
 .deal__price-regular,
 .deal__price-avg {
-  font-size: 0.75rem;
-  color: var(--muted);
+  font-size: 12px;
+  color: var(--ink-3);
+  text-decoration: line-through;
 }
 
-.deal__price-avg {
-  text-decoration: line-through;
+.deal__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.deal__price-each,
+.deal__price-unit {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.deal__store {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-2);
+  min-width: 0;
+}
+
+.deal__store-logo {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  border-radius: 6px;
+  object-fit: contain;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.deal__validity {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+.deal__validity--hot {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.deal__validity--expired {
+  color: var(--ink-3);
+}
+
+.deal__validity--upcoming {
+  color: var(--blue);
 }
 
 .deal__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin: 0.5rem 0 0;
+  gap: 5px;
+  margin: 3px 0 0;
   padding: 0;
   list-style: none;
 }
 
 .deal__chip {
-  padding: 0.18rem 0.5rem;
+  padding: 3px 8px;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1.3;
-  border: 1px solid var(--border);
-  color: var(--white);
+  background: #EEF0F3;
+  color: var(--ink-2);
 }
 
 .deal__chip--promotion {
-  border-color: rgba(255, 200, 0, 0.45);
-  color: var(--yellow);
-}
-
-.deal__chip--addresses {
-  color: var(--muted);
+  background: var(--yellow-soft);
+  color: var(--yellow-ink);
 }
 </style>
