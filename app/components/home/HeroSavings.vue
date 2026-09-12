@@ -3,7 +3,7 @@
     <div class="hero__text">
       <div class="hero__eyebrow">Maior economia da semana</div>
       <h2 class="hero__title">
-        <span class="hero__name">{{ offer.product_name }}</span>
+        <span class="hero__name">{{ title }}</span>
         <span class="hero__price">
           <span v-if="priceParts.prefix" class="hero__price-small">{{ priceParts.prefix }} </span>{{ priceParts.amount }}<span
             v-if="priceParts.suffix"
@@ -18,7 +18,7 @@
       v-if="offer.image_url"
       class="hero__img"
       :src="offer.image_url"
-      :alt="offer.product_name"
+      :alt="title"
       loading="lazy"
     >
   </NuxtLink>
@@ -28,12 +28,15 @@
 import { productOfferPath, type JboOffer } from '~/utils/jboApi'
 import { savingsPercent } from '~/utils/offerBadge'
 import { formatOfferPriceParts } from '~/utils/offerPrice'
+import { offerTitle } from '~/utils/offerTitle'
 import { isEndingToday } from '~/utils/promoPhase'
 import { formatPromoEndLabel } from '~/utils/relativeTime'
 
 const props = defineProps<{ offer: JboOffer }>()
 
 const productHref = computed(() => productOfferPath(props.offer))
+/** Título completo: nome + marca + volume. */
+const title = computed(() => offerTitle(props.offer))
 const priceParts = computed(() => formatOfferPriceParts(props.offer))
 
 /** "{pct}% abaixo da média · {loja} · termina hoje | até {rótulo}". */

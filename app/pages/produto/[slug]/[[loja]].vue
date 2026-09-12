@@ -8,7 +8,7 @@
         </NuxtLink>
       </p>
       <div class="heading">
-        <h1>{{ data.product.name }}</h1>
+        <h1>{{ productTitle }}</h1>
         <button
           type="button"
           class="share"
@@ -46,7 +46,7 @@
             v-if="selected.image_url"
             class="proof__img"
             :src="selected.image_url"
-            :alt="`Recorte do encarte de ${selected.product_name}`"
+            :alt="`Recorte do encarte de ${productTitle}`"
           >
           <div v-else class="proof__empty">
             Recorte do encarte indisponível.
@@ -74,7 +74,6 @@
 
       <section v-if="selected" class="hero" aria-label="Oferta nesta loja">
         <div class="price-box" aria-label="Preço da oferta">
-          <p v-if="subtitle" class="hero__subtitle">{{ subtitle }}</p>
           <div class="price-box__row">
             <div class="price-box__main">
               <p class="hero__price">
@@ -125,7 +124,7 @@
       </section>
 
       <section v-if="otherStores.length" class="list" aria-label="Preços por supermercado">
-        <h2 class="section-heading">Onde encontrar mais {{ data.product.name }}</h2>
+        <h2 class="section-heading">Onde encontrar mais {{ productTitle }}</h2>
         <NuxtLink
           v-for="offer in otherStores"
           :key="offer.id"
@@ -213,11 +212,11 @@ import {
 import {
   formatOfferPrice,
   formatOfferPriceParts,
-  formatOfferSubtitle,
   formatUnitPrice,
   offerChips,
   offerMainPrice,
 } from '~/utils/offerPrice'
+import { offerTitle } from '~/utils/offerTitle'
 import { shareEncarte } from '~/utils/shareEncarte'
 
 type ProductPage = {
@@ -269,7 +268,15 @@ const selected = computed(() => {
 const clubHint = computed(() =>
   selected.value ? clubPriceHint(selected.value) : '',
 )
-const subtitle = computed(() => (selected.value ? formatOfferSubtitle(selected.value) : ''))
+/** Título completo do produto (nome + marca + volume) a partir da oferta em foco. */
+const productTitle = computed(() => {
+  const source = selected.value || data.value?.cheapest || null
+  return offerTitle({
+    product_name: data.value?.product.name || '',
+    brand: source?.brand,
+    quantity_label: source?.quantity_label,
+  })
+})
 const chips = computed(() => (selected.value ? offerChips(selected.value) : []))
 
 if (data.value && lojaSlug.value && !selected.value) {
@@ -319,7 +326,7 @@ async function onShare() {
   })
   const store = selected.value?.establishment_name
   const result = await shareEncarte({
-    title: data.value.product.name,
+    title: productTitle.value,
     text: store ? `Oferta em ${store}` : 'Joinville Boas Ofertas',
     url: `${origin}${path}`,
   }).catch(() => undefined)
@@ -391,16 +398,16 @@ useJboSeo({
   title: () => {
     if (!data.value) return 'Produto'
     if (selected.value?.establishment_name) {
-      return `${data.value.product.name} em ${selected.value.establishment_name}`
+      return `${productTitle.value} em ${selected.value.establishment_name}`
     }
-    return `${data.value.product.name} — preços em Joinville`
+    return `${productTitle.value} — preços em Joinville`
   },
   description: () => {
     if (!data.value) return ''
     if (selected.value) {
-      return `${data.value.product.name} por ${priceLabel(selected.value)} em ${selected.value.establishment_name}.`
+      return `${productTitle.value} por ${priceLabel(selected.value)} em ${selected.value.establishment_name}.`
     }
-    return `Compare preços de ${data.value.product.name} nos supermercados de Joinville.`
+    return `Compare preços de ${productTitle.value} nos supermercados de Joinville.`
   },
   path: () => {
     if (selected.value) return productOfferPath(selected.value)
@@ -415,7 +422,7 @@ useJboSeo({
     return {
       '@context': 'https://schema.org',
       '@type': 'Product',
-      name: data.value.product.name,
+      name: productTitle.value,
       brand: offer.brand ? { '@type': 'Brand', name: offer.brand } : undefined,
       offers: {
         '@type': 'Offer',
@@ -632,12 +639,6 @@ h1 {
   font-weight: 900;
   color: var(--ink);
   line-height: 1.15;
-}
-
-.hero__subtitle {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 
 .hero__price-prefix {

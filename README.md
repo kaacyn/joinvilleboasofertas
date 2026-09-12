@@ -53,7 +53,11 @@ As ofertas vêm da extração do encarte pelo Mega Brain (`/api/public/jbo/offer
 - `pricing.basis`: `unit` (R$ 9,99), `lot` ("2 por R$ 10,00" + "R$ 5,00 cada") ou
   `per_fraction` ("R$ 39,90/kg", "R$ 3,99 a cada 100 g") — helpers em
   `app/utils/offerPrice.ts`.
-- `brand` + `quantity_label`: linha secundária "marca · embalagem".
+- `brand` + `quantity_label`: entram no título completo montado por `offerTitle`
+  (`app/utils/offerTitle.ts`): nome + marca + volume, ex. "Óleo de Soja Coamo 900 ml",
+  sem repetir marca ou volume que o nome já traga. Vale para card, tile, hero, página do
+  produto (h1, SEO, share, JSON-LD), hotspots do encarte e autocomplete
+  (`/products/suggest` devolve `brand` e `quantity_label` por produto).
 - `unit_price` + `unit_price_base`: preço por 100 g / 100 ml / un para comparação.
 - `promotion` e `offer_addresses`: chips "Leve 3 pague 2" e "Só em {bairro}".
 - `encarte_bbox`: posição (0..1) da oferta na foto; a página do produto abre o

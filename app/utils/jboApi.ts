@@ -160,9 +160,12 @@ export async function jboGet<T>(
   })
 }
 
+/** Sugestão de produto; marca e embalagem diferenciam variantes com o mesmo nome. */
 export type JboSuggestItem = {
   id: string
   name: string
+  brand?: string
+  quantity_label?: string
 }
 
 /** Sugestões de produto para o autocomplete da busca (estilo Snap). */

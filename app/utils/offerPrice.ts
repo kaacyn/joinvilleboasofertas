@@ -142,14 +142,6 @@ export function formatUnitPrice(offer: Pick<JboOffer, 'unit_price' | 'unit_price
   return `${formatter.format(value)}/${base}`
 }
 
-/** Linha secundária do card: "marca · embalagem". */
-export function formatOfferSubtitle(offer: Pick<JboOffer, 'brand' | 'quantity_label'>): string {
-  return [offer.brand, offer.quantity_label]
-    .map(part => String(part || '').trim())
-    .filter(Boolean)
-    .join(' · ')
-}
-
 /** Nome curto de um endereço: bairro (após " - ") ou trecho antes da vírgula. */
 export function shortAddress(text: string): string {
   const raw = String(text || '').trim()

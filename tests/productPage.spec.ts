@@ -69,7 +69,7 @@ describe('página de produto a partir do card da home', () => {
     expect(page).toContain('price-box__club')
     expect(page).toContain('hero__chips')
     expect(page).toContain('offerChips')
-    expect(page).toContain('formatOfferSubtitle')
+    expect(page).toContain('offerTitle')
     expect(page).toContain('offerMainPrice')
   })
 
@@ -107,7 +107,7 @@ describe('página de produto a partir do card da home', () => {
     expect(otherStoreOffers([current, ...manyStores], 'loja-a')).toHaveLength(5)
 
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
-    expect(page).toContain('Onde encontrar mais {{ data.product.name }}')
+    expect(page).toContain('Onde encontrar mais {{ productTitle }}')
     expect(page).toContain('v-if="otherStores.length"')
     expect(page).toContain('otherStoreOffers')
     expect(page).not.toContain('v-for="offer in data.offers"')
@@ -229,7 +229,6 @@ describe('página de produto a partir do card da home', () => {
     expect(card).toContain('deal__price-prefix')
     expect(card).toContain('deal__price-each')
     expect(card).toContain('deal__price-regular')
-    expect(card).toContain('deal__subtitle')
     expect(card).toContain('deal__chips')
     expect(card).toContain('offerChips')
     expect(card).not.toContain('pricing_mode')

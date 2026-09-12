@@ -118,11 +118,11 @@ Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavi
 | Hero + carrossel (vitrine) | `GET /offers?sort=savings&page_size=10` |
 | Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=recent&page_size=6` + `GET /offers/count?ends_today=true` |
 | Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`), `ends_today` (`1`) |
-| Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` |
+| Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` (`id`, `name`, `brand`, `quantity_label`; exibido como título completo via `suggestionTitle`) |
 
 As três chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`); falha em uma esconde só a seção.
 
-**Card horizontal (`OfferCard`):** imagem do recorte 92×92 (ou emoji da categoria) com badge (`offerBadge`: `-28%` vermelho, `CLUBE -28%`/`CLUBE` amarelo, `EM BREVE` azul, `EXPIRADO` cinza), categoria, nome, marca · embalagem, preço (Montserrat) + regular/média riscados, “cada”/unitário, loja, validade (“Termina hoje” em vermelho), chips.
+**Card horizontal (`OfferCard`):** imagem do recorte 92×92 (ou emoji da categoria) com badge (`offerBadge`: `-28%` vermelho, `CLUBE -28%`/`CLUBE` amarelo, `EM BREVE` azul, `EXPIRADO` cinza), categoria, título completo (`offerTitle`: nome + marca + volume, ex. “Óleo de Soja Coamo 900 ml”), preço (Montserrat) + regular/média riscados, “cada”/unitário, loja, validade (“Termina hoje” em vermelho), chips.
 
 ### Ações
 | Controle | Efeito |
@@ -370,7 +370,7 @@ Role lead: `user` \| `merchant`
 `EstPage`: `{ establishment, items: JboOffer[], next_cursor }`
 
 ### Outros
-`JboOffersPage` / `JboEncartesPage` · `JboFacets` (`{ id, name, slug? }`) · `JboSuggestItem` · preço por base em `offerPrice.ts`; badge em `offerBadge.ts`
+`JboOffersPage` / `JboEncartesPage` · `JboFacets` (`{ id, name, slug? }`) · `JboSuggestItem` (`{ id, name, brand?, quantity_label? }`) · título completo em `offerTitle.ts`; preço por base em `offerPrice.ts`; badge em `offerBadge.ts`
 
 ---
 

@@ -117,6 +117,7 @@
 <script setup lang="ts">
 import type { EncarteHotspot } from '~/components/encartes/EncarteLightbox.vue'
 import { formatOfferPrice } from '~/utils/offerPrice'
+import { offerTitle } from '~/utils/offerTitle'
 import { jboGet, type JboEncarte, type JboEncarteOffers, type JboOffer } from '~/utils/jboApi'
 import {
   formatPromoValidityLabel,
@@ -156,7 +157,7 @@ const hotspots = computed<EncarteHotspot[]>(() =>
     .map(offer => ({
       id: offer.id,
       bbox: offer.encarte_bbox!,
-      label: `${offer.product_name} · ${formatOfferPrice(offer)}`,
+      label: `${offerTitle(offer)} · ${formatOfferPrice(offer)}`,
     })),
 )
 

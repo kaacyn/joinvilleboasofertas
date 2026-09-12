@@ -5,14 +5,14 @@
         v-if="offer.image_url"
         class="tile__img"
         :src="offer.image_url"
-        :alt="offer.product_name"
+        :alt="title"
         loading="lazy"
       >
       <span v-else class="tile__emoji" aria-hidden="true">{{ icon.emoji }}</span>
       <span v-if="badge" class="tile__badge" :class="badgeClass">{{ badge.label }}</span>
     </div>
     <div class="tile__body">
-      <div class="tile__name">{{ offer.product_name }}</div>
+      <div class="tile__name">{{ title }}</div>
       <div class="tile__price">
         <span class="tile__price-now">
           <span v-if="priceParts.prefix" class="tile__price-small">{{ priceParts.prefix }} </span>{{ priceParts.amount }}<span
@@ -45,6 +45,7 @@
 import { categoryIcon } from '~/utils/categoryIcons'
 import { productOfferPath, type JboOffer } from '~/utils/jboApi'
 import { offerBadge } from '~/utils/offerBadge'
+import { offerTitle } from '~/utils/offerTitle'
 import { formatMoney, formatOfferPriceParts, formatUnitPrice, offerChips } from '~/utils/offerPrice'
 import { formatPromoValidityLabel, getPromoPhase, isEndingToday, isPromoExpired } from '~/utils/promoPhase'
 import { formatPromoEndLabel } from '~/utils/relativeTime'
@@ -52,6 +53,8 @@ import { formatPromoEndLabel } from '~/utils/relativeTime'
 const props = defineProps<{ offer: JboOffer }>()
 
 const productHref = computed(() => productOfferPath(props.offer))
+/** Título completo: nome + marca + volume. */
+const title = computed(() => offerTitle(props.offer))
 const phase = computed(() => getPromoPhase(props.offer))
 const isExpired = computed(() => isPromoExpired(props.offer))
 const endingToday = computed(() => isEndingToday(props.offer))
@@ -171,7 +174,7 @@ const promotion = computed(() => offerChips(props.offer).find(chip => chip.key =
 
 .tile__name {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-size: 13.5px;

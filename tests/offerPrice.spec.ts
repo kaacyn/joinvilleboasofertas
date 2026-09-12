@@ -4,7 +4,6 @@ import {
   formatMoney,
   formatOfferPrice,
   formatOfferPriceParts,
-  formatOfferSubtitle,
   formatUnitPrice,
   offerChips,
   offerMainPrice,
@@ -95,15 +94,10 @@ describe('formatUnitPrice', () => {
   })
 })
 
-describe('formatMoney / subtitle / chips', () => {
+describe('formatMoney / chips', () => {
   it('formatMoney vazio sem valor', () => {
     expect(formatMoney(null)).toBe('')
     expect(formatMoney('4.5')).toBe(`R$${nbsp}4,50`)
-  })
-
-  it('subtítulo junta marca e embalagem', () => {
-    expect(formatOfferSubtitle({ brand: 'Tio João', quantity_label: '5 kg' })).toBe('Tio João · 5 kg')
-    expect(formatOfferSubtitle({ brand: '', quantity_label: '' })).toBe('')
   })
 
   it('chips: promoção e restrição de loja', () => {

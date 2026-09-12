@@ -9,7 +9,7 @@
         v-if="offer.image_url"
         class="deal__img"
         :src="offer.image_url"
-        :alt="offer.product_name"
+        :alt="title"
         loading="lazy"
       >
       <span v-else class="deal__emoji" aria-hidden="true">{{ icon.emoji }}</span>
@@ -21,10 +21,7 @@
         {{ offer.category_name }}
       </div>
       <div class="deal__name">
-        {{ offer.product_name }}
-      </div>
-      <div v-if="subtitle" class="deal__subtitle">
-        {{ subtitle }}
+        {{ title }}
       </div>
       <div class="deal__price">
         <span class="deal__price-now">
@@ -91,10 +88,10 @@ import { offerBadge } from '~/utils/offerBadge'
 import {
   formatMoney,
   formatOfferPriceParts,
-  formatOfferSubtitle,
   formatUnitPrice,
   offerChips,
 } from '~/utils/offerPrice'
+import { offerTitle } from '~/utils/offerTitle'
 import {
   formatPromoValidityLabel,
   getPromoPhase,
@@ -117,7 +114,8 @@ const isExpired = computed(() => isPromoExpired(props.offer))
 const isUpcoming = computed(() => promoPhase.value === 'upcoming')
 const endingToday = computed(() => isEndingToday(props.offer))
 const hasSavings = computed(() => promoPhase.value === 'active' && Number(props.offer.diff_percent) < 0)
-const subtitle = computed(() => formatOfferSubtitle(props.offer))
+/** Título completo: nome + marca + volume. */
+const title = computed(() => offerTitle(props.offer))
 const priceParts = computed(() => formatOfferPriceParts(props.offer))
 const unitPriceLabel = computed(() => formatUnitPrice(props.offer))
 const chips = computed(() => offerChips(props.offer))
@@ -237,11 +235,6 @@ const mediaStyle = computed(() => ({ background: props.offer.image_url ? '#F7F8F
   font-weight: 600;
   line-height: 1.25;
   color: var(--ink);
-}
-
-.deal__subtitle {
-  font-size: 12px;
-  color: var(--ink-3);
 }
 
 .deal__price {

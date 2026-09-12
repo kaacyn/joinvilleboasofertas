@@ -32,7 +32,7 @@
           @mousemove="activeIndex = i"
         >
           <slot name="item" :item="item" :active="activeIndex === i" :index="i">
-            {{ item.name }}
+            {{ suggestionTitle(item) }}
           </slot>
         </li>
       </ul>
@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import type { JboSuggestItem } from '~/utils/jboApi'
+import { suggestionTitle } from '~/utils/offerTitle'
 
 const props = withDefaults(defineProps<{
   modelValue?: string
