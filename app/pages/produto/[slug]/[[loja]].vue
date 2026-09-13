@@ -2,11 +2,7 @@
   <div class="page">
     <AppHeader />
     <main v-if="data" class="page__main">
-      <p v-if="data.product.category" class="eyebrow">
-        <NuxtLink :to="`/categoria/${data.product.category.slug}`">
-          {{ data.product.category.name }}
-        </NuxtLink>
-      </p>
+      <AppBreadcrumb :items="crumbs" />
       <div class="heading">
         <h1>{{ productTitle }}</h1>
         <button
@@ -277,6 +273,26 @@ const productTitle = computed(() => {
     quantity_label: source?.quantity_label,
   })
 })
+
+/** Início → categoria → mercado → produto (página atual, sem link). */
+const crumbs = computed(() => {
+  const items: { label: string, to?: string }[] = [
+    { label: 'Início', to: '/' },
+  ]
+  const category = data.value?.product.category
+  if (category?.slug && category.name) {
+    items.push({ label: category.name, to: `/categoria/${category.slug}` })
+  }
+  const store = selected.value
+  if (store?.establishment_slug && store.establishment_name) {
+    items.push({
+      label: store.establishment_name,
+      to: `/loja/${store.establishment_slug}`,
+    })
+  }
+  if (productTitle.value) items.push({ label: productTitle.value })
+  return items
+})
 const chips = computed(() => (selected.value ? offerChips(selected.value) : []))
 
 if (data.value && lojaSlug.value && !selected.value) {
@@ -419,23 +435,37 @@ useJboSeo({
     const offer = selected.value
     const main = offer ? offerMainPrice(offer) : null
     if (!offer || !data.value || !main) return null
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: productTitle.value,
-      brand: offer.brand ? { '@type': 'Brand', name: offer.brand } : undefined,
-      offers: {
-        '@type': 'Offer',
-        priceCurrency: 'BRL',
-        price: main.value,
-        availability: 'https://schema.org/InStock',
-        seller: {
-          '@type': 'Organization',
-          name: offer.establishment_name,
+    const site = String(config.public.siteUrl || '').replace(/\/$/, '')
+    const pageUrl = `${site}${productOfferPath(offer)}`
+    return [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: productTitle.value,
+        brand: offer.brand ? { '@type': 'Brand', name: offer.brand } : undefined,
+        offers: {
+          '@type': 'Offer',
+          priceCurrency: 'BRL',
+          price: main.value,
+          availability: 'https://schema.org/InStock',
+          seller: {
+            '@type': 'Organization',
+            name: offer.establishment_name,
+          },
+          url: pageUrl,
         },
-        url: `${config.public.siteUrl}${productOfferPath(offer)}`,
       },
-    }
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: crumbs.value.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.label,
+          item: `${site}${item.to || productOfferPath(offer)}`,
+        })),
+      },
+    ]
   },
 })
 </script>
@@ -448,13 +478,6 @@ useJboSeo({
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
-}
-
-.eyebrow {
-  color: var(--muted);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .heading {

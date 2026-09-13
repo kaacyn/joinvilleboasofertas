@@ -41,6 +41,19 @@ describe('página de produto a partir do card da home', () => {
     expect(card).not.toContain('`/oferta/${offer.id}`')
   })
 
+  it('mostra trilha Início, categoria, mercado e produto atual', () => {
+    const page = source('app/pages/produto/[slug]/[[loja]].vue')
+    const crumb = source('app/components/AppBreadcrumb.vue')
+
+    expect(page).toContain('AppBreadcrumb')
+    expect(page).toContain("label: 'Início', to: '/'")
+    expect(page).toContain('`/categoria/${category.slug}`')
+    expect(page).toContain('`/loja/${store.establishment_slug}`')
+    expect(crumb).toContain('aria-label="Trilha"')
+    expect(crumb).toContain('aria-current="page"')
+    expect(crumb).not.toContain('text-transform: uppercase')
+  })
+
   it('compartilha a oferta ao lado do título', () => {
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
     expect(page).toContain('shareEncarte')
