@@ -1,5 +1,5 @@
 <template>
-  <div class="filterbar">
+  <div class="filterbar" :class="{ 'filterbar--sticky': sticky }">
     <div class="filterbar__chips">
       <FilterChipDropdown
         v-if="showCategories"
@@ -152,12 +152,15 @@ const props = withDefaults(defineProps<{
   showSort?: boolean
   sortDefault?: string
   sortOptions?: { value: string, label: string }[]
+  /** Se falso, quem gruda é o pai (busca + filtro juntos, sem o logo). */
+  sticky?: boolean
 }>(), {
   showCategories: true,
   showEstablishments: true,
   showSort: true,
   sortDefault: 'recent',
   sortOptions: () => [],
+  sticky: true,
 })
 
 const emit = defineEmits<{
@@ -256,10 +259,13 @@ function pickSort(value: string, close: () => void) {
   align-items: center;
   gap: 0.5rem;
   padding: 10px 16px;
+  background: var(--bg);
+}
+
+.filterbar--sticky {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
 

@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 withDefaults(defineProps<{
-  /** Se falso, o cabeçalho sobe com a página (o filtro gruda sozinho no topo). */
+  /** Se falso, o logo sobe com a página e não gruda na busca nem no filtro. */
   sticky?: boolean
 }>(), {
   sticky: true,
