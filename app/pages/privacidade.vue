@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main class="page__main prose">
+      <AppBreadcrumb :items="siteTrail({ label: 'Política de privacidade' })" />
       <h1>Política de Privacidade</h1>
       <p class="muted">Última atualização: 11 de agosto de 2026</p>
       <p>
@@ -43,6 +44,8 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
+
 useJboSeo({
   title: 'Política de Privacidade | Joinville Boas Ofertas',
   description: 'Como o Joinville Boas Ofertas trata dados pessoais (LGPD).',

@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main v-if="data" class="page__main">
+      <AppBreadcrumb :items="siteTrail({ label: data.category.name })" />
       <div class="page__heading">
         <span class="page__icon" :style="{ background: icon.bg }" aria-hidden="true">{{ icon.emoji }}</span>
         <h1>{{ data.category.name }}</h1>
@@ -21,6 +22,7 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
 import { categoryIcon } from '~/utils/categoryIcons'
 import { jboGet, type JboOffer } from '~/utils/jboApi'
 
@@ -115,6 +117,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.page__main :deep(.crumbs) {
+  margin-bottom: 0;
 }
 
 .page__heading {

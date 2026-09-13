@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main v-if="data" class="page__main">
+      <AppBreadcrumb :items="siteTrail({ label: 'Lojas', to: '/lojas' }, { label: data.establishment.name })" />
       <header class="loja-head">
         <img
           v-if="data.establishment.logo_url"
@@ -40,6 +41,7 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
 import { jboGet, type JboOffer } from '~/utils/jboApi'
 
 type EstPage = {
@@ -119,6 +121,10 @@ useJboSeo({
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.page__main :deep(.crumbs) {
+  margin-bottom: 0;
 }
 
 h1 {

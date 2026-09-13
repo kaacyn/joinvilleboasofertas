@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main class="page__main">
+      <AppBreadcrumb :items="siteTrail({ label: 'Lojas' })" />
       <header class="page__intro">
         <h1>Lojas</h1>
         <p>Lojas ativas em Joinville e região.</p>
@@ -61,6 +62,7 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
 import { jboGet } from '~/utils/jboApi'
 
 type EstItem = {
@@ -122,6 +124,10 @@ useJboSeo({
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.page__main :deep(.crumbs) {
+  margin-bottom: 0;
 }
 
 .page__intro h1 {

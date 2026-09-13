@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main v-if="encarte" class="page__main">
+      <AppBreadcrumb :items="encarteCrumbs" />
       <div class="heading">
         <h1>Encarte {{ encarte.establishment_name }}</h1>
         <button
@@ -127,6 +128,7 @@ import {
 } from '~/utils/promoPhase'
 import { formatRegisteredAt } from '~/utils/relativeTime'
 import { shareEncarte } from '~/utils/shareEncarte'
+import { siteTrail } from '~/utils/breadcrumb'
 
 const route = useRoute()
 const id = computed(() => String(route.params.id))
@@ -141,6 +143,19 @@ const { data: encarte, error } = await useAsyncData(
 if (error.value) {
   throw createError({ statusCode: 404, statusMessage: 'Encarte não encontrado' })
 }
+
+const encarteCrumbs = computed(() => {
+  const item = encarte.value
+  const steps = [{ label: 'Encartes', to: '/encartes' }]
+  if (item?.establishment_slug && item.establishment_name) {
+    steps.push({
+      label: item.establishment_name,
+      to: `/loja/${item.establishment_slug}`,
+    })
+  }
+  steps.push({ label: 'Encarte' })
+  return siteTrail(...steps)
+})
 
 const { data: offersPage } = await useAsyncData(
   () => `encarte-offers-${id.value}`,

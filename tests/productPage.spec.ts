@@ -46,12 +46,27 @@ describe('página de produto a partir do card da home', () => {
     const crumb = source('app/components/AppBreadcrumb.vue')
 
     expect(page).toContain('AppBreadcrumb')
-    expect(page).toContain("label: 'Início', to: '/'")
+    expect(page).toContain('siteTrail')
     expect(page).toContain('`/categoria/${category.slug}`')
     expect(page).toContain('`/loja/${store.establishment_slug}`')
     expect(crumb).toContain('aria-label="Trilha"')
     expect(crumb).toContain('aria-current="page"')
     expect(crumb).not.toContain('text-transform: uppercase')
+    for (const file of [
+      'app/pages/categoria/[slug].vue',
+      'app/pages/loja/[slug].vue',
+      'app/pages/lojas.vue',
+      'app/pages/encartes.vue',
+      'app/pages/encarte/[id].vue',
+      'app/pages/envie-um-encarte.vue',
+      'app/pages/perguntas-frequentes.vue',
+      'app/pages/privacidade.vue',
+      'app/pages/termos.vue',
+      'app/pages/index.vue',
+    ]) {
+      expect(source(file), file).toContain('AppBreadcrumb')
+      expect(source(file), file).toContain('siteTrail')
+    }
   })
 
   it('compartilha a oferta ao lado do título', () => {

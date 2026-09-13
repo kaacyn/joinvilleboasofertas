@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main class="page__main">
+      <AppBreadcrumb :items="siteTrail({ label: 'Envios de encartes' })" />
       <header class="page__intro">
         <h1>Envios de encartes</h1>
         <p>
@@ -105,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
 import { jboSend } from '~/utils/jboApi'
 
 useJboSeo({
@@ -157,6 +159,10 @@ async function onSubmit() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.page__main :deep(.crumbs) {
+  margin-bottom: 0;
 }
 
 .page__intro h1 {

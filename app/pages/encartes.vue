@@ -16,6 +16,7 @@
     />
 
     <main class="page__main">
+      <AppBreadcrumb :items="siteTrail({ label: 'Encartes' })" />
       <header class="page__intro">
         <h1>Encartes</h1>
         <p>Encartes das lojas de Joinville e região.</p>
@@ -78,6 +79,7 @@
 
 <script setup lang="ts">
 import { ENCARTES_SORT_DEFAULT, ENCARTES_SORT_OPTIONS } from '~/composables/useEncartesFilters'
+import { siteTrail } from '~/utils/breadcrumb'
 import { jboGet, type JboEncarte, type JboEncartesPage, type JboFacets } from '~/utils/jboApi'
 
 type Store = {
@@ -208,6 +210,10 @@ useJboSeo({
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+}
+
+.page__main :deep(.crumbs) {
+  margin-bottom: 0;
 }
 
 .page__intro h1 {

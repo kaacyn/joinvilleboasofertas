@@ -213,6 +213,7 @@ import {
   offerMainPrice,
 } from '~/utils/offerPrice'
 import { offerTitle } from '~/utils/offerTitle'
+import { siteTrail } from '~/utils/breadcrumb'
 import { shareEncarte } from '~/utils/shareEncarte'
 
 type ProductPage = {
@@ -276,9 +277,7 @@ const productTitle = computed(() => {
 
 /** Início → categoria → mercado → produto (página atual, sem link). */
 const crumbs = computed(() => {
-  const items: { label: string, to?: string }[] = [
-    { label: 'Início', to: '/' },
-  ]
+  const items = []
   const category = data.value?.product.category
   if (category?.slug && category.name) {
     items.push({ label: category.name, to: `/categoria/${category.slug}` })
@@ -291,7 +290,7 @@ const crumbs = computed(() => {
     })
   }
   if (productTitle.value) items.push({ label: productTitle.value })
-  return items
+  return siteTrail(...items)
 })
 const chips = computed(() => (selected.value ? offerChips(selected.value) : []))
 

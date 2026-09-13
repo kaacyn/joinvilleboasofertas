@@ -46,10 +46,7 @@
 </template>
 
 <script setup lang="ts">
-export type Crumb = {
-  label: string
-  to?: string
-}
+import type { Crumb } from '~/utils/breadcrumb'
 
 defineProps<{
   items: Crumb[]
@@ -57,6 +54,9 @@ defineProps<{
 </script>
 
 <style scoped>
+.crumbs {
+  margin: 0 0 0.75rem;
+}
 .crumbs__list {
   display: flex;
   align-items: center;

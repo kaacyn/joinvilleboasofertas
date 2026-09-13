@@ -61,7 +61,9 @@
       </HomeSection>
     </template>
 
-    <div v-else-if="filters.state.value.ends_today" class="home__heading">
+    <AppBreadcrumb v-if="!isVitrine" :items="homeCrumbs" />
+
+    <div v-if="!isVitrine && filters.state.value.ends_today" class="home__heading">
       <h1>Termina hoje</h1>
       <button type="button" class="home__clear" @click="filters.clear()">Limpar</button>
     </div>
@@ -109,6 +111,7 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
 import { categoryIcon } from '~/utils/categoryIcons'
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
 import {
@@ -143,6 +146,16 @@ const renderedAt = useState('home:rendered-at', () => new Date().toISOString())
 const now = computed(() => new Date(renderedAt.value))
 
 const isVitrine = computed(() => isVitrineState(filters.state.value))
+
+const homeCrumbs = computed(() => {
+  const state = filters.state.value
+  const label = state.ends_today
+    ? 'Termina hoje'
+    : state.q
+      ? 'Busca'
+      : 'Ofertas'
+  return siteTrail({ label })
+})
 
 useJboSeo({
   title: 'Ofertas em Joinville | Joinville Boas Ofertas',
@@ -362,6 +375,12 @@ onMounted(() => {
   font-weight: 600;
   color: var(--blue);
   text-align: center;
+}
+
+.home > :deep(.crumbs) {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 16px 0;
 }
 
 .home__heading {

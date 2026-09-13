@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main class="page__main prose">
+      <AppBreadcrumb :items="siteTrail({ label: 'Termos de uso' })" />
       <h1>Termos de uso</h1>
       <p class="muted">Última atualização: 13 de agosto de 2026</p>
       <p>
@@ -60,6 +61,8 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
+
 useJboSeo({
   title: 'Termos de uso | Joinville Boas Ofertas',
   description: 'Condições de uso do catálogo público Joinville Boas Ofertas.',

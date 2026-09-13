@@ -2,6 +2,7 @@
   <div class="page">
     <AppHeader />
     <main class="page__main">
+      <AppBreadcrumb :items="siteTrail({ label: 'Perguntas frequentes' })" />
       <h1>Perguntas frequentes</h1>
       <p class="lead">
         Respostas rápidas para quem consulta ofertas e para lojas que querem
@@ -50,6 +51,8 @@
 </template>
 
 <script setup lang="ts">
+import { siteTrail } from '~/utils/breadcrumb'
+
 type FaqPart = { text: string, to?: string, href?: string }
 
 type FaqItem = {
@@ -228,6 +231,10 @@ useJboSeo({
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.page__main :deep(.crumbs) {
+  margin-bottom: 0;
 }
 
 h1 {
