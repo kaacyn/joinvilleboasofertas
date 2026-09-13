@@ -36,6 +36,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     /** Base interna para SSR (rede Docker → snap-api). */
     apiBase: process.env.NUXT_API_BASE || 'http://snap-api-dev:8000',
+    /** Token do header X-JBO-Internal (isenta o SSR do rate limit do snap-api); vazio desliga. */
+    apiToken: process.env.NUXT_API_TOKEN || '',
     public: {
       siteUrl:
         process.env.NUXT_PUBLIC_SITE_URL

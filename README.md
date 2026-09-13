@@ -26,6 +26,10 @@ Serviços:
 - `app` (`jbo-dev-nuxt`) — Nuxt/Nitro na porta 3000 (rede `snap-net`)
 - `proxy` (`jbo-dev-web`) — nginx `:8092` → Nuxt; `/api/` → `snap-api-dev:8000`
 
+Variáveis (`.env`): `NUXT_API_BASE` (snap-api na rede Docker, só SSR), `NUXT_PUBLIC_SITE_URL` e
+`NUXT_API_TOKEN` — mesmo valor de `JBO_INTERNAL_TOKEN` no snap-api; o SSR manda o header
+`X-JBO-Internal` e fica fora do rate limit por IP (o browser continua limitado por visitante).
+
 ## Rotas
 
 | Rota | Função |

@@ -143,6 +143,18 @@ function apiOrigin(): string {
   return ''
 }
 
+/** Header que identifica o SSR para o snap-api isentar do rate limit; vazio sem token. */
+export function internalHeaders(token: string | undefined): Record<string, string> {
+  const value = String(token || '').trim()
+  return value ? { 'X-JBO-Internal': value } : {}
+}
+
+/** Headers extras só no servidor (o token nunca vai ao browser). */
+function apiHeaders(): Record<string, string> {
+  if (!import.meta.server) return {}
+  return internalHeaders(String(useRuntimeConfig().apiToken || ''))
+}
+
 /**
  * GET same-origin / interno em /api/public/jbo.
  */
@@ -156,6 +168,7 @@ export async function jboGet<T>(
   )
   return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, {
     query: cleaned,
+    headers: apiHeaders(),
     signal: opts.signal,
   })
 }
@@ -184,7 +197,11 @@ export async function jboSend<T>(
   path: string,
   body: Record<string, unknown>,
 ): Promise<T> {
-  return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, { method, body })
+  return $fetch<T>(`${apiOrigin()}/api/public/jbo${path}`, {
+    method,
+    body,
+    headers: apiHeaders(),
+  })
 }
 
 /**

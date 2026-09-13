@@ -14,7 +14,7 @@ describe('sino anônimo segue loja', () => {
     expect(api).toContain('export async function jboSend')
     expect(api).toContain("method: 'POST' | 'PUT'")
     expect(api).toContain('`${apiOrigin()}/api/public/jbo${path}`')
-    expect(api).toContain('{ method, body }')
+    expect(api).toContain('method,\n    body,\n    headers: apiHeaders(),')
   })
 
   it('tem composable com follow compartilhado, VAPID e toggle', () => {
