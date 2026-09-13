@@ -93,7 +93,7 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
 ## 1. `/` — Home vitrine
 
 **Arquivo:** `app/pages/index.vue`  
-**Componentes:** `AppHeader`, `SearchBar` (+ `SearchAutocomplete`), `FilterBar` (+ `FilterChipDropdown`), `HomeSection`, `HeroSavings`, `CategoryGrid`, `OfferCarousel` (+ `OfferTile`), `OfferCard`
+**Componentes:** `AppHeader`, `SearchBar` (+ `SearchAutocomplete`), `FilterBar` (+ `FilterChipDropdown`), `HomeSection`, `HeroSavings`, `CategoryGrid`, `OfferCarousel` (+ `OfferTile`; setas anterior/próxima só com mouse, via `useCarouselNav`), `OfferCard`
 
 ### Estrutura (cima → baixo)
 1. Header sticky + busca
