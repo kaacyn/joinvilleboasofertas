@@ -256,7 +256,11 @@ function pickSort(value: string, close: () => void) {
   align-items: center;
   gap: 0.5rem;
   padding: 10px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   background: var(--bg);
+  border-bottom: 1px solid var(--line);
 }
 
 .filterbar__chips {

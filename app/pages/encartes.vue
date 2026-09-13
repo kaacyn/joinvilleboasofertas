@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <AppHeader />
+    <AppHeader :sticky="false" />
 
     <FilterBar
       :facets="facets"

@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <AppHeader>
+    <AppHeader :sticky="false">
       <SearchBar v-model="qDraft" @submit="onSearch" />
     </AppHeader>
 

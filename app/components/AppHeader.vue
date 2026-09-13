@@ -1,5 +1,5 @@
 <template>
-  <header class="header">
+  <header class="header" :class="{ 'header--sticky': sticky }">
     <NuxtLink to="/" class="header__brand" aria-label="Joinville Boas Ofertas — início">
       <img
         class="header__logo"
@@ -29,6 +29,13 @@
 </template>
 
 <script setup lang="ts">
+withDefaults(defineProps<{
+  /** Se falso, o cabeçalho sobe com a página (o filtro gruda sozinho no topo). */
+  sticky?: boolean
+}>(), {
+  sticky: true,
+})
+
 /** Barra fina sob o menu durante navegação entre páginas. */
 const { progress, isLoading } = useLoadingIndicator({
   duration: 2500,
@@ -46,6 +53,9 @@ const { progress, isLoading } = useLoadingIndicator({
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
+}
+
+.header--sticky {
   position: sticky;
   top: 0;
   z-index: 20;
