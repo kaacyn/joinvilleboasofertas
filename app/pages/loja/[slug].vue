@@ -57,6 +57,7 @@ type EstPage = {
 }
 
 const route = useRoute()
+const config = useRuntimeConfig()
 const slug = computed(() => String(route.params.slug))
 
 const { data, error, pending } = await useAsyncData(
@@ -92,7 +93,7 @@ useJboSeo({
   jsonLd: () => {
     if (!data.value) return null
     const est = data.value.establishment
-    const site = String(useRuntimeConfig().public.siteUrl || '').replace(/\/$/, '')
+    const site = String(config.public.siteUrl || '').replace(/\/$/, '')
     return {
       '@context': 'https://schema.org',
       '@type': 'LocalBusiness',
