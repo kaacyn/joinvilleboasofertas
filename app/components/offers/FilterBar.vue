@@ -256,9 +256,6 @@ function pickSort(value: string, close: () => void) {
   align-items: center;
   gap: 0.5rem;
   padding: 10px 16px;
-  position: sticky;
-  top: 64px;
-  z-index: 15;
   background: var(--bg);
 }
 
