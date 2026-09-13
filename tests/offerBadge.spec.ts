@@ -34,6 +34,11 @@ describe('offerBadge', () => {
       .toEqual({ kind: 'savings', label: 'CLUBE -28%', club: true })
   })
 
+  it('economia com preço de clube usa o rótulo do programa da loja', () => {
+    expect(offerBadge({ ...active, price: '7.99', club_price: '4.99', diff_percent: -21.09, establishment_loyalty_program_name: 'Cooperado' }, now))
+      .toEqual({ kind: 'savings', label: 'COOPERADO -21%', club: true })
+  })
+
   it('só clube usa o rótulo do programa da loja', () => {
     expect(offerBadge({ ...active, club_price: '9.99', diff_percent: 0, establishment_loyalty_program_name: 'Cooperado' }, now))
       .toEqual({ kind: 'club', label: 'COOPERADO', club: true })
