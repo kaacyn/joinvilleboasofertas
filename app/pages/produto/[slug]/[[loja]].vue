@@ -480,6 +480,10 @@ useJboSeo({
   gap: 1.1rem;
 }
 
+.page__main :deep(.crumbs) {
+  margin-bottom: -0.45rem;
+}
+
 .heading {
   display: flex;
   align-items: flex-start;
