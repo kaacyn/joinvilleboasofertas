@@ -54,14 +54,14 @@ describe('useCarouselNav (setas do carrossel no desktop)', () => {
     expect(nav.canNext.value).toBe(true)
   })
 
-  it('sem overflow (poucos tiles) nenhuma seta aparece', async () => {
+  it('sem overflow (poucos tiles) as duas setas ficam desativadas', async () => {
     const { nav } = setup(fakeList({ scrollWidth: 720 }))
     await nextTick()
     expect(nav.canPrev.value).toBe(false)
     expect(nav.canNext.value).toBe(false)
   })
 
-  it('sem elemento (SSR) nenhuma seta aparece e scrollByPage não quebra', async () => {
+  it('sem elemento (SSR) as duas setas ficam desativadas e scrollByPage não quebra', async () => {
     const { nav } = setup(null)
     await nextTick()
     expect(nav.canPrev.value).toBe(false)
@@ -100,12 +100,14 @@ describe('useCarouselNav (setas do carrossel no desktop)', () => {
 })
 
 describe('OfferCarousel', () => {
-  it('tem setas anterior/próxima ligadas ao composable, só para mouse (hover + pointer fine)', () => {
-    const src = source('app/components/home/OfferCarousel.vue')
+  const src = source('app/components/home/OfferCarousel.vue')
+
+  it('setas anterior/próxima sempre presentes, desativadas nas pontas, só para mouse (hover + pointer fine)', () => {
     expect(src).toContain('useCarouselNav(listRef)')
     expect(src).toContain('ref="listRef"')
-    expect(src).toContain('v-show="canPrev"')
-    expect(src).toContain('v-show="canNext"')
+    expect(src).toContain(':disabled="!canPrev"')
+    expect(src).toContain(':disabled="!canNext"')
+    expect(src).not.toContain('v-show=')
     expect(src).toContain('@click="scrollByPage(-1)"')
     expect(src).toContain('@click="scrollByPage(1)"')
     expect(src).toContain('aria-label="Ofertas anteriores"')
@@ -113,8 +115,20 @@ describe('OfferCarousel', () => {
     expect(src).toContain('@media (hover: hover) and (pointer: fine)')
   })
 
-  it('snap alinhado ao padding lateral (em repouso scrollLeft=0, sem seta "anterior")', () => {
-    const src = source('app/components/home/OfferCarousel.vue')
-    expect(src).toContain('scroll-padding-inline: 16px')
+  it('setas ladeiam a lista (colunas do grid), não ficam sobre os tiles', () => {
+    expect(src).toContain('grid-template-columns: auto minmax(0, 1fr) auto')
+    expect(src).not.toContain('position: absolute')
+    expect(src.indexOf('hcar__nav--prev')).toBeLessThan(src.indexOf('class="hlist"'))
+    expect(src.indexOf('hcar__nav--next')).toBeGreaterThan(src.indexOf('class="hlist"'))
+  })
+
+  it('tom vivo quando ativa e apagado quando desativada', () => {
+    expect(src).toMatch(/\.hcar__nav\s*\{[^}]*background: var\(--navy\)/)
+    expect(src).toMatch(/\.hcar__nav:disabled\s*\{[^}]*color: var\(--ink-3\)/)
+  })
+
+  it('snap alinhado ao padding lateral (mesma variável no padding e no scroll-padding)', () => {
+    expect(src).toContain('padding: 0 var(--pad)')
+    expect(src).toContain('scroll-padding-inline: var(--pad)')
   })
 })
