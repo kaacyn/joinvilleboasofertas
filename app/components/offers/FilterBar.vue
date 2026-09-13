@@ -1,5 +1,11 @@
 <template>
-  <div class="filterbar" :class="{ 'filterbar--sticky': sticky }">
+  <div
+    class="filterbar"
+    :class="{
+      'filterbar--sticky': sticky,
+      'filterbar--below-header': sticky && pinBelowHeader,
+    }"
+  >
     <div class="filterbar__chips">
       <FilterChipDropdown
         v-if="showCategories"
@@ -152,8 +158,10 @@ const props = withDefaults(defineProps<{
   showSort?: boolean
   sortDefault?: string
   sortOptions?: { value: string, label: string }[]
-  /** Se falso, quem gruda é o pai (busca + filtro juntos, sem o logo). */
+  /** Se falso, a barra acompanha o scroll. */
   sticky?: boolean
+  /** Gruda abaixo do cabeçalho, com folga para não colar no logo. */
+  pinBelowHeader?: boolean
 }>(), {
   showCategories: true,
   showEstablishments: true,
@@ -161,6 +169,7 @@ const props = withDefaults(defineProps<{
   sortDefault: 'recent',
   sortOptions: () => [],
   sticky: true,
+  pinBelowHeader: false,
 })
 
 const emit = defineEmits<{
@@ -265,8 +274,12 @@ function pickSort(value: string, close: () => void) {
 .filterbar--sticky {
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 15;
   border-bottom: 1px solid var(--line);
+}
+
+.filterbar--below-header {
+  top: var(--jbo-header-h, 68px);
 }
 
 .filterbar__chips {

@@ -1,5 +1,5 @@
 <template>
-  <header class="header" :class="{ 'header--sticky': sticky }">
+  <header ref="headerRef" class="header" :class="{ 'header--sticky': sticky }">
     <NuxtLink to="/" class="header__brand" aria-label="Joinville Boas Ofertas — início">
       <img
         class="header__logo"
@@ -29,11 +29,37 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
-  /** Se falso, o logo sobe com a página e não gruda na busca nem no filtro. */
+const props = withDefaults(defineProps<{
+  /** Se falso, o cabeçalho sobe com a página. */
   sticky?: boolean
 }>(), {
   sticky: true,
+})
+
+const headerRef = ref<HTMLElement | null>(null)
+
+/**
+ * Publica a altura do cabeçalho para o filtro grudar abaixo, sem cobrir o logo.
+ */
+function syncHeaderHeight() {
+  const el = headerRef.value
+  if (!import.meta.client || !el || !props.sticky) return
+  document.documentElement.style.setProperty('--jbo-header-h', `${el.offsetHeight}px`)
+}
+
+let headerObserver: ResizeObserver | null = null
+
+onMounted(() => {
+  syncHeaderHeight()
+  const el = headerRef.value
+  if (!el) return
+  headerObserver = new ResizeObserver(syncHeaderHeight)
+  headerObserver.observe(el)
+})
+
+onBeforeUnmount(() => {
+  headerObserver?.disconnect()
+  document.documentElement.style.removeProperty('--jbo-header-h')
 })
 
 /** Barra fina sob o menu durante navegação entre páginas. */
@@ -53,6 +79,7 @@ const { progress, isLoading } = useLoadingIndicator({
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
+  position: relative;
 }
 
 .header--sticky {

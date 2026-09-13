@@ -1,22 +1,19 @@
 <template>
   <div class="home">
-    <AppHeader :sticky="false" />
+    <AppHeader>
+      <SearchBar v-model="qDraft" @submit="onSearch" />
+    </AppHeader>
 
-    <div class="home__dock">
-      <div class="home__search">
-        <SearchBar v-model="qDraft" @submit="onSearch" />
-      </div>
-      <FilterBar
-        :sticky="false"
-        :facets="facets"
-        :category-ids="filters.state.value.category_ids"
-        :establishment-ids="filters.state.value.establishment_ids"
-        :sort="filters.state.value.sort"
-        @update:sort="onSort"
-        @apply-categories="onApplyCategories"
-        @apply-establishments="onApplyEstablishments"
-      />
-    </div>
+    <FilterBar
+      pin-below-header
+      :facets="facets"
+      :category-ids="filters.state.value.category_ids"
+      :establishment-ids="filters.state.value.establishment_ids"
+      :sort="filters.state.value.sort"
+      @update:sort="onSort"
+      @apply-categories="onApplyCategories"
+      @apply-establishments="onApplyEstablishments"
+    />
 
     <template v-if="isVitrine">
       <div v-if="hero" class="home__hero">
@@ -334,18 +331,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.home__dock {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-}
-
-.home__search {
-  padding: 10px 16px 0;
-}
-
 .home__hero {
   max-width: 720px;
   margin: 0 auto;
