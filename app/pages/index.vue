@@ -35,6 +35,18 @@
         <OfferCarousel :offers="topSavings" />
       </HomeSection>
 
+      <HomeSection
+        v-for="section in categorySections"
+        :key="section.slug"
+        :title="section.title"
+        bleed
+      >
+        <template #aside>
+          <NuxtLink :to="`/categoria/${section.slug}`">Ver todas</NuxtLink>
+        </template>
+        <OfferCarousel :offers="section.items" />
+      </HomeSection>
+
       <HomeSection v-if="endingCount > 0 && endingItems.length" title="Termina hoje">
         <template #aside>
           <span class="home__pill">⏱ {{ endingCount }} {{ endingCount === 1 ? 'oferta' : 'ofertas' }}</span>
@@ -96,10 +108,23 @@
 </template>
 
 <script setup lang="ts">
+import { categoryIcon } from '~/utils/categoryIcons'
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
-import { isVitrineState, pickHero, pickTopSavings } from '~/utils/homeVitrine'
+import {
+  HOME_CATEGORY_SLUGS,
+  isVitrineState,
+  pickCategoryHighlights,
+  pickHero,
+  pickTopSavings,
+} from '~/utils/homeVitrine'
 
 type CountResponse = { count: number }
+
+type CategoryPage = {
+  category: { id: string, name: string, slug: string }
+  items: JboOffer[]
+  next_cursor: string | null
+}
 
 const filters = useOfferFilters()
 const sentinelRef = ref<HTMLElement | null>(null)
@@ -135,7 +160,14 @@ useJboSeo({
   },
 })
 
-const [facetsResult, offersResult, savingsResult, endingResult, endingCountResult] = await Promise.all([
+const [
+  facetsResult,
+  offersResult,
+  savingsResult,
+  endingResult,
+  endingCountResult,
+  categoriesResult,
+] = await Promise.all([
   useAsyncData(
     'jbo-facets',
     () => jboGet<JboFacets>('/offers/facets').catch(() => ({
@@ -172,6 +204,16 @@ const [facetsResult, offersResult, savingsResult, endingResult, endingCountResul
       : Promise.resolve(null),
     { watch: [isVitrine] },
   ),
+  useAsyncData(
+    'jbo-home-categories',
+    () => isVitrine.value
+      ? Promise.all(HOME_CATEGORY_SLUGS.map(slug =>
+          jboGet<CategoryPage>(`/categories/${slug}`, { sort: 'savings', page_size: 10 })
+            .catch(() => null),
+        ))
+      : Promise.resolve(null),
+    { watch: [isVitrine] },
+  ),
 ])
 
 const facetsData = facetsResult.data
@@ -202,6 +244,17 @@ const hero = computed(() => pickHero(savingsItems.value, now.value))
 const topSavings = computed(() => pickTopSavings(savingsItems.value, hero.value?.id ?? null, 8, now.value))
 const endingItems = computed<JboOffer[]>(() => endingResult.data.value?.items || [])
 const endingCount = computed(() => endingCountResult.data.value?.count ?? 0)
+/** Carrosséis por categoria (economia): título com emoji, link e itens; vazios somem. */
+const categorySections = computed(() => {
+  const pages = categoriesResult.data.value || []
+  return HOME_CATEGORY_SLUGS.flatMap((slug, index) => {
+    const page = pages[index]
+    if (!page) return []
+    const items = pickCategoryHighlights(page.items || [], 8, now.value)
+    if (!items.length) return []
+    return [{ slug, title: `${categoryIcon(slug).emoji} ${page.category.name}`, items }]
+  })
+})
 const categoriesWithSlug = computed(() => facets.value.categories.filter(c => Boolean(c.slug)))
 const canExpandCategories = computed(() => categoriesWithSlug.value.length > 8)
 

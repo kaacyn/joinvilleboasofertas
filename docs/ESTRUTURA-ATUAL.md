@@ -102,12 +102,13 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
    - Hero “Maior economia da semana” (`HeroSavings`) — primeira oferta vigente com economia real
    - Seção “Categorias” (`CategoryGrid`, 8 + “Ver todas”)
    - Seção “Maiores descontos” (`OfferCarousel` de até 8 `OfferTile`, exclui o hero)
+   - Carrosséis por categoria: Açougue, Bebidas e Hortifruti (`OfferCarousel` de até 8 `OfferTile` vigentes, ordem por economia, título com emoji da categoria + “Ver todas” → `/categoria/{slug}`)
    - Seção “Termina hoje” (até 6 `OfferCard` + pill com a contagem + “Ver todas”)
 4. Seção “Novas ofertas” = feed infinito de `OfferCard` (título só em vitrine)
 5. Com `?ends_today=1`: título “Termina hoje” + botão Limpar em vez das seções
 6. Estados loading / empty / error
 
-Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavings`).
+Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavings`, `HOME_CATEGORY_SLUGS`, `pickCategoryHighlights`).
 
 ### Dados exibidos
 
@@ -117,10 +118,11 @@ Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavi
 | Feed | `GET /offers` (`q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort`, `ends_today`, `page_size=20`, `cursor`) → `JboOffersPage` |
 | Hero + carrossel (vitrine) | `GET /offers?sort=savings&page_size=10` |
 | Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=recent&page_size=6` + `GET /offers/count?ends_today=true` |
+| Carrosséis por categoria (vitrine) | `GET /categories/{slug}?sort=savings&page_size=10` × 3 (`acougue`, `bebidas`, `hortifruti`) |
 | Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`), `ends_today` (`1`) |
 | Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` (`id`, `name`, `brand`, `quantity_label`; exibido como título completo via `suggestionTitle`) |
 
-As três chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`); falha em uma esconde só a seção.
+As quatro chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`; a de categorias dispara as 3 requisições em paralelo); falha em uma esconde só a seção.
 
 **Card horizontal (`OfferCard`):** imagem do recorte 92×92 (ou emoji da categoria) com badge (`offerBadge`: `-28%` vermelho, `CLUBE -28%`/`CLUBE` amarelo, `EM BREVE` azul, `EXPIRADO` cinza), categoria, título completo (`offerTitle`: nome + marca + volume, ex. “Óleo de Soja Coamo 900 ml”), preço (Montserrat) + regular/média riscados, “cada”/unitário, loja, validade (“Termina hoje” em vermelho), chips.
 
@@ -133,6 +135,7 @@ As três chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`); falha 
 | Hero / tile / card | `/produto/{slug}/{loja}` |
 | Categoria da grade | `/categoria/{slug}` |
 | “Ver todos” (descontos) | `/?sort=savings` |
+| “Ver todas” (carrossel de categoria) | `/categoria/{slug}` |
 | “Ver todas as N ofertas” | `/?ends_today=1` |
 | Limpar filtros | `filters.clear()` |
 | Tentar de novo | `refresh()` |
@@ -142,7 +145,7 @@ As três chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`); falha 
 - Loading: “Carregando ofertas…” / “Carregando mais produtos”
 - Empty: mensagens por `q` / filtros / sem ofertas + limpar
 - Error: “Não foi possível carregar as ofertas.”
-- Sem hero/carrossel quando nenhuma oferta tem economia real; sem “Termina hoje” quando `count=0`
+- Sem hero/carrossel quando nenhuma oferta tem economia real; carrossel de categoria some sem oferta vigente; sem “Termina hoje” quando `count=0`
 
 ---
 
@@ -198,7 +201,7 @@ Loading no header · Error API → **404** “Loja não encontrada” · Empty �
 Header → título com emoji/fundo da categoria (`categoryIcon(slug)`) → cards → sentinela de scroll infinito (`cursor`, `page_size=20`) → empty
 
 ### Dados
-`GET /categories/{slug}` → `{ category: { id, name, slug }, items: JboOffer[], next_cursor }`
+`GET /categories/{slug}` (aceita `sort`: `recent` | `price` | `savings`; a página usa `recent`) → `{ category: { id, name, slug }, items: JboOffer[], next_cursor }`
 
 ### Ações
 OfferCard → `/produto/{slug}/{loja}` · scroll → próxima página
@@ -412,7 +415,7 @@ Não há Tailwind. Tema claro (protótipo):
 | GET | `/offers` (inclui `ends_today`), `/offers/count`, `/offers/facets`, `/offers/{id}` |
 | GET | `/products/suggest`, `/products/{slug}` |
 | GET | `/establishments`, `/establishments/{slug}` |
-| GET | `/categories/{slug}` |
+| GET | `/categories/{slug}` (aceita `sort`) |
 | GET | `/encartes`, `/encartes/stores`, `/encartes/{id}` |
 | GET | `/push/vapid-public-key` |
 | PUT | `/push/devices`, `/push/follows` |

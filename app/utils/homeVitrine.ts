@@ -25,6 +25,20 @@ export function pickHero(items: JboOffer[], now = new Date()): JboOffer | null {
   return items.find(item => isRealSavings(item, now)) ?? null
 }
 
+/** Categorias com carrossel próprio na home, na ordem em que aparecem. */
+export const HOME_CATEGORY_SLUGS = ['acougue', 'bebidas', 'hortifruti'] as const
+
+/** Carrossel de categoria: ordem da API (economia), só promo vigente, até `limit`. */
+export function pickCategoryHighlights(
+  items: JboOffer[],
+  limit = 8,
+  now = new Date(),
+): JboOffer[] {
+  return items
+    .filter(item => getPromoPhase(item, now) === 'active')
+    .slice(0, limit)
+}
+
 /** Itens com economia real para o carrossel, sem o hero, até `limit`. */
 export function pickTopSavings(
   items: JboOffer[],
