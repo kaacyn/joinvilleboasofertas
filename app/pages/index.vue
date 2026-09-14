@@ -207,7 +207,7 @@ const [
   useAsyncData(
     'jbo-home-ending',
     () => isVitrine.value
-      ? jboGet<JboOffersPage>('/offers', { ends_today: true, sort: 'recent', page_size: 6 }).catch(() => null)
+      ? jboGet<JboOffersPage>('/offers', { ends_today: true, sort: 'random', page_size: 6 }).catch(() => null)
       : Promise.resolve(null),
     { watch: [isVitrine] },
   ),

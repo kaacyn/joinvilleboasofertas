@@ -117,7 +117,7 @@ Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavi
 | Facets categorias/lojas (com `slug`) | `GET /offers/facets` → `JboFacets` |
 | Feed | `GET /offers` (`q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort`, `ends_today`, `page_size=20`, `cursor`) → `JboOffersPage` |
 | Hero + carrossel (vitrine) | `GET /offers?sort=savings&page_size=10` |
-| Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=recent&page_size=6` + `GET /offers/count?ends_today=true` |
+| Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=random&page_size=6` + `GET /offers/count?ends_today=true` |
 | Carrosséis por categoria (vitrine) | `GET /categories/{slug}?sort=savings&page_size=10` × 3 (`acougue`, `bebidas`, `hortifruti`) |
 | Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`), `ends_today` (`1`) |
 | Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` (`id`, `name`, `brand`, `quantity_label`; exibido como título completo via `suggestionTitle`) |
