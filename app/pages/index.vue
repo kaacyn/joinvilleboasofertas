@@ -29,13 +29,6 @@
         <CategoryGrid :categories="facets.categories" :expanded="catsExpanded" />
       </HomeSection>
 
-      <HomeSection v-if="topSavings.length" title="Maiores descontos" bleed>
-        <template #aside>
-          <NuxtLink to="/?sort=savings">Ver todos</NuxtLink>
-        </template>
-        <OfferCarousel :offers="topSavings" />
-      </HomeSection>
-
       <HomeSection
         v-for="section in categorySections"
         :key="section.slug"
@@ -119,7 +112,6 @@ import {
   isVitrineState,
   pickCategoryHighlights,
   pickHero,
-  pickTopSavings,
 } from '~/utils/homeVitrine'
 
 type CountResponse = { count: number }
@@ -255,7 +247,6 @@ const loadError = computed(() => Boolean(pageError.value))
 /** Seções da vitrine (vazias fora dela ou quando a chamada falhou). */
 const savingsItems = computed<JboOffer[]>(() => savingsResult.data.value?.items || [])
 const hero = computed(() => pickHero(savingsItems.value, now.value))
-const topSavings = computed(() => pickTopSavings(savingsItems.value, hero.value?.id ?? null, 8, now.value))
 const endingItems = computed<JboOffer[]>(() => endingResult.data.value?.items || [])
 const endingCount = computed(() => endingCountResult.data.value?.count ?? 0)
 /** Carrosséis por categoria (economia): título com emoji, link e itens; vazios somem. */

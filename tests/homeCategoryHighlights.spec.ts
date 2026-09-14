@@ -16,8 +16,8 @@ function offer(over: Partial<JboOffer> & { id: string }): JboOffer {
 }
 
 describe('HOME_CATEGORY_SLUGS', () => {
-  it('carrosséis da home: açougue, bebidas e hortifruti, nessa ordem', () => {
-    expect(HOME_CATEGORY_SLUGS).toEqual(['acougue', 'bebidas', 'hortifruti'])
+  it('carrosséis da home: mercearia, açougue, bebidas e hortifruti, nessa ordem', () => {
+    expect(HOME_CATEGORY_SLUGS).toEqual(['mercearia', 'acougue', 'bebidas', 'hortifruti'])
   })
 })
 

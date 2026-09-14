@@ -101,8 +101,7 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
 3. **Só em vitrine** (sem busca, filtros, faixa de preço, `ends_today` e `sort=recent`):
    - Hero “Maior economia da semana” (`HeroSavings`) — primeira oferta vigente com economia real
    - Seção “Categorias” (`CategoryGrid`, 8 + “Ver todas”)
-   - Seção “Maiores descontos” (`OfferCarousel` de até 8 `OfferTile`, exclui o hero)
-   - Carrosséis por categoria: Açougue, Bebidas e Hortifruti (`OfferCarousel` de até 8 `OfferTile` vigentes, ordem por economia, título com emoji da categoria + “Ver todas” → `/categoria/{slug}`)
+   - Carrosséis por categoria: Mercearia, Açougue, Bebidas e Hortifruti (`OfferCarousel` de até 8 `OfferTile` vigentes, ordem por economia, título com emoji da categoria + “Ver todas” → `/categoria/{slug}`)
    - Seção “Termina hoje” (até 6 `OfferCard` + pill com a contagem + “Ver todas”)
 4. Seção “Novas ofertas” = feed infinito de `OfferCard` (título só em vitrine)
 5. Com `?ends_today=1`: título “Termina hoje” + botão Limpar em vez das seções
@@ -116,13 +115,13 @@ Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavi
 |----|--------|
 | Facets categorias/lojas (com `slug`) | `GET /offers/facets` → `JboFacets` |
 | Feed | `GET /offers` (`q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort`, `ends_today`, `page_size=20`, `cursor`) → `JboOffersPage` |
-| Hero + carrossel (vitrine) | `GET /offers?sort=savings&page_size=10` |
+| Hero (vitrine) | `GET /offers?sort=savings&page_size=10` |
 | Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=random&page_size=6` + `GET /offers/count?ends_today=true` |
-| Carrosséis por categoria (vitrine) | `GET /categories/{slug}?sort=savings&page_size=10` × 3 (`acougue`, `bebidas`, `hortifruti`) |
+| Carrosséis por categoria (vitrine) | `GET /categories/{slug}?sort=savings&page_size=10` × 4 (`mercearia`, `acougue`, `bebidas`, `hortifruti`) |
 | Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`), `ends_today` (`1`) |
 | Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` (`id`, `name`, `brand`, `quantity_label`; exibido como título completo via `suggestionTitle`) |
 
-As quatro chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`; a de categorias dispara as 3 requisições em paralelo); falha em uma esconde só a seção.
+As quatro chamadas da vitrine só rodam em vitrine (`watch: [isVitrine]`; a de categorias dispara as 4 requisições em paralelo); falha em uma esconde só a seção.
 
 **Card horizontal (`OfferCard`):** imagem do recorte 92×92 (ou emoji da categoria) com badge (`offerBadge`: `-28%` vermelho, `CLUBE -28%`/`CLUBE` amarelo, `EM BREVE` azul, `EXPIRADO` cinza), categoria, título completo (`offerTitle`: nome + marca + volume, ex. “Óleo de Soja Coamo 900 ml”), preço (Montserrat) + regular/média riscados, “cada”/unitário, loja, validade (“Termina hoje” em vermelho), chips.
 

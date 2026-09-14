@@ -26,7 +26,7 @@ export function pickHero(items: JboOffer[], now = new Date()): JboOffer | null {
 }
 
 /** Categorias com carrossel próprio na home, na ordem em que aparecem. */
-export const HOME_CATEGORY_SLUGS = ['acougue', 'bebidas', 'hortifruti'] as const
+export const HOME_CATEGORY_SLUGS = ['mercearia', 'acougue', 'bebidas', 'hortifruti'] as const
 
 /** Carrossel de categoria: ordem da API (economia), só promo vigente, até `limit`. */
 export function pickCategoryHighlights(
