@@ -175,17 +175,20 @@ Loading “Carregando…” · Error “Não foi possível carregar a lista.” 
 ## 3. `/loja/[slug]`
 
 **Arquivo:** `app/pages/loja/[slug].vue`  
-**Componentes:** `AppHeader`, `StoreFollowBell`, `OfferCard` (`hide-store`)
+**Componentes:** `AppHeader`, `StoreActionsBar` (+ `StoreFollowBell`), `StoreAddressesSheet`, `OfferCard` (`hide-store`)
 
 ### Estrutura
-Header → cabeçalho loja (logo, nome, endereço, sino) → lista de ofertas → empty
+Header → trilha → barra de ações à direita (endereços · compartilhar · sino, 44×44, só ícone com `aria-label`/`title`; avisos numa linha à esquerda dos botões) → cabeçalho loja (logo, nome, linha de endereço clicável) → lista de ofertas → empty
 
 ### Dados
 `GET /establishments/{slug}` → `{ establishment, items: JboOffer[], next_cursor }`  
+`establishment.addresses`: filiais `{ address, lat, lng, google_place_id, phones: [{ number, is_whatsapp }] }` em `sort_order`, sem texto repetido; sem filial, o endereço principal. API sem o campo: `storeBranches` usa `address` (rota por texto).  
 (`next_cursor` no tipo; **sem UI de paginação**)
 
 ### Ações
-Sino → follow · OfferCard → produto na loja
+- Ícone de endereços ou linha abaixo do nome (o endereço, ou “N endereços”) → `StoreAddressesSheet` (folha no celular, janela central ≥560px; `useDialogLock`). Por filial: **Como chegar** (Google Maps, link universal com lat/lng + `place_id`), **Waze**, telefone (`tel:`) e WhatsApp quando marcado. Links em `utils/storeDirections.ts`. Sem endereço, o ícone some.
+- Compartilhar → `useShareLink` (folha nativa; senão copia a URL canônica e mostra “Link copiado” por 2 s)
+- Sino → follow · OfferCard → produto na loja
 
 ### Estados
 Loading no header · Error API → **404** “Loja não encontrada” · Empty “Sem ofertas vigentes nesta loja.”

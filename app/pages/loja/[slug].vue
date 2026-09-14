@@ -3,6 +3,13 @@
     <AppHeader />
     <main v-if="data" class="page__main">
       <AppBreadcrumb :items="siteTrail({ label: 'Lojas', to: '/lojas' }, { label: data.establishment.name })" />
+      <StoreActionsBar
+        :establishment-id="data.establishment.id"
+        :store-name="data.establishment.name"
+        :share-url="shareUrl"
+        :has-addresses="branches.length > 0"
+        @addresses="addressesOpen = true"
+      />
       <header class="loja-head">
         <img
           v-if="data.establishment.logo_url"
@@ -15,20 +22,30 @@
           class="loja-head__logo loja-head__logo--fallback"
           aria-hidden="true"
         >{{ initials(data.establishment.name) }}</span>
-        <div class="loja-head__body">
-          <div class="loja-head__text">
-            <h1>{{ data.establishment.name }}</h1>
-            <p v-if="data.establishment.address" class="addr">
-              {{ data.establishment.address }}
-            </p>
-          </div>
-          <StoreFollowBell
-            :establishment-id="data.establishment.id"
-            :store-name="data.establishment.name"
-            show-hint
-          />
+        <div class="loja-head__text">
+          <h1>{{ data.establishment.name }}</h1>
+          <button
+            v-if="addressSummary"
+            type="button"
+            class="addr"
+            aria-haspopup="dialog"
+            data-test="store-address-summary"
+            @click="addressesOpen = true"
+          >
+            <svg class="addr__pin" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+              <circle cx="12" cy="10" r="2.4" />
+            </svg>
+            <span>{{ addressSummary }}</span>
+          </button>
         </div>
       </header>
+      <StoreAddressesSheet
+        :open="addressesOpen"
+        :store-name="data.establishment.name"
+        :branches="branches"
+        @close="addressesOpen = false"
+      />
       <OfferCard
         v-for="offer in data.items"
         :key="offer.id"
@@ -43,6 +60,8 @@
 <script setup lang="ts">
 import { siteTrail } from '~/utils/breadcrumb'
 import { jboGet, type JboOffer } from '~/utils/jboApi'
+import { absoluteUrl } from '~/utils/jboSeo'
+import { branchesSummary, storeBranches, type StoreBranch } from '~/utils/storeDirections'
 
 type EstPage = {
   establishment: {
@@ -51,6 +70,8 @@ type EstPage = {
     slug: string
     address: string
     logo_url?: string | null
+    /** Ausente em API anterior às filiais; `storeBranches` cobre. */
+    addresses?: StoreBranch[]
   }
   items: JboOffer[]
   next_cursor: string | null
@@ -71,6 +92,11 @@ useSyncLoadingIndicator(pending)
 if (error.value) {
   throw createError({ statusCode: 404, statusMessage: 'Loja não encontrada' })
 }
+
+const branches = computed(() => (data.value ? storeBranches(data.value.establishment) : []))
+const addressSummary = computed(() => branchesSummary(branches.value))
+const addressesOpen = ref(false)
+const shareUrl = computed(() => absoluteUrl(String(config.public.siteUrl || ''), `/loja/${slug.value}`))
 
 function initials(name: string): string {
   const parts = String(name || '').trim().split(/\s+/).filter(Boolean)
@@ -135,15 +161,6 @@ h1 {
   min-width: 0;
 }
 
-.loja-head__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.65rem;
-}
-
 .loja-head {
   display: flex;
   align-items: center;
@@ -175,10 +192,49 @@ h1 {
 }
 
 .addr {
-  margin: 0.2rem 0 0;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.3rem;
+  max-width: 100%;
+  margin: 0.1rem 0 0;
+  padding: 0.3rem 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
-.addr,
+.addr span {
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 3px;
+}
+
+.addr:hover {
+  color: var(--ink-2);
+}
+
+.addr:hover span {
+  text-decoration-color: currentColor;
+}
+
+.addr:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.addr__pin {
+  flex: 0 0 auto;
+  margin-top: 0.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+}
+
 .empty {
   color: var(--muted);
 }

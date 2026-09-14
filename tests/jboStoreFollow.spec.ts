@@ -164,12 +164,14 @@ describe('sino anônimo segue loja', () => {
     expect(itemBlock.indexOf('</NuxtLink>')).toBeLessThan(itemBlock.indexOf('StoreFollowBell'))
   })
 
-  it('mostra sino à direita do nome na página da loja', () => {
+  it('na página da loja o sino fica na barra de ações, acima do nome', () => {
     const page = source('app/pages/loja/[slug].vue')
-    expect(page).toContain('StoreFollowBell')
+    const bar = source('app/components/store/StoreActionsBar.vue')
+    expect(bar).toContain('<StoreFollowBell :establishment-id="establishmentId" :store-name="storeName" />')
     expect(page).toContain(':establishment-id="data.establishment.id"')
-    expect(page).toContain('loja-head__body')
-    expect(page).toContain('show-hint')
+    expect(page.indexOf('<StoreActionsBar')).toBeGreaterThan(-1)
+    expect(page.indexOf('<StoreActionsBar')).toBeLessThan(page.indexOf('<h1>'))
+    expect(page).not.toContain('<StoreFollowBell')
     expect(page).toContain('hide-store')
   })
 })

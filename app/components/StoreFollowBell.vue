@@ -4,6 +4,7 @@
       type="button"
       class="store-bell__btn"
       aria-label="Receber avisos desta loja"
+      title="Receber avisos desta loja"
       :aria-pressed="isFollowing(establishmentId) ? 'true' : 'false'"
       @click.stop="onBell"
     >
