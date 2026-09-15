@@ -43,6 +43,11 @@ export function joinNames(names: string[]): string {
   return `${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`
 }
 
+/** "no A", "no A e no B", "no A, no B e no C" — une nomes com preposição de localidade. */
+function withPreposition(names: string[]): string {
+  return joinNames(names.map(name => `no ${name}`))
+}
+
 /** "mercado" ou "mercados" conforme a quantidade. */
 function markets(count: number): string {
   return count === 1 ? 'mercado' : 'mercados'
@@ -87,7 +92,7 @@ function elsewhere(ids: string[], offers: JboOffer[]): string {
   const names = ids
     .map(id => offers.find(o => o.establishment_id === id)?.establishment_name || '')
     .filter(Boolean)
-  if (names.length === ids.length) return `no ${joinNames(names)}`
+  if (names.length === ids.length) return withPreposition(names)
   return ids.length === 1 ? 'em outro mercado' : `em ${ids.length} outros mercados`
 }
 
@@ -144,7 +149,16 @@ export function followSheetView(input: {
     const all = state.scope === 'all'
     let lead = `Você recebe um aviso quando o ${store} publicar oferta nova ou mudar o preço.`
     if (all) lead = 'Você recebe um aviso quando qualquer mercado publicar oferta nova ou mudar o preço.'
-    else if (others.length) lead = `Você recebe avisos deste produto no ${store} e ${elsewhere(others, offers)}.`
+    else if (others.length) {
+      const otherNames = others
+        .map(id => offers.find(o => o.establishment_id === id)?.establishment_name || '')
+        .filter(Boolean)
+      if (otherNames.length === others.length) {
+        lead = `Você recebe avisos deste produto ${withPreposition([store, ...otherNames])}.`
+      } else {
+        lead = `Você recebe avisos deste produto no ${store} e ${elsewhere(others, offers)}.`
+      }
+    }
     let hereDescription = 'Só este mercado.'
     if (all) hereDescription = 'Troca: deixa de avisar dos outros mercados.'
     else if (others.length) hereDescription = `Também ${elsewhere(others, offers)}.`

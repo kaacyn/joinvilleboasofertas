@@ -113,6 +113,10 @@ describe('sino por mercado: textos da folha', () => {
     expect(v.options[0].description).toBe('Continua avisando no Supermercado Carolina.')
     expect(v.options[1].description).toBe(`Hoje em 3 mercados, a partir de R$${nbsp}1,99. Substitui a sua lista.`)
     expect(view(stores('desconhecido')).note).toBe('Você já recebe avisos deste produto em outro mercado.')
+
+    const multiple = view(stores(C, 'mini'))
+    expect(multiple.note).toBe('Você já recebe avisos deste produto no Supermercado Carolina e no Mini Preço Supermercados.')
+    expect(multiple.options[0].description).toBe('Continua avisando no Supermercado Carolina e no Mini Preço Supermercados.')
   })
 
   it('gerenciar: opção ativa marcada, troca explicada e desligar certo', () => {
@@ -130,6 +134,14 @@ describe('sino por mercado: textos da folha', () => {
     expect(both.lead).toBe('Você recebe avisos deste produto no Komprão Koch Atacadista e no Supermercado Carolina.')
     expect(both.options[0].description).toBe('Também no Supermercado Carolina.')
     expect(both.offActions).toEqual([
+      { action: 'unfollow_store', label: 'Desligar no Komprão Koch Atacadista' },
+      { action: 'unfollow_all', label: 'Desligar em todos' },
+    ])
+
+    const three = view(stores(K, C, 'mini'))
+    expect(three.lead).toBe('Você recebe avisos deste produto no Komprão Koch Atacadista, no Supermercado Carolina e no Mini Preço Supermercados.')
+    expect(three.options[0].description).toBe('Também no Supermercado Carolina e no Mini Preço Supermercados.')
+    expect(three.offActions).toEqual([
       { action: 'unfollow_store', label: 'Desligar no Komprão Koch Atacadista' },
       { action: 'unfollow_all', label: 'Desligar em todos' },
     ])
