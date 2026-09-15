@@ -77,8 +77,15 @@ describe('webPush', () => {
       endpoint: 'https://push.example/old',
       toJSON: () => ({ endpoint: 'https://push.example/old', keys: { p256dh: 'p', auth: 'a' } }),
     }
-    const { pushManager } = stubBrowser({ existing })
+    const { pushManager, fetchMock } = stubBrowser({ existing })
     expect(await ensurePushDevice(false, true)).toEqual({ ok: true, endpoint: 'https://push.example/old' })
     expect(pushManager.subscribe).not.toHaveBeenCalled()
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/public/jbo/push/devices',
+      expect.objectContaining({
+        method: 'PUT',
+        body: expect.objectContaining({ endpoint: 'https://push.example/old', p256dh: 'p', auth: 'a' }),
+      }),
+    )
   })
 })
