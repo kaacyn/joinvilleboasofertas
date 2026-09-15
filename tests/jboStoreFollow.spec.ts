@@ -59,6 +59,15 @@ describe('sino anônimo segue loja', () => {
     expect(toggleFn.indexOf('if (!endpoint) return')).toBeLessThan(toggleFn.indexOf('applyFollow('))
   })
 
+  it('reverte o sino se o PUT de follow falhar', () => {
+    const src = source('app/composables/useJboStoreFollow.ts')
+    expect(src).toContain('catch')
+    const toggleFn = src.slice(src.indexOf('async function toggle'))
+    expect(toggleFn).toContain('await loadOnce()')
+    expect(toggleFn).not.toContain('followedIds.value = previous')
+    expect(src).toMatch(/followedIds\.value = followedIds\.value\.filter/)
+  })
+
   it('checa iOS e PushManager antes de pedir permissão', () => {
     const push = source('app/utils/webPush.ts')
     const ensure = push.slice(push.indexOf('export async function ensurePushDevice'))
