@@ -33,7 +33,13 @@
         <h2 id="follow-sheet-title" class="follow-sheet__title">{{ view.title }}</h2>
         <p class="follow-sheet__lead">{{ view.lead }}</p>
 
-        <template v-if="view.mode === 'ios' || view.mode === 'denied'">
+        <template v-if="view.mode === 'unsupported'">
+          <button type="button" class="follow-sheet__btn follow-sheet__btn--primary" @click="emit('close')">
+            Entendi
+          </button>
+        </template>
+
+        <template v-else-if="view.mode === 'ios' || view.mode === 'denied'">
           <PushInstructions
             :mode="view.mode === 'ios' ? 'ios-install' : 'permission-denied'"
             goal="ativar os avisos"

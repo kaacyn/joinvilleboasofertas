@@ -128,7 +128,7 @@ const instruction = ref<FollowInstructionMode>('request-permission')
 const bellButton = ref<HTMLButtonElement | null>(null)
 
 /** Legenda persistente ao lado do sino. */
-const caption = computed(() => followCaption(state.value, pageStoreId.value))
+const caption = computed(() => followCaption(state.value, pageStoreId.value, props.offers))
 /** Rótulo acessível do botão do sino. */
 const bellLabel = computed(() => followBellLabel(state.value, pageStoreId.value))
 
@@ -148,6 +148,7 @@ const sheetView = computed(() => followSheetView({
   pageStoreName: pageStoreName.value,
   offers: props.offers,
   instructionMode: instruction.value,
+  isIos: isIos.value,
 }))
 
 /** Abre a folha do sino lendo a permissão do navegador agora (não fica em cache). */

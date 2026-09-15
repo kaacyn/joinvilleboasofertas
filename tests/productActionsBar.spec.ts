@@ -60,6 +60,12 @@ describe('sino do produto', () => {
     expect(sheet).toContain('width: 44px')
   })
 
+  it('navegador sem push (Android sem instalar app) mostra a folha "unsupported", sem instruções de iPhone', () => {
+    const sheet = source('app/components/offers/ProductFollowSheet.vue')
+    expect(sheet).toContain("view.mode === 'unsupported'")
+    expect(sheet).toContain("view.mode === 'ios' || view.mode === 'denied'")
+  })
+
   it('descrições das opções e rodapé usam contraste maior (--ink-2)', () => {
     const sheet = source('app/components/offers/ProductFollowSheet.vue')
     const optionText = sheet.slice(sheet.indexOf('.follow-option__text span {'), sheet.indexOf('.follow-option__end {'))
@@ -117,5 +123,11 @@ describe('barra de ações do produto', () => {
     expect(bar).toContain('await nextTick()')
     expect(bar).toContain('bellButton.value?.focus()')
     expect(bar).toContain('await closeFollowAndFocusBell()')
+  })
+
+  it('legenda recebe as ofertas para nomear o outro mercado; folha recebe isIos', () => {
+    const bar = source('app/components/offers/ProductActionsBar.vue')
+    expect(bar).toContain('followCaption(state.value, pageStoreId.value, props.offers)')
+    expect(bar).toContain('isIos: isIos.value')
   })
 })

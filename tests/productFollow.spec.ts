@@ -42,14 +42,28 @@ const OFFERS = [
   offer({ id: '4', establishment_id: 'velho', establishment_name: 'Mercado Vencido', price: '1.00', promo_ends_on: '2026-09-01' }),
 ]
 
+/** Oferta "EM BREVE": começa depois de hoje, com preço bem baixo (não deve contar nem virar o menor preço). */
+const UPCOMING = offer({
+  id: '5',
+  establishment_id: 'futuro',
+  establishment_name: 'Mercado do Futuro',
+  price: '0.50',
+  promo_starts_on: '2026-09-20',
+  promo_ends_on: '2026-09-30',
+})
+
 /** Cria um estado de seguimento com os mercados especificados. */
 const stores = (...ids: string[]): ProductFollowState => ({ scope: 'stores', establishment_ids: ids })
 const ALL: ProductFollowState = { scope: 'all', establishment_ids: [] }
 
-/** Renderiza a folha do sino com os argumentos padrão de teste. */
-function view(state: ProductFollowState, instructionMode: 'request-permission' | 'ready' | 'ios-install' | 'permission-denied' = 'ready') {
+/** Renderiza a folha do sino com os argumentos padrão de teste (navegador não iOS, por padrão). */
+function view(
+  state: ProductFollowState,
+  instructionMode: 'request-permission' | 'ready' | 'ios-install' | 'permission-denied' = 'ready',
+  isIos = false,
+) {
   return followSheetView({
-    state, pageStoreId: K, pageStoreName: 'Komprão Koch Atacadista', offers: OFFERS, instructionMode, now: NOW,
+    state, pageStoreId: K, pageStoreName: 'Komprão Koch Atacadista', offers: OFFERS, instructionMode, isIos, now: NOW,
   })
 }
 
@@ -71,6 +85,12 @@ describe('sino por mercado: estado e legenda', () => {
     expect(followCaption(stores(C, 'mini'), K).text).toBe('Você segue em 2 outros mercados')
   })
 
+  it('legenda nomeia o outro mercado quando o nome é conhecido nas ofertas', () => {
+    expect(followCaption(stores(C), K, OFFERS)).toEqual({ text: 'Você segue no Supermercado Carolina', on: false })
+    expect(followCaption(stores('desconhecido'), K, OFFERS)).toEqual({ text: 'Você segue em outro mercado', on: false })
+    expect(followCaption(stores(C, 'mini'), K, OFFERS).text).toBe('Você segue em 2 outros mercados')
+  })
+
   it('rótulo acessível do sino', () => {
     expect(followBellLabel(EMPTY_FOLLOW_STATE, K)).toBe('Receber avisos deste produto')
     expect(followBellLabel(stores(K), K)).toBe('Avisos ativos neste mercado. Toque para mudar')
@@ -90,6 +110,11 @@ describe('sino por mercado: textos da folha', () => {
     expect(marketSummary(OFFERS, NOW)).toBe(`Hoje em 3 mercados, a partir de R$${nbsp}1,99.`)
     expect(marketSummary([OFFERS[1]], NOW)).toBe('Hoje só o Supermercado Carolina tem oferta; avisamos quando outro publicar.')
     expect(marketSummary([OFFERS[3]], NOW)).toBe('Avisamos quando qualquer mercado publicar.')
+  })
+
+  it('oferta "EM BREVE" não conta nem vira o menor preço do resumo', () => {
+    expect(marketSummary([UPCOMING], NOW)).toBe('Avisamos quando qualquer mercado publicar.')
+    expect(marketSummary([...OFFERS, UPCOMING], NOW)).toBe(`Hoje em 3 mercados, a partir de R$${nbsp}1,99.`)
   })
 
   it('primeira vez: duas opções sem marcação e rodapé da permissão', () => {
@@ -155,8 +180,22 @@ describe('sino por mercado: textos da folha', () => {
   })
 
   it('iPhone e bloqueio têm título e texto próprios, sem opções', () => {
-    expect(view(EMPTY_FOLLOW_STATE, 'ios-install')).toMatchObject({ mode: 'ios', title: 'Instale o app para receber avisos', options: [] })
+    expect(view(EMPTY_FOLLOW_STATE, 'ios-install', true)).toMatchObject({ mode: 'ios', title: 'Instale o app para receber avisos', options: [] })
     expect(view(EMPTY_FOLLOW_STATE, 'permission-denied')).toMatchObject({ mode: 'denied', title: 'Notificações bloqueadas', options: [] })
+  })
+
+  it('navegador sem iOS que precisaria do modo "ios" vira "unsupported" (Android sem app instalado)', () => {
+    const android = view(EMPTY_FOLLOW_STATE, 'ios-install', false)
+    expect(android).toMatchObject({
+      mode: 'unsupported',
+      title: 'Este navegador não recebe avisos',
+      lead: 'Abra esta página no navegador do celular (Chrome, por exemplo) para ativar os avisos.',
+      options: [],
+      offActions: [],
+      footnote: '',
+    })
+    const iphone = view(EMPTY_FOLLOW_STATE, 'ios-install', true)
+    expect(iphone.mode).toBe('ios')
   })
 })
 

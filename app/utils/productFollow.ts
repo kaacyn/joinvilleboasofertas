@@ -2,14 +2,14 @@
 
 import type { JboOffer } from '~/utils/jboApi'
 import { formatMoney, formatOfferPrice, offerMainPrice } from '~/utils/offerPrice'
-import { isPromoExpired } from '~/utils/promoPhase'
+import { getPromoPhase } from '~/utils/promoPhase'
 import type { FollowInstructionMode } from '~/utils/webPush'
 
 export type ProductFollowScope = 'none' | 'all' | 'stores'
 export type ProductFollowState = { scope: ProductFollowScope, establishment_ids: string[] }
 export type ProductFollowAction = 'follow_store' | 'follow_all' | 'unfollow_store' | 'unfollow_all'
 export type FollowPick = 'here' | 'all'
-export type FollowSheetMode = 'choose' | 'manage' | 'ios' | 'denied'
+export type FollowSheetMode = 'choose' | 'manage' | 'ios' | 'denied' | 'unsupported'
 export type FollowOptionView = { key: FollowPick, title: string, description: string, active: boolean }
 export type FollowOffView = { action: ProductFollowAction, label: string }
 export type FollowSheetView = {
@@ -53,17 +53,28 @@ function markets(count: number): string {
   return count === 1 ? 'mercado' : 'mercados'
 }
 
-/** Legenda persistente ao lado do sino; `on` pinta com a cor do sino ligado. */
-export function followCaption(state: ProductFollowState, pageStoreId: string): { text: string, on: boolean } {
+/**
+ * Legenda persistente ao lado do sino; `on` pinta com a cor do sino ligado.
+ * Com um único outro mercado de nome conhecido em `offers`, nomeia o mercado.
+ */
+export function followCaption(
+  state: ProductFollowState,
+  pageStoreId: string,
+  offers: JboOffer[] = [],
+): { text: string, on: boolean } {
   if (state.scope === 'all') return { text: 'Avisos em todos os mercados', on: true }
-  const others = otherStoreIds(state, pageStoreId).length
+  const otherIds = otherStoreIds(state, pageStoreId)
+  const others = otherIds.length
   if (followsHere(state, pageStoreId)) {
     return {
       text: others ? `Avisos aqui e em mais ${others} ${markets(others)}` : 'Avisos neste mercado',
       on: true,
     }
   }
-  if (others === 1) return { text: 'Você segue em outro mercado', on: false }
+  if (others === 1) {
+    const name = offers.find(o => o.establishment_id === otherIds[0])?.establishment_name
+    return { text: name ? `Você segue no ${name}` : 'Você segue em outro mercado', on: false }
+  }
   if (others > 1) return { text: `Você segue em ${others} outros mercados`, on: false }
   return { text: '', on: false }
 }
@@ -101,7 +112,7 @@ export function marketSummary(offers: JboOffer[], now = new Date()): string {
   const storesWithOffer = new Map<string, string>()
   let lowest: number | null = null
   for (const item of offers) {
-    if (isPromoExpired(item, now)) continue
+    if (getPromoPhase(item, now) !== 'active') continue
     storesWithOffer.set(item.establishment_id, item.establishment_name)
     const main = offerMainPrice(item)
     if (main && (lowest == null || main.value < lowest)) lowest = main.value
@@ -114,21 +125,35 @@ export function marketSummary(offers: JboOffer[], now = new Date()): string {
   return `Hoje em ${storesWithOffer.size} mercados, a partir de ${formatMoney(lowest)}.`
 }
 
-/** Textos da folha do sino para o estado atual (protótipo aprovado). */
+/**
+ * Textos da folha do sino para o estado atual (protótipo aprovado).
+ * Quando o modo seria "ios" mas o navegador não é o do iPhone (ex.: navegador
+ * embutido no Android), reclassifica para "unsupported" — sem app para instalar.
+ */
 export function followSheetView(input: {
   state: ProductFollowState
   pageStoreId: string
   pageStoreName: string
   offers: JboOffer[]
   instructionMode: FollowInstructionMode
+  isIos: boolean
   now?: Date
 }): FollowSheetView {
   const { state, pageStoreId, offers } = input
   const store = input.pageStoreName
-  const mode = followSheetMode(state, pageStoreId, input.instructionMode)
+  const rawMode = followSheetMode(state, pageStoreId, input.instructionMode)
+  const mode = rawMode === 'ios' && !input.isIos ? 'unsupported' : rawMode
   const others = otherStoreIds(state, pageStoreId)
   const empty = { note: '', options: [], offActions: [], footnote: '' }
 
+  if (mode === 'unsupported') {
+    return {
+      mode,
+      title: 'Este navegador não recebe avisos',
+      lead: 'Abra esta página no navegador do celular (Chrome, por exemplo) para ativar os avisos.',
+      ...empty,
+    }
+  }
   if (mode === 'ios') {
     return {
       mode,
