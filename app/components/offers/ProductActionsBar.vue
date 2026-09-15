@@ -208,18 +208,22 @@ async function onShare() {
   flex: 1;
   min-width: 0;
   margin: 0;
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.3;
   text-align: right;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .product-actions__caption {
   padding: 0.25rem 0;
   border: 0;
   background: none;
-  color: var(--ink-3);
+  color: var(--ink-2);
   font: inherit;
   text-align: right;
   cursor: pointer;

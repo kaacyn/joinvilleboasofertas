@@ -58,4 +58,29 @@ describe('relato de erro da oferta', () => {
     expect(sheet).toContain('role="status"')
     expect(sheet).toContain('doneButton.value?.focus()')
   })
+
+  it('botão de fechar tem alvo de toque de 44px', () => {
+    const sheet = source('app/components/offers/ReportOfferSheet.vue')
+    const closeRule = sheet.slice(sheet.indexOf('.report-sheet__close {'), sheet.indexOf('.report-sheet__close svg'))
+    expect(closeRule).toContain('width: 44px')
+    expect(closeRule).toContain('height: 44px')
+    expect(closeRule).toContain('min-width: 44px')
+    expect(closeRule).toContain('min-height: 44px')
+  })
+
+  it('agradecimento é anunciado no "Fechar" e o erro antigo não sobrevive à reabertura', () => {
+    const sheet = source('app/components/offers/ReportOfferSheet.vue')
+    expect(sheet).toContain('id="report-done-message"')
+    expect(sheet).toContain('aria-describedby="report-done-message"')
+    const watcher = sheet.slice(sheet.indexOf('watch(() => props.open'), sheet.indexOf('watch(() => props.offerId'))
+    expect(watcher).toContain('else error.value = \'\'')
+  })
+
+  it('blocker e commentHint têm JSDoc em português', () => {
+    const sheet = source('app/components/offers/ReportOfferSheet.vue')
+    const beforeBlocker = sheet.slice(0, sheet.indexOf('const blocker = computed'))
+    expect(beforeBlocker.trim().endsWith('*/')).toBe(true)
+    const beforeCommentHint = sheet.slice(0, sheet.indexOf('const commentHint = computed'))
+    expect(beforeCommentHint.trim().endsWith('*/')).toBe(true)
+  })
 })

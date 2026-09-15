@@ -370,7 +370,7 @@ useDialogLock(toRef(props, 'open'), overlay, closeButton, () => emit('close'))
 .follow-option__text span {
   display: block;
   margin-top: 0.15rem;
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-size: 0.82rem;
   line-height: 1.35;
 }
@@ -443,7 +443,7 @@ useDialogLock(toRef(props, 'open'), overlay, closeButton, () => emit('close'))
 
 .follow-sheet__foot {
   margin: 0;
-  color: var(--ink-3);
+  color: var(--ink-2);
   font-size: 0.78rem;
   text-align: center;
 }

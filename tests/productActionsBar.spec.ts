@@ -59,6 +59,14 @@ describe('sino do produto', () => {
     expect(sheet).toContain('min-height: 44px')
     expect(sheet).toContain('width: 44px')
   })
+
+  it('descrições das opções e rodapé usam contraste maior (--ink-2)', () => {
+    const sheet = source('app/components/offers/ProductFollowSheet.vue')
+    const optionText = sheet.slice(sheet.indexOf('.follow-option__text span {'), sheet.indexOf('.follow-option__end {'))
+    expect(optionText).toContain('color: var(--ink-2)')
+    const foot = sheet.slice(sheet.indexOf('.follow-sheet__foot {'), sheet.indexOf('.follow-sheet__btn {'))
+    expect(foot).toContain('color: var(--ink-2)')
+  })
 })
 
 describe('barra de ações do produto', () => {
@@ -75,6 +83,14 @@ describe('barra de ações do produto', () => {
     expect(bar).toContain(':aria-label="bellLabel"')
     expect(bar).toContain(':aria-pressed=')
     expect(bar).toMatch(/width:\s*44px/)
+  })
+
+  it('linha de avisos trava em 2 linhas e usa contraste maior (--ink-2)', () => {
+    const bar = source('app/components/offers/ProductActionsBar.vue')
+    const status = bar.slice(bar.indexOf('.product-actions__status {'), bar.indexOf('.product-actions__caption {'))
+    expect(status).toContain('-webkit-line-clamp: 2')
+    expect(status).toContain('color: var(--ink-2)')
+    expect(status).not.toContain('--ink-3')
   })
 
   it('linha de avisos: compartilhar e sino antes da legenda, legenda abre a folha', () => {

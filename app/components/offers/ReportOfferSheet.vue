@@ -29,8 +29,16 @@
           <span class="report-sheet__check" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 12.5l4.2 4L19 7" /></svg>
           </span>
-          <p>{{ sentContact ? 'Se precisarmos de algo, falamos com você pelo contato que deixou.' : 'A equipe revisa cada relato.' }}</p>
-          <button ref="doneButton" type="button" class="report-sheet__primary" @click="onClose">Fechar</button>
+          <p id="report-done-message">{{ sentContact ? 'Se precisarmos de algo, falamos com você pelo contato que deixou.' : 'A equipe revisa cada relato.' }}</p>
+          <button
+            ref="doneButton"
+            type="button"
+            class="report-sheet__primary"
+            aria-describedby="report-done-message"
+            @click="onClose"
+          >
+            Fechar
+          </button>
         </div>
 
         <form v-else class="report-sheet__form" novalidate @submit.prevent="onSubmit">
@@ -133,7 +141,9 @@ const overlay = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
 const doneButton = ref<HTMLButtonElement | null>(null)
 
+/** Motivo (se houver) que impede o envio agora. */
 const blocker = computed(() => reportBlocker(draft))
+/** Aviso sob o comentário quando o motivo exige comentário e ele está vazio. */
 const commentHint = computed(() =>
   commentRequired(draft.reason) && !draft.comment.trim() ? 'Conte o que está errado.' : '',
 )
@@ -149,7 +159,9 @@ function reset() {
 }
 
 watch(() => props.open, (isOpen) => {
-  if (isOpen && sent.value) reset()
+  if (!isOpen) return
+  if (sent.value) reset()
+  else error.value = ''
 })
 watch(() => props.offerId, reset)
 
@@ -265,8 +277,10 @@ useDialogLock(toRef(props, 'open'), overlay, closeButton, onClose)
 
 .report-sheet__close {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
