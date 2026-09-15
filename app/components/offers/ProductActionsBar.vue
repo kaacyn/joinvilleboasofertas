@@ -110,8 +110,11 @@ const props = defineProps<{
   sharePath: string
 }>()
 
+/** Produto da oferta em foco (o sino segue por produto). */
 const productId = computed(() => props.offer.product_id)
+/** Mercado da página: é o escopo de "Só neste mercado". */
 const pageStoreId = computed(() => props.offer.establishment_id)
+/** Nome do mercado da página, para textos da folha e do sino. */
 const pageStoreName = computed(() => props.offer.establishment_name)
 const { state, busy, flash, apply } = useJboProductFollow(productId, pageStoreId, pageStoreName)
 const { isIos, isStandalone, promptInstall } = usePwaInstall()
@@ -121,7 +124,9 @@ const reportOpen = ref(false)
 const followOpen = ref(false)
 const instruction = ref<FollowInstructionMode>('request-permission')
 
+/** Legenda persistente ao lado do sino. */
 const caption = computed(() => followCaption(state.value, pageStoreId.value))
+/** Rótulo acessível do botão do sino. */
 const bellLabel = computed(() => followBellLabel(state.value, pageStoreId.value))
 
 /** Aviso passageiro: compartilhar tem prioridade, depois o resultado do sino. */
@@ -130,8 +135,10 @@ const transientText = computed(() => {
   if (shareStatus.value === 'failed') return 'Não foi possível compartilhar agora.'
   return flash.value
 })
+/** Mostra a legenda só quando não há aviso passageiro. */
 const showCaption = computed(() => !transientText.value && Boolean(caption.value.text))
 
+/** Textos da folha do sino para o estado atual. */
 const sheetView = computed(() => followSheetView({
   state: state.value,
   pageStoreId: pageStoreId.value,
