@@ -31,6 +31,7 @@ export function useJboProductFollow(
   const flash = ref('')
   const { isIos, isStandalone } = usePwaInstall()
   let flashTimer: ReturnType<typeof setTimeout> | undefined
+  let loadSeq = 0
 
   /** Mostra um aviso na barra por alguns segundos. */
   function say(text: string) {
@@ -41,19 +42,25 @@ export function useJboProductFollow(
     }, FLASH_MS)
   }
 
-  /** Busca o estado no snap-api (só no cliente, com push e inscrição existentes). */
+  /**
+   * Busca o estado no snap-api (só no cliente, com push e inscrição existentes).
+   * Marca a chamada com `loadSeq`: se uma busca mais nova ou uma ação (`apply`)
+   * começar antes desta responder, o resultado atrasado é ignorado.
+   */
   async function load() {
     if (!import.meta.client || !productId.value || !detectPushSupport()) return
+    const seq = ++loadSeq
     const endpoint = await currentPushEndpoint()
     if (!endpoint) {
-      state.value = { ...EMPTY_FOLLOW_STATE }
+      if (seq === loadSeq && !busy.value) state.value = { ...EMPTY_FOLLOW_STATE }
       return
     }
     try {
-      state.value = await jboSend<ProductFollowState>('POST', '/push/product-follows/query', {
+      const next = await jboSend<ProductFollowState>('POST', '/push/product-follows/query', {
         endpoint,
         product_id: productId.value,
       })
+      if (seq === loadSeq && !busy.value) state.value = next
     }
     catch {
       // Mantém o estado anterior: o sino continua usável.
@@ -69,26 +76,38 @@ export function useJboProductFollow(
     return null
   }
 
-  /** Aplica a ação do sino; devolve true quando a folha pode fechar. */
+  /**
+   * Aplica a ação do sino; devolve true quando a folha pode fechar.
+   * Captura produto/mercado/nome ANTES de qualquer await (a permissão do
+   * navegador espera o usuário) para não gravar no produto ou mercado errado
+   * se a página trocar durante a espera; só atualiza `state` se a página
+   * ainda for a mesma no momento em que a resposta chega. Também avança
+   * `loadSeq` para invalidar uma busca (`load`) que já estava em curso.
+   */
   async function apply(action: ProductFollowAction): Promise<boolean> {
     if (busy.value) return false
     busy.value = action
+    loadSeq += 1
+    const target = { productId: productId.value, storeId: pageStoreId.value, storeName: pageStoreName.value }
+    /** True quando produto e mercado da página ainda são os de quando a ação começou. */
+    const stillOnTarget = () => productId.value === target.productId && pageStoreId.value === target.storeId
     const before = state.value
     try {
       const endpoint = await endpointFor(action)
       if (!endpoint) {
-        if (action === 'unfollow_store' || action === 'unfollow_all') {
+        if (stillOnTarget() && (action === 'unfollow_store' || action === 'unfollow_all')) {
           state.value = { ...EMPTY_FOLLOW_STATE }
         }
         return true
       }
-      state.value = await jboSend<ProductFollowState>('PUT', '/push/product-follows', {
+      const next = await jboSend<ProductFollowState>('PUT', '/push/product-follows', {
         endpoint,
-        product_id: productId.value,
-        establishment_id: pageStoreId.value,
+        product_id: target.productId,
+        establishment_id: target.storeId,
         action,
       })
-      say(followActionMessage(action, before, pageStoreName.value))
+      if (stillOnTarget()) state.value = next
+      say(followActionMessage(action, before, target.storeName))
       return true
     }
     catch {

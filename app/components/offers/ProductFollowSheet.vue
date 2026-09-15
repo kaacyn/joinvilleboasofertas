@@ -257,8 +257,10 @@ useDialogLock(toRef(props, 'open'), overlay, closeButton, () => emit('close'))
 
 .follow-sheet__close {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
@@ -423,7 +425,7 @@ useDialogLock(toRef(props, 'open'), overlay, closeButton, () => emit('close'))
 }
 
 .follow-sheet__off-btn {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 0.8rem;
   border: 0;
   border-radius: 10px;
