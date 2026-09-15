@@ -25,12 +25,12 @@
           </button>
         </header>
 
-        <div v-if="sent" class="report-sheet__done" data-test="report-done">
+        <div v-if="sent" class="report-sheet__done" role="status" aria-live="polite" data-test="report-done">
           <span class="report-sheet__check" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="26" height="26"><path d="M5 12.5l4.2 4L19 7" /></svg>
           </span>
           <p>{{ sentContact ? 'Se precisarmos de algo, falamos com você pelo contato que deixou.' : 'A equipe revisa cada relato.' }}</p>
-          <button type="button" class="report-sheet__primary" @click="onClose">Fechar</button>
+          <button ref="doneButton" type="button" class="report-sheet__primary" @click="onClose">Fechar</button>
         </div>
 
         <form v-else class="report-sheet__form" novalidate @submit.prevent="onSubmit">
@@ -131,6 +131,7 @@ const sentContact = ref(false)
 const error = ref('')
 const overlay = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
+const doneButton = ref<HTMLButtonElement | null>(null)
 
 const blocker = computed(() => reportBlocker(draft))
 const commentHint = computed(() =>
@@ -157,7 +158,8 @@ function onClose() {
   emit('close')
 }
 
-/** Envia o relato; em erro mantém o que foi digitado e mostra o motivo. */
+/** Envia o relato; em sucesso move o foco para o agradecimento (leitor de tela);
+ *  em erro mantém o que foi digitado e mostra o motivo. */
 async function onSubmit() {
   if (sending.value || blocker.value) return
   sending.value = true
@@ -166,6 +168,8 @@ async function onSubmit() {
     await jboSend('POST', '/offer-reports', reportPayload(props.offerId, draft))
     sentContact.value = Boolean(draft.contact.trim())
     sent.value = true
+    await nextTick()
+    doneButton.value?.focus()
   }
   catch (e) {
     error.value = reportErrorMessage(e)

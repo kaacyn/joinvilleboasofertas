@@ -10,6 +10,7 @@ import {
 } from '../app/utils/offerReport'
 
 const root = resolve(import.meta.dirname, '..')
+/** Lê um arquivo do projeto como texto (asserções de código-fonte). */
 const source = (path: string) => readFileSync(resolve(root, path), 'utf8')
 
 describe('relato de erro da oferta', () => {
@@ -54,5 +55,7 @@ describe('relato de erro da oferta', () => {
     expect(sheet).toContain('placeholder="E-mail ou WhatsApp"')
     expect(sheet).toContain('data-test="report-submit"')
     expect(sheet).toContain('@media (min-width: 560px)')
+    expect(sheet).toContain('role="status"')
+    expect(sheet).toContain('doneButton.value?.focus()')
   })
 })
