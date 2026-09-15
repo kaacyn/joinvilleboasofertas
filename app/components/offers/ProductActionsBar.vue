@@ -50,6 +50,7 @@
         </svg>
       </button>
       <button
+        ref="bellButton"
         type="button"
         class="product-actions__btn product-actions__bell"
         :aria-label="bellLabel"
@@ -123,6 +124,8 @@ const { status: shareStatus, share } = useShareLink()
 const reportOpen = ref(false)
 const followOpen = ref(false)
 const instruction = ref<FollowInstructionMode>('request-permission')
+/** Botão do sino: recebe o foco de volta ao fechar a folha (a legenda que a abriu pode ter sumido). */
+const bellButton = ref<HTMLButtonElement | null>(null)
 
 /** Legenda persistente ao lado do sino. */
 const caption = computed(() => followCaption(state.value, pageStoreId.value))
@@ -153,14 +156,25 @@ function openFollow() {
   followOpen.value = true
 }
 
+/**
+ * Fecha a folha do sino e devolve o foco ao botão do sino: quando a folha foi
+ * aberta pela legenda, esta já foi substituída pelo aviso passageiro e não
+ * pode mais receber o foco de volta (o `useDialogLock` cairia no BODY).
+ */
+async function closeFollowAndFocusBell() {
+  followOpen.value = false
+  await nextTick()
+  bellButton.value?.focus()
+}
+
 /** Opção escolhida: aplica e fecha a folha quando der certo. */
 async function onPick(pick: FollowPick) {
-  if (await apply(pickAction(pick))) followOpen.value = false
+  if (await apply(pickAction(pick))) await closeFollowAndFocusBell()
 }
 
 /** Desligar aqui ou em todos. */
 async function onOff(action: ProductFollowAction) {
-  if (await apply(action)) followOpen.value = false
+  if (await apply(action)) await closeFollowAndFocusBell()
 }
 
 /** iPhone fora do app: fecha a folha e mostra como instalar. */

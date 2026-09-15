@@ -17,13 +17,31 @@ describe('sino do produto', () => {
     expect(src).toContain('const target = {')
     expect(src).toContain('establishment_id: target.storeId')
     expect(src).toContain('followActionMessage')
-    expect(src).toContain('Notificações bloqueadas. Toque no sino para ver como liberar.')
+    expect(src).toContain('Notificações bloqueadas. Toque no sino.')
   })
 
   it('desligar não pede permissão; seguir pede', () => {
     const src = source('app/composables/useJboProductFollow.ts')
     const fn = src.slice(src.indexOf('async function endpointFor'))
     expect(fn.indexOf("action === 'unfollow_store' || action === 'unfollow_all'")).toBeLessThan(fn.indexOf('ensurePushDevice'))
+  })
+
+  it('permissão só dispensada (não bloqueada) mostra recado diferente do bloqueio definitivo', () => {
+    const src = source('app/composables/useJboProductFollow.ts')
+    expect(src).toContain("const NOT_GRANTED_HINT = 'Permissão não concedida. Toque no sino para tentar de novo.'")
+    expect(src).toContain("Notification.permission === 'denied' ? BLOCKED_HINT : NOT_GRANTED_HINT")
+  })
+
+  it('falha ao aplicar ainda fecha a folha: o catch devolve true e mostra o aviso na barra', () => {
+    const src = source('app/composables/useJboProductFollow.ts')
+    const applyFn = src.slice(src.indexOf('async function apply('))
+    const catchBlock = applyFn.slice(applyFn.indexOf('catch {'))
+    expect(catchBlock.indexOf('say(SAVE_FAILED)')).toBeLessThan(catchBlock.indexOf('return true'))
+  })
+
+  it('desligar com inscrição morta ainda avisa "Avisos desligados"', () => {
+    const src = source('app/composables/useJboProductFollow.ts')
+    expect(src).toContain("say('Avisos desligados')")
   })
 
   it('folha mostra opções como botões que já ativam, com selo Ativo e desligar', () => {
@@ -75,5 +93,13 @@ describe('barra de ações do produto', () => {
     expect(bar).toContain('<ProductFollowSheet')
     expect(bar).toContain('useJboProductFollow(productId, pageStoreId, pageStoreName)')
     expect(bar).toContain('title: props.productTitle')
+  })
+
+  it('foco volta ao sino ao fechar a folha, mesmo quando ela abriu pela legenda', () => {
+    const bar = source('app/components/offers/ProductActionsBar.vue')
+    expect(bar).toContain('ref="bellButton"')
+    expect(bar).toContain('await nextTick()')
+    expect(bar).toContain('bellButton.value?.focus()')
+    expect(bar).toContain('await closeFollowAndFocusBell()')
   })
 })

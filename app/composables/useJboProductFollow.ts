@@ -14,7 +14,8 @@ import {
 } from '~/utils/webPush'
 
 const FLASH_MS = 2200
-const BLOCKED_HINT = 'Notificações bloqueadas. Toque no sino para ver como liberar.'
+const BLOCKED_HINT = 'Notificações bloqueadas. Toque no sino.'
+const NOT_GRANTED_HINT = 'Permissão não concedida. Toque no sino para tentar de novo.'
 const SAVE_FAILED = 'Não foi possível salvar. Tente de novo.'
 
 /**
@@ -67,17 +68,29 @@ export function useJboProductFollow(
     }
   }
 
-  /** Endpoint para a ação: desligar usa a inscrição atual; seguir garante permissão e dispositivo. */
+  /**
+   * Endpoint para a ação: desligar usa a inscrição atual; seguir garante permissão e dispositivo.
+   * Quando a permissão não veio, distingue bloqueio definitivo (`denied`) de prompt
+   * apenas dispensado/adiado (`default`), que pede um recado diferente.
+   */
   async function endpointFor(action: ProductFollowAction): Promise<string | null> {
     if (action === 'unfollow_store' || action === 'unfollow_all') return currentPushEndpoint()
     const ready = await ensurePushDevice(isIos.value, isStandalone.value)
     if (ready.ok) return ready.endpoint
-    say(ready.hint === PUSH_HINT_DENIED ? BLOCKED_HINT : ready.hint)
+    if (ready.hint === PUSH_HINT_DENIED) {
+      say(Notification.permission === 'denied' ? BLOCKED_HINT : NOT_GRANTED_HINT)
+    }
+    else {
+      say(ready.hint)
+    }
     return null
   }
 
   /**
-   * Aplica a ação do sino; devolve true quando a folha pode fechar.
+   * Aplica a ação do sino; devolve true quando a folha pode fechar (sempre,
+   * exceto quando outra ação já está em andamento — a folha fica aberta e o
+   * usuário vê o estado de espera). Mesmo na falha a folha fecha, para que o
+   * aviso passageiro apareça na barra em vez de ficar escondido atrás do fundo.
    * Captura produto/mercado/nome ANTES de qualquer await (a permissão do
    * navegador espera o usuário) para não gravar no produto ou mercado errado
    * se a página trocar durante a espera; só atualiza `state` se a página
@@ -95,8 +108,9 @@ export function useJboProductFollow(
     try {
       const endpoint = await endpointFor(action)
       if (!endpoint) {
-        if (stillOnTarget() && (action === 'unfollow_store' || action === 'unfollow_all')) {
-          state.value = { ...EMPTY_FOLLOW_STATE }
+        if (action === 'unfollow_store' || action === 'unfollow_all') {
+          if (stillOnTarget()) state.value = { ...EMPTY_FOLLOW_STATE }
+          say('Avisos desligados')
         }
         return true
       }
@@ -112,7 +126,7 @@ export function useJboProductFollow(
     }
     catch {
       say(SAVE_FAILED)
-      return false
+      return true
     }
     finally {
       busy.value = ''
