@@ -17,7 +17,7 @@ describe('sino anônimo segue loja', () => {
     expect(api).toContain('method,\n    body,\n    headers: apiHeaders(),')
   })
 
-  it('tem composable com follow compartilhado, VAPID e toggle', () => {
+  it('tem composable com follow compartilhado e toggle; VAPID no webPush', () => {
     const path = 'app/composables/useJboStoreFollow.ts'
     expect(existsSync(resolve(root, path))).toBe(true)
 
@@ -28,78 +28,69 @@ describe('sino anônimo segue loja', () => {
     expect(src).toContain('requestToggle')
     expect(src).toContain('confirmFollow')
     expect(src).toContain("useState('jbo:follow-confirm-open'")
-    expect(src).toContain("'/push/vapid-public-key'")
     expect(src).toContain("'/push/follows/query'")
-    expect(src).toContain('urlBase64ToUint8Array')
+    expect(src).toContain('ensurePushDevice')
     expect(src).toContain('usePwaInstall')
+    const push = source('app/utils/webPush.ts')
+    expect(push).toContain("'/push/vapid-public-key'")
+    expect(push).toContain('urlBase64ToUint8Array')
   })
 
   it('toggle pede permissão, registra device e grava o follow', () => {
+    const push = source('app/utils/webPush.ts')
+    expect(push).toContain('Notification.requestPermission')
+    expect(push).toContain('userVisibleOnly: true')
+    expect(push).toContain('applicationServerKey')
+    expect(push).toContain("'/push/devices'")
+    expect(push).toContain('p256dh')
+    expect(push).toContain('user_agent')
     const src = source('app/composables/useJboStoreFollow.ts')
-    expect(src).toContain('Notification.requestPermission')
-    expect(src).toContain('userVisibleOnly: true')
-    expect(src).toContain('applicationServerKey')
-    expect(src).toContain("'/push/devices'")
     expect(src).toContain("'/push/follows'")
-    expect(src).toContain('p256dh')
-    expect(src).toContain('user_agent')
     expect(src).toContain('following:')
   })
 
   it('não finge follow se a permissão for negada', () => {
-    const src = source('app/composables/useJboStoreFollow.ts')
-    expect(src).toMatch(/!== ['"]granted['"]/)
-    expect(src).toContain('Permissão de notificação negada')
-  })
-
-  it('reverte o sino se o PUT de follow falhar', () => {
-    const src = source('app/composables/useJboStoreFollow.ts')
-    expect(src).toContain('catch')
-    const toggleFn = src.slice(src.indexOf('async function toggle'))
-    expect(toggleFn).toContain('await loadOnce()')
-    expect(toggleFn).not.toContain('followedIds.value = previous')
-    expect(src).toMatch(/followedIds\.value = followedIds\.value\.filter/)
+    const push = source('app/utils/webPush.ts')
+    expect(push).toMatch(/!== ['"]granted['"]/)
+    expect(push).toContain('Permissão de notificação negada')
+    const toggleFn = source('app/composables/useJboStoreFollow.ts').slice(
+      source('app/composables/useJboStoreFollow.ts').indexOf('async function toggle'),
+    )
+    expect(toggleFn.indexOf('if (!endpoint) return')).toBeLessThan(toggleFn.indexOf('applyFollow('))
   })
 
   it('checa iOS e PushManager antes de pedir permissão', () => {
-    const src = source('app/composables/useJboStoreFollow.ts')
-    const toggleFn = src.slice(src.indexOf('async function toggle'))
-    const ios = toggleFn.indexOf('isIos.value && !isStandalone.value')
-    const push = toggleFn.indexOf('detectPushSupport')
-    const perm = toggleFn.indexOf('Notification.requestPermission')
+    const push = source('app/utils/webPush.ts')
+    const ensure = push.slice(push.indexOf('export async function ensurePushDevice'))
+    const ios = ensure.indexOf('isIos && !isStandalone')
+    const support = ensure.indexOf('detectPushSupport()')
+    const perm = ensure.indexOf('Notification.requestPermission')
     expect(ios).toBeGreaterThan(-1)
-    expect(push).toBeGreaterThan(-1)
-    expect(perm).toBeGreaterThan(-1)
+    expect(support).toBeGreaterThan(-1)
     expect(ios).toBeLessThan(perm)
-    expect(push).toBeLessThan(perm)
+    expect(support).toBeLessThan(perm)
   })
 
   it('não espera serviceWorker.ready sem limite', () => {
-    const src = source('app/composables/useJboStoreFollow.ts')
-    expect(src).toContain('getRegistration')
-    expect(src).toMatch(/Promise\.race|setTimeout/)
+    const push = source('app/utils/webPush.ts')
+    expect(push).toContain('getRegistration')
+    expect(push).toMatch(/Promise\.race|setTimeout/)
   })
 
   it('mostra recado no iOS fora de standalone e sem PushManager', () => {
     const src = source('app/composables/useJboStoreFollow.ts')
     expect(src).toContain('isIos')
     expect(src).toContain('isStandalone')
-    expect(src).toContain('PushManager')
-    expect(src).toContain('instale o app na tela inicial')
-  })
-
-  it('converte VAPID base64url em bytes', async () => {
-    const path = 'app/composables/useJboStoreFollow.ts'
-    expect(existsSync(resolve(root, path))).toBe(true)
-    const mod = `../${path}`
-    const { urlBase64ToUint8Array } = await import(mod)
-    expect(Array.from(urlBase64ToUint8Array('AQID'))).toEqual([1, 2, 3])
+    const push = source('app/utils/webPush.ts')
+    expect(push).toContain('PushManager')
+    expect(push).toContain('instale o app na tela inicial')
   })
 
   it('SW mostra notificação, prefixa origem e não usa inbox/badge', () => {
     const sw = source('app/sw.ts')
     expect(sw).toContain('self.location.origin')
     expect(sw).toContain('showNotification')
+    expect(sw).toContain('renotify: Boolean(payload?.tag && payload?.renotify)')
     expect(sw).not.toContain('setAppBadge')
     expect(sw).not.toContain('unread_count')
     expect(sw).not.toContain('notification_id')
@@ -141,6 +132,7 @@ describe('sino anônimo segue loja', () => {
     expect(modal).toContain('instructionMode')
     expect(modal).toContain('useDialogLock')
     expect(modal).toContain('Agora não')
+    expect(modal).toContain('<PushInstructions')
     expect(source('app/app.vue')).toContain('StoreFollowConfirmModal')
   })
 

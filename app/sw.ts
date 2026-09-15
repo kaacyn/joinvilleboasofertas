@@ -36,6 +36,7 @@ type PushPayload = {
   url?: string
   click_token?: string
   vibrate?: number[]
+  renotify?: boolean
 }
 
 type NotificationData = {
@@ -69,6 +70,7 @@ async function handlePush(payload: PushPayload | null) {
     body,
     icon: payload?.icon || '/pwa-192x192.png',
     tag: payload?.tag,
+    renotify: Boolean(payload?.tag && payload?.renotify),
     data: {
       url: resolvePushUrl(payload?.url),
       click_token: payload?.click_token ?? '',

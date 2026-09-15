@@ -30,17 +30,10 @@
         <section class="follow-modal__steps" aria-label="Como ativar os avisos">
           <p class="follow-modal__steps-title">Como funciona</p>
 
-          <ol v-if="instructionMode === 'ios-install'" class="follow-modal__list">
-            <li>Instale o app na <strong>tela inicial</strong> do celular (menu Instalar app).</li>
-            <li>Abra o app instalado e toque no sino novamente.</li>
-            <li>Permita as notificações quando o iPhone pedir.</li>
-          </ol>
-
-          <ol v-else-if="instructionMode === 'permission-denied'" class="follow-modal__list">
-            <li>As notificações estão <strong>bloqueadas</strong> neste navegador.</li>
-            <li>Abra as configurações do site (ícone de cadeado na barra de endereço).</li>
-            <li>Ative <strong>Notificações</strong> e volte aqui para seguir a loja.</li>
-          </ol>
+          <PushInstructions
+            v-if="instructionMode === 'ios-install' || instructionMode === 'permission-denied'"
+            :mode="instructionMode"
+          />
 
           <ol v-else-if="instructionMode === 'request-permission'" class="follow-modal__list">
             <li>Ao confirmar, o navegador vai pedir permissão para enviar avisos.</li>
