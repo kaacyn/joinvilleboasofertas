@@ -69,12 +69,16 @@ describe('página de produto a partir do card da home', () => {
     }
   })
 
-  it('compartilha a oferta ao lado do título', () => {
+  it('barra de ações fica acima do título, sem o compartilhar antigo', () => {
     const page = source('app/pages/produto/[slug]/[[loja]].vue')
-    expect(page).toContain('shareEncarte')
-    expect(page).toContain('data-test="product-share"')
-    expect(page).toContain('Compartilhar oferta')
-    expect(page).toContain('class="heading"')
+    expect(page).toContain('<ProductActionsBar')
+    expect(page.indexOf('<ProductActionsBar')).toBeLessThan(page.indexOf('<h1>'))
+    expect(page).toContain(':offer="selected"')
+    expect(page).toContain(':offers="data.offers"')
+    expect(page).toContain(':share-path="sharePath"')
+    expect(page).not.toContain('data-test="product-share"')
+    expect(page).not.toContain('class="heading"')
+    expect(page).not.toContain('shareEncarte')
   })
 
   it('mostra o recorte do encarte e abre o encarte completo', () => {

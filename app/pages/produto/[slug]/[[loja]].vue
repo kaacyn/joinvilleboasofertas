@@ -3,30 +3,14 @@
     <AppHeader />
     <main v-if="data" class="page__main">
       <AppBreadcrumb :items="crumbs" />
-      <div class="heading">
-        <h1>{{ productTitle }}</h1>
-        <button
-          type="button"
-          class="share"
-          aria-label="Compartilhar oferta"
-          data-test="product-share"
-          @click="onShare"
-        >
-          <svg class="share__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <circle cx="18" cy="5" r="2.5" fill="currentColor" />
-            <circle cx="6" cy="12" r="2.5" fill="currentColor" />
-            <circle cx="18" cy="19" r="2.5" fill="currentColor" />
-            <path
-              d="M8.4 10.8 15.6 6.7M8.4 13.2l7.2 4.1"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.7"
-              stroke-linecap="round"
-            />
-          </svg>
-        </button>
-      </div>
-      <p class="copied" aria-live="polite">{{ copied ? 'Link copiado' : '' }}</p>
+      <ProductActionsBar
+        v-if="selected"
+        :offer="selected"
+        :offers="data.offers"
+        :product-title="productTitle"
+        :share-path="sharePath"
+      />
+      <h1>{{ productTitle }}</h1>
 
       <section v-if="selected" class="proof" aria-label="Trecho do encarte">
         <div
@@ -214,7 +198,6 @@ import {
 } from '~/utils/offerPrice'
 import { offerTitle } from '~/utils/offerTitle'
 import { siteTrail } from '~/utils/breadcrumb'
-import { shareEncarte } from '~/utils/shareEncarte'
 
 type ProductPage = {
   product: {
@@ -237,8 +220,6 @@ const config = useRuntimeConfig()
 const openEncarte = ref<JboEncarte | null>(null)
 const openingEncarte = ref(false)
 const encarteError = ref(false)
-const copied = ref(false)
-let copiedTimer: ReturnType<typeof setTimeout> | undefined
 
 const { data, error } = await useAsyncData(
   () => `product-${slug.value}`,
@@ -274,6 +255,13 @@ const productTitle = computed(() => {
     quantity_label: source?.quantity_label,
   })
 })
+
+/** Caminho canônico do produto no mercado em foco (compartilhar). */
+const sharePath = computed(() => productOfferPath({
+  product_id: data.value?.product.id || '',
+  product_slug: data.value?.product.slug,
+  establishment_slug: selected.value?.establishment_slug || lojaSlug.value || '',
+}))
 
 /** Início → categoria → mercado → produto (página atual, sem link). */
 const crumbs = computed(() => {
@@ -329,29 +317,6 @@ const related = computed(() =>
 watch(lojaSlug, () => {
   encarteError.value = false
 })
-
-/** Folha nativa ou copiar URL da página do produto. */
-async function onShare() {
-  if (!data.value) return
-  const origin = import.meta.client ? window.location.origin : ''
-  const path = productOfferPath({
-    product_id: data.value.product.id,
-    product_slug: data.value.product.slug,
-    establishment_slug: selected.value?.establishment_slug || lojaSlug.value || '',
-  })
-  const store = selected.value?.establishment_name
-  const result = await shareEncarte({
-    title: productTitle.value,
-    text: store ? `Oferta em ${store}` : 'Joinville Boas Ofertas',
-    url: `${origin}${path}`,
-  }).catch(() => undefined)
-  if (result !== 'copied') return
-  copied.value = true
-  clearTimeout(copiedTimer)
-  copiedTimer = setTimeout(() => {
-    copied.value = false
-  }, 2000)
-}
 
 /** Iniciais quando a loja ainda não tem logo. */
 function initials(name: string): string {
@@ -483,60 +448,15 @@ useJboSeo({
   margin-bottom: -0.45rem;
 }
 
-.heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
+.page__main :deep(.product-actions) {
+  margin-bottom: -0.5rem;
 }
 
 h1 {
-  flex: 1;
   margin: 0;
   font-size: 1.65rem;
   font-weight: 900;
   line-height: 1.2;
-}
-
-.share {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
-  margin-top: 0.1rem;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--ink-2);
-  cursor: pointer;
-}
-
-.share__icon {
-  display: block;
-}
-
-.share:hover {
-  border-color: var(--ink-3);
-}
-
-.share:focus-visible {
-  outline: 2px solid var(--yellow);
-  outline-offset: 2px;
-}
-
-.copied {
-  min-height: 1.2em;
-  margin: -0.55rem 0 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.copied:empty {
-  display: none;
 }
 
 .proof {

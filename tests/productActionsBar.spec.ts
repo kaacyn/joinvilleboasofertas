@@ -42,3 +42,38 @@ describe('sino do produto', () => {
     expect(sheet).toContain('width: 44px')
   })
 })
+
+describe('barra de ações do produto', () => {
+  it('três botões na ordem Reportar · Compartilhar · Sino, só ícone e 44px', () => {
+    const bar = source('app/components/offers/ProductActionsBar.vue')
+    const report = bar.indexOf('data-test="product-report"')
+    const share = bar.indexOf('data-test="product-share"')
+    const bell = bar.indexOf('data-test="product-follow"')
+    expect(report).toBeGreaterThan(-1)
+    expect(report).toBeLessThan(share)
+    expect(share).toBeLessThan(bell)
+    expect(bar).toContain('aria-label="Reportar um erro"')
+    expect(bar).toContain('aria-label="Compartilhar oferta"')
+    expect(bar).toContain(':aria-label="bellLabel"')
+    expect(bar).toContain(':aria-pressed=')
+    expect(bar).toMatch(/width:\s*44px/)
+  })
+
+  it('linha de avisos: compartilhar e sino antes da legenda, legenda abre a folha', () => {
+    const bar = source('app/components/offers/ProductActionsBar.vue')
+    expect(bar).toContain("'Link copiado'")
+    expect(bar).toContain('useShareLink')
+    expect(bar).toContain('followCaption')
+    expect(bar).toContain('data-test="product-follow-caption"')
+    expect(bar).toContain('aria-live="polite"')
+    expect(bar).toContain('followInstructionMode(isIos.value, isStandalone.value)')
+  })
+
+  it('usa as duas folhas e o composable do sino', () => {
+    const bar = source('app/components/offers/ProductActionsBar.vue')
+    expect(bar).toContain('<ReportOfferSheet')
+    expect(bar).toContain('<ProductFollowSheet')
+    expect(bar).toContain('useJboProductFollow(productId, pageStoreId, pageStoreName)')
+    expect(bar).toContain('title: props.productTitle')
+  })
+})

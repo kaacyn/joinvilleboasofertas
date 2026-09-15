@@ -36,7 +36,7 @@ Variáveis (`.env`): `NUXT_API_BASE` (snap-api na rede Docker, só SSR), `NUXT_P
 |------|--------|
 | `/` | Home vitrine: hero da maior economia, categorias, carrosséis de Mercearia, Açougue, Bebidas e Hortifruti (ordem por economia), termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
 | `/oferta/{id}` | Redireciona para o produto naquela loja |
-| `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja |
+| `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja; barra acima do título com Reportar um erro, Compartilhar e Sino (este mercado ou todos) |
 | `/loja/{slug}` | Ofertas da loja |
 | `/lojas` | Lista de lojas |
 | `/encartes` | Lista de encartes (filtro por loja) |
@@ -66,6 +66,18 @@ As ofertas vêm da extração do encarte pelo Mega Brain (`/api/public/jbo/offer
 - `promotion` e `offer_addresses`: chips "Leve 3 pague 2" e "Só em {bairro}".
 - `encarte_bbox`: posição (0..1) da oferta na foto; a página do produto abre o
   lightbox já destacando essa área e a página do encarte mostra hotspots.
+
+## Página do produto — barra de ações
+
+`ProductActionsBar` (acima do `h1`) tem três botões só com ícone: **Reportar um erro**
+(`ReportOfferSheet`: motivo, comentário — obrigatório em "Outro" — e contato opcional;
+`POST /api/public/jbo/offer-reports`), **Compartilhar** (`useShareLink`) e **Sino**
+(`ProductFollowSheet`). O sino segue o produto **só no mercado da página** ou **em todos os
+mercados** (`/push/product-follows*`); nenhuma opção vem marcada e tocar já ativa. Mercados
+escolhidos em páginas diferentes se somam; "todos" substitui a lista. A linha à esquerda
+mostra onde o aviso vale ("Avisos neste mercado", "Avisos em todos os mercados"…) e os avisos
+passageiros. Regras e textos em `app/utils/productFollow.ts`; Web Push compartilhado com a
+loja em `app/utils/webPush.ts`.
 
 ## Tema e tipografia
 
