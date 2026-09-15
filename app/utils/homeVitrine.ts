@@ -28,10 +28,19 @@ export function pickHero(items: JboOffer[], now = new Date()): JboOffer | null {
 /** Categorias com carrossel próprio na home, na ordem em que aparecem. */
 export const HOME_CATEGORY_SLUGS = ['mercearia', 'acougue', 'bebidas', 'hortifruti'] as const
 
+/** Máximo de ofertas em cada carrossel de categoria. */
+export const HOME_CAROUSEL_LIMIT = 20
+
+/**
+ * Quantas ofertas pedir por carrossel: acima do limite porque promo que ainda
+ * não começou sai no filtro (as vencidas a API já manda para o fim). Teto da API: 50.
+ */
+export const HOME_CAROUSEL_PAGE_SIZE = 25
+
 /** Carrossel de categoria: ordem da API (economia), só promo vigente, até `limit`. */
 export function pickCategoryHighlights(
   items: JboOffer[],
-  limit = 8,
+  limit = HOME_CAROUSEL_LIMIT,
   now = new Date(),
 ): JboOffer[] {
   return items

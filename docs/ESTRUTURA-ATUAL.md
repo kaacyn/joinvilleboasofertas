@@ -101,7 +101,7 @@ Estado em `useState` (não localStorage): `jbo:followed-stores`, hints, VAPID, f
 3. **Só em vitrine** (sem busca, filtros, faixa de preço, `ends_today` e `sort=recent`):
    - Hero “Maior economia da semana” (`HeroSavings`) — primeira oferta vigente com economia real
    - Seção “Categorias” (`CategoryGrid`, 8 + “Ver todas”)
-   - Carrosséis por categoria: Mercearia, Açougue, Bebidas e Hortifruti (`OfferCarousel` de até 8 `OfferTile` vigentes, ordem por economia, título com emoji da categoria + “Ver todas” → `/categoria/{slug}`)
+   - Carrosséis por categoria: Mercearia, Açougue, Bebidas e Hortifruti (`OfferCarousel` de até 20 `OfferTile` vigentes, ordem por economia, título com emoji da categoria + “Ver todas” → `/categoria/{slug}`)
    - Seção “Termina hoje” (até 6 `OfferCard` + pill com a contagem + “Ver todas”)
 4. Seção “Novas ofertas” = feed infinito de `OfferCard` (título só em vitrine)
 5. Com `?ends_today=1`: título “Termina hoje” + botão Limpar em vez das seções
@@ -117,7 +117,7 @@ Regras em `app/utils/homeVitrine.ts` (`isVitrineState`, `pickHero`, `pickTopSavi
 | Feed | `GET /offers` (`q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort`, `ends_today`, `page_size=20`, `cursor`) → `JboOffersPage` |
 | Hero (vitrine) | `GET /offers?sort=savings&page_size=10` |
 | Termina hoje (vitrine) | `GET /offers?ends_today=true&sort=random&page_size=6` + `GET /offers/count?ends_today=true` |
-| Carrosséis por categoria (vitrine) | `GET /categories/{slug}?sort=savings&page_size=10` × 4 (`mercearia`, `acougue`, `bebidas`, `hortifruti`) |
+| Carrosséis por categoria (vitrine) | `GET /categories/{slug}?sort=savings&page_size=25` × 4 (`mercearia`, `acougue`, `bebidas`, `hortifruti`) |
 | Filtros na URL | `useOfferFilters`: `q`, `category_ids`, `establishment_ids`, `price_min`, `price_max`, `sort` (default `recent`), `ends_today` (`1`) |
 | Suggest | `GET /products/suggest?q=` → `JboSuggestItem[]` (`id`, `name`, `brand`, `quantity_label`; exibido como título completo via `suggestionTitle`) |
 

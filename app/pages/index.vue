@@ -108,6 +108,8 @@ import { siteTrail } from '~/utils/breadcrumb'
 import { categoryIcon } from '~/utils/categoryIcons'
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
 import {
+  HOME_CAROUSEL_LIMIT,
+  HOME_CAROUSEL_PAGE_SIZE,
   HOME_CATEGORY_SLUGS,
   isVitrineState,
   pickCategoryHighlights,
@@ -214,7 +216,7 @@ const [
     'jbo-home-categories',
     () => isVitrine.value
       ? Promise.all(HOME_CATEGORY_SLUGS.map(slug =>
-          jboGet<CategoryPage>(`/categories/${slug}`, { sort: 'savings', page_size: 10 })
+          jboGet<CategoryPage>(`/categories/${slug}`, { sort: 'savings', page_size: HOME_CAROUSEL_PAGE_SIZE })
             .catch(() => null),
         ))
       : Promise.resolve(null),
@@ -255,7 +257,7 @@ const categorySections = computed(() => {
   return HOME_CATEGORY_SLUGS.flatMap((slug, index) => {
     const page = pages[index]
     if (!page) return []
-    const items = pickCategoryHighlights(page.items || [], 8, now.value)
+    const items = pickCategoryHighlights(page.items || [], HOME_CAROUSEL_LIMIT, now.value)
     if (!items.length) return []
     return [{ slug, title: `${categoryIcon(slug).emoji} ${page.category.name}`, items }]
   })
