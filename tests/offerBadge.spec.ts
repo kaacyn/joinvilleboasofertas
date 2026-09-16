@@ -29,24 +29,22 @@ describe('offerBadge', () => {
       .toEqual({ kind: 'savings', label: '-28%', club: false })
   })
 
-  it('economia com preço de clube', () => {
+  it('economia com preço de clube mostra só o desconto (sem tarja de clube)', () => {
     expect(offerBadge({ ...active, price: '12', club_price: '9.99', diff_percent: -28 }, now))
-      .toEqual({ kind: 'savings', label: 'CLUBE -28%', club: true })
+      .toEqual({ kind: 'savings', label: '-28%', club: false })
   })
 
-  it('economia com preço de clube usa o rótulo do programa da loja', () => {
+  it('economia com programa da loja também mostra só o desconto', () => {
     expect(offerBadge({ ...active, price: '7.99', club_price: '4.99', diff_percent: -21.09, establishment_loyalty_program_name: 'Cooperado' }, now))
-      .toEqual({ kind: 'savings', label: 'COOPERADO -21%', club: true })
+      .toEqual({ kind: 'savings', label: '-21%', club: false })
   })
 
-  it('só clube usa o rótulo do programa da loja', () => {
-    expect(offerBadge({ ...active, club_price: '9.99', diff_percent: 0, establishment_loyalty_program_name: 'Cooperado' }, now))
-      .toEqual({ kind: 'club', label: 'COOPERADO', club: true })
-    expect(offerBadge({ ...active, club_price: '9.99', diff_percent: 0 }, now))
-      .toEqual({ kind: 'club', label: 'CLUBE', club: true })
+  it('só clube sem economia não mostra badge na vitrine', () => {
+    expect(offerBadge({ ...active, club_price: '9.99', diff_percent: 0, establishment_loyalty_program_name: 'Cooperado' }, now)).toBeNull()
+    expect(offerBadge({ ...active, club_price: '9.99', diff_percent: 0 }, now)).toBeNull()
   })
 
-  it('sem badge quando não há economia nem clube', () => {
+  it('sem badge quando não há economia', () => {
     expect(offerBadge({ ...active, price: '10', diff_percent: 0 }, now)).toBeNull()
     expect(offerBadge({ ...active, price: '10', diff_percent: 5 }, now)).toBeNull()
   })

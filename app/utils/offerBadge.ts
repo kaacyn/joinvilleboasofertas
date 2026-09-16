@@ -1,16 +1,15 @@
-/** Badge do canto da imagem do card: fase da promo, economia e preço de clube. */
+/** Badge do canto da imagem do card: fase da promo e economia. Clube só na página do produto. */
 
-import { clubBadgeLabel, type JboOffer } from '~/utils/jboApi'
-import { offerMainPrice } from '~/utils/offerPrice'
+import { type JboOffer } from '~/utils/jboApi'
 import { getPromoPhase } from '~/utils/promoPhase'
 
 export type OfferBadgeKind = 'expired' | 'upcoming' | 'savings' | 'club'
 
 export type OfferBadge = {
   kind: OfferBadgeKind
-  /** Texto curto em caixa alta: "EXPIRADO", "EM BREVE", "-28%", "CLUBE -28%", "COOPERADO -28%", "CLUBE". */
+  /** Texto curto em caixa alta: "EXPIRADO", "EM BREVE", "-28%". */
   label: string
-  /** True quando o preço principal é o de clube (badge amarelo). */
+  /** True quando o preço principal é o de clube (badge amarelo). Mantido por compat; vitrine não usa mais. */
   club: boolean
 }
 
@@ -33,14 +32,9 @@ export function offerBadge(offer: BadgeSource, now = new Date()): OfferBadge | n
   if (phase === 'expired') return { kind: 'expired', label: 'EXPIRADO', club: false }
   if (phase === 'upcoming') return { kind: 'upcoming', label: 'EM BREVE', club: false }
 
-  const isClub = Boolean(offerMainPrice(offer)?.isClub)
-  const clubLabel = isClub ? clubBadgeLabel(offer).toUpperCase() : ''
   const pct = savingsPercent(offer)
   if (pct > 0) {
-    return { kind: 'savings', label: isClub ? `${clubLabel} -${pct}%` : `-${pct}%`, club: isClub }
-  }
-  if (isClub) {
-    return { kind: 'club', label: clubLabel, club: true }
+    return { kind: 'savings', label: `-${pct}%`, club: false }
   }
   return null
 }
