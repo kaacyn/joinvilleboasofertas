@@ -132,3 +132,98 @@ describe('OfferCarousel', () => {
     expect(src).toContain('scroll-padding-inline: var(--pad)')
   })
 })
+
+/** Trilho com `slides` slides de largura fixa, para as bolinhas de navegação. */
+function fakeTrack(slides: number, width = 360) {
+  const el = fakeList({ clientWidth: width, scrollWidth: width * slides })
+  Object.defineProperty(el, 'scrollTo', { value: vi.fn(), configurable: true })
+  for (let i = 0; i < slides; i++) {
+    const child = document.createElement('div')
+    Object.defineProperty(child, 'getBoundingClientRect', {
+      value: () => ({ left: i * width - el.scrollLeft }),
+      configurable: true,
+    })
+    el.appendChild(child)
+  }
+  return el as HTMLElement & { scrollTo: ReturnType<typeof vi.fn> }
+}
+
+describe('useCarouselNav (bolinhas do carrossel)', () => {
+  let dispose: (() => void) | undefined
+
+  afterEach(() => {
+    dispose?.()
+    dispose = undefined
+  })
+
+  function setup(el: HTMLElement | null) {
+    const list = ref<HTMLElement | null>(el)
+    const scope = effectScope()
+    const nav = scope.run(() => useCarouselNav(list))!
+    dispose = () => scope.stop()
+    return nav
+  }
+
+  it('em repouso a bolinha ativa é a primeira', async () => {
+    const nav = setup(fakeTrack(5))
+    await nextTick()
+    expect(nav.activeIndex.value).toBe(0)
+  })
+
+  it('rolar até o slide seguinte acende a bolinha seguinte', async () => {
+    const el = fakeTrack(5)
+    const nav = setup(el)
+    await nextTick()
+
+    el.scrollLeft = 360
+    el.dispatchEvent(new Event('scroll'))
+    expect(nav.activeIndex.value).toBe(1)
+
+    el.scrollLeft = 360 * 4
+    el.dispatchEvent(new Event('scroll'))
+    expect(nav.activeIndex.value).toBe(4)
+  })
+
+  it('parado entre dois slides acende o mais próximo', async () => {
+    const el = fakeTrack(5)
+    const nav = setup(el)
+    await nextTick()
+
+    el.scrollLeft = 130
+    el.dispatchEvent(new Event('scroll'))
+    expect(nav.activeIndex.value).toBe(0)
+
+    el.scrollLeft = 230
+    el.dispatchEvent(new Event('scroll'))
+    expect(nav.activeIndex.value).toBe(1)
+  })
+
+  it('clicar na bolinha rola até o slide correspondente, suave', async () => {
+    const el = fakeTrack(5)
+    const nav = setup(el)
+    await nextTick()
+
+    nav.scrollToIndex(2)
+    expect(el.scrollTo).toHaveBeenLastCalledWith({ left: 720, behavior: 'smooth' })
+
+    nav.scrollToIndex(0)
+    expect(el.scrollTo).toHaveBeenLastCalledWith({ left: 0, behavior: 'smooth' })
+  })
+
+  it('índice fora da faixa é ignorado em vez de quebrar', async () => {
+    const el = fakeTrack(3)
+    const nav = setup(el)
+    await nextTick()
+
+    expect(() => nav.scrollToIndex(9)).not.toThrow()
+    expect(() => nav.scrollToIndex(-1)).not.toThrow()
+    expect(el.scrollTo).not.toHaveBeenCalled()
+  })
+
+  it('sem elemento (SSR) a bolinha ativa é a primeira e o clique não quebra', async () => {
+    const nav = setup(null)
+    await nextTick()
+    expect(nav.activeIndex.value).toBe(0)
+    expect(() => nav.scrollToIndex(1)).not.toThrow()
+  })
+})

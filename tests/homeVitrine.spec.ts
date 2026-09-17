@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { OfferFiltersState } from '../app/composables/useOfferFilters'
 import type { JboOffer } from '../app/utils/jboApi'
-import { isRealSavings, isVitrineState, pickHero, pickTopSavings } from '../app/utils/homeVitrine'
+import { HOME_HERO_LIMIT, isRealSavings, isVitrineState, pickHeroRotation } from '../app/utils/homeVitrine'
 
 const now = new Date('2026-09-11T15:00:00.000Z')
 
@@ -20,6 +20,17 @@ function offer(over: Partial<JboOffer> & { id: string }): JboOffer {
   }
 }
 
+/** Pool de 8 ofertas vigentes, da maior para a menor economia. */
+function pool(): JboOffer[] {
+  return ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    .map((id, i) => offer({ id, diff_percent: -(50 - i) }))
+}
+
+/** Ids devolvidos pelo sorteio, na ordem em que aparecem. */
+function rotationIds(items: JboOffer[], seed: number, limit = HOME_HERO_LIMIT): string[] {
+  return pickHeroRotation(items, seed, limit, now).map(o => o.id)
+}
+
 describe('isVitrineState', () => {
   it('é vitrine sem filtros e sort recent', () => {
     expect(isVitrineState(vitrine)).toBe(true)
@@ -36,32 +47,53 @@ describe('isVitrineState', () => {
   })
 })
 
-describe('isRealSavings / pickHero / pickTopSavings', () => {
+describe('isRealSavings', () => {
   it('economia real exige promo vigente e diff negativo', () => {
     expect(isRealSavings(offer({ id: 'a' }), now)).toBe(true)
     expect(isRealSavings(offer({ id: 'b', diff_percent: 0 }), now)).toBe(false)
     expect(isRealSavings(offer({ id: 'c', promo_ends_on: '2026-09-10' }), now)).toBe(false)
     expect(isRealSavings(offer({ id: 'd', promo_starts_on: '2026-09-20', promo_ends_on: '2026-09-25' }), now)).toBe(false)
   })
+})
 
-  it('hero é o primeiro item com economia real; null se nenhum', () => {
-    const items = [offer({ id: 'x', diff_percent: 0 }), offer({ id: 'y', diff_percent: -30 }), offer({ id: 'z' })]
-    expect(pickHero(items, now)?.id).toBe('y')
-    expect(pickHero([offer({ id: 'x', diff_percent: 0 })], now)).toBeNull()
-    expect(pickHero([], now)).toBeNull()
+describe('pickHeroRotation', () => {
+  it('o carrossel do hero mostra 5 ofertas', () => {
+    expect(HOME_HERO_LIMIT).toBe(5)
+    expect(pickHeroRotation(pool(), 42, undefined, now)).toHaveLength(5)
   })
 
-  it('carrossel exclui o hero, ignora sem economia e expiradas e respeita o limite', () => {
+  it('a mesma semente devolve sempre a mesma seleção e a mesma ordem', () => {
+    expect(rotationIds(pool(), 123)).toEqual(rotationIds(pool(), 123))
+  })
+
+  it('sementes diferentes variam a seleção', () => {
+    const ordens = new Set(Array.from({ length: 10 }, (_, seed) => rotationIds(pool(), seed).join('|')))
+    expect(ordens.size).toBeGreaterThan(1)
+  })
+
+  it('sorteia do pool inteiro, não só das primeiras do ranking', () => {
+    const vistas = new Set<string>()
+    for (let seed = 0; seed < 30; seed++) rotationIds(pool(), seed).forEach(id => vistas.add(id))
+    expect(vistas.size).toBe(pool().length)
+  })
+
+  it('não repete oferta e só devolve itens do pool', () => {
+    const ids = rotationIds(pool(), 7)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids.every(id => pool().some(o => o.id === id))).toBe(true)
+  })
+
+  it('ignora sem economia, expirada e ainda não iniciada', () => {
     const items = [
-      offer({ id: 'hero', diff_percent: -40 }),
-      offer({ id: 'a', diff_percent: -30 }),
+      offer({ id: 'ok' }),
       offer({ id: 'zero', diff_percent: 0 }),
-      offer({ id: 'old', diff_percent: -50, promo_ends_on: '2026-09-01' }),
-      offer({ id: 'b', diff_percent: -10 }),
-      offer({ id: 'c', diff_percent: -5 }),
+      offer({ id: 'velha', diff_percent: -50, promo_ends_on: '2026-09-01' }),
+      offer({ id: 'futura', diff_percent: -50, promo_starts_on: '2026-09-20', promo_ends_on: '2026-09-25' }),
     ]
-    expect(pickTopSavings(items, 'hero', 8, now).map(o => o.id)).toEqual(['a', 'b', 'c'])
-    expect(pickTopSavings(items, 'hero', 2, now).map(o => o.id)).toEqual(['a', 'b'])
-    expect(pickTopSavings(items, null, 8, now).map(o => o.id)).toEqual(['hero', 'a', 'b', 'c'])
+    expect(rotationIds(items, 3)).toEqual(['ok'])
+  })
+
+  it('pool vazio devolve lista vazia', () => {
+    expect(pickHeroRotation([], 1, HOME_HERO_LIMIT, now)).toEqual([])
   })
 })

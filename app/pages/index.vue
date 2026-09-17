@@ -16,8 +16,8 @@
     />
 
     <template v-if="isVitrine">
-      <div v-if="hero" class="home__hero">
-        <HeroSavings :offer="hero" />
+      <div v-if="heroOffers.length" class="home__hero">
+        <HeroCarousel :offers="heroOffers" />
       </div>
 
       <HomeSection v-if="categoriesWithSlug.length" title="Categorias">
@@ -111,9 +111,11 @@ import {
   HOME_CAROUSEL_LIMIT,
   HOME_CAROUSEL_PAGE_SIZE,
   HOME_CATEGORY_SLUGS,
+  HOME_HERO_LIMIT,
+  HOME_HERO_PAGE_SIZE,
   isVitrineState,
   pickCategoryHighlights,
-  pickHero,
+  pickHeroRotation,
 } from '~/utils/homeVitrine'
 
 type CountResponse = { count: number }
@@ -138,6 +140,9 @@ const catsExpanded = ref(false)
 /** Instante único para SSR e hidratação decidirem fase/hero com o mesmo "agora". */
 const renderedAt = useState('home:rendered-at', () => new Date().toISOString())
 const now = computed(() => new Date(renderedAt.value))
+
+/** Semente única para SSR e hidratação sortearem o mesmo topo; troca a cada carregamento. */
+const heroSeed = useState('home:hero-seed', () => Math.floor(Math.random() * 2 ** 31))
 
 const isVitrine = computed(() => isVitrineState(filters.state.value))
 
@@ -194,7 +199,7 @@ const [
   useAsyncData(
     'jbo-home-savings',
     () => isVitrine.value
-      ? jboGet<JboOffersPage>('/offers', { sort: 'savings', page_size: 10 }).catch(() => null)
+      ? jboGet<JboOffersPage>('/offers', { sort: 'savings', page_size: HOME_HERO_PAGE_SIZE }).catch(() => null)
       : Promise.resolve(null),
     { watch: [isVitrine] },
   ),
@@ -248,7 +253,10 @@ const loadError = computed(() => Boolean(pageError.value))
 
 /** Seções da vitrine (vazias fora dela ou quando a chamada falhou). */
 const savingsItems = computed<JboOffer[]>(() => savingsResult.data.value?.items || [])
-const hero = computed(() => pickHero(savingsItems.value, now.value))
+/** Topo: até 5 ofertas com economia real, sorteadas do pool pela semente. */
+const heroOffers = computed(() =>
+  pickHeroRotation(savingsItems.value, heroSeed.value, HOME_HERO_LIMIT, now.value),
+)
 const endingItems = computed<JboOffer[]>(() => endingResult.data.value?.items || [])
 const endingCount = computed(() => endingCountResult.data.value?.count ?? 0)
 /** Carrosséis por categoria (economia): título com emoji, link e itens; vazios somem. */

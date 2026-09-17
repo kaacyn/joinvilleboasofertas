@@ -34,7 +34,7 @@ Variáveis (`.env`): `NUXT_API_BASE` (snap-api na rede Docker, só SSR), `NUXT_P
 
 | Rota | Função |
 |------|--------|
-| `/` | Home vitrine: hero da maior economia, categorias, carrosséis de Mercearia, Açougue, Bebidas e Hortifruti (ordem por economia), termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
+| `/` | Home vitrine: carrossel "Maior economia do dia" (5 ofertas sorteadas, com bolinhas), categorias, carrosséis de Mercearia, Açougue, Bebidas e Hortifruti (ordem por economia), termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
 | `/oferta/{id}` | Redireciona para o produto naquela loja |
 | `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja; barra acima do título com Reportar um erro, Compartilhar e Sino (este mercado ou todos) |
 | `/loja/{slug}` | Ofertas da loja |

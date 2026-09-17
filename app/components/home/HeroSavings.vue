@@ -1,7 +1,7 @@
 <template>
   <NuxtLink class="hero" :to="productHref" data-test="home-hero">
     <div class="hero__text">
-      <div class="hero__eyebrow">Maior economia da semana</div>
+      <div class="hero__eyebrow">Maior economia do dia</div>
       <h2 class="hero__title">
         <span class="hero__name">{{ title }}</span>
         <span class="hero__price">
