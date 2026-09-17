@@ -12,6 +12,7 @@ export default defineEventHandler((event) => {
     '',
     '## Links',
     `- Home: ${site}/`,
+    `- Radar do ovo (onde comprar ovos hoje): ${site}/radar-do-ovo`,
     `- Lojas: ${site}/lojas`,
     `- Encartes: ${site}/encartes`,
     `- Perguntas frequentes: ${site}/perguntas-frequentes`,

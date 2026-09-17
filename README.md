@@ -34,7 +34,8 @@ Variáveis (`.env`): `NUXT_API_BASE` (snap-api na rede Docker, só SSR), `NUXT_P
 
 | Rota | Função |
 |------|--------|
-| `/` | Home vitrine: carrossel "Maior economia do dia" (5 ofertas sorteadas, com bolinhas), categorias, carrosséis de Mercearia, Açougue, Bebidas e Hortifruti (ordem por economia), termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
+| `/` | Home vitrine: carrossel "Maior economia do dia" (5 ofertas sorteadas, com bolinhas), categorias, carrosséis de Mercearia, Açougue, Bebidas e Hortifruti (ordem por economia), Radar do ovo, termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
+| `/radar-do-ovo` | Radar do ovo: ovos brancos e vermelhos vigentes hoje, do mais barato por ovo; barra com Compartilhar e Sino (avisa quando aparecer oferta de ovos). Link no menu com selo "Novo" |
 | `/oferta/{id}` | Redireciona para o produto naquela loja |
 | `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja; barra acima do título com Reportar um erro, Compartilhar e Sino (este mercado ou todos) |
 | `/loja/{slug}` | Ofertas da loja |
@@ -78,6 +79,17 @@ escolhidos em páginas diferentes se somam; "todos" substitui a lista. A linha �
 mostra onde o aviso vale ("Avisos neste mercado", "Avisos em todos os mercados"…) e os avisos
 passageiros. Regras e textos em `app/utils/productFollow.ts`; Web Push compartilhado com a
 loja em `app/utils/webPush.ts`.
+
+## Radar do ovo
+
+Home (abaixo do Hortifruti) e página `/radar-do-ovo` consomem `GET /api/public/jbo/radar/ovos`
+do snap-api, que decide quais produtos entram (ovo/ovos + branco(s)/vermelho(s), sem diferenciar
+maiúsculas) e ordena pelo preço por ovo — o front não refiltra por nome. A home corta em 20 com
+`pickCategoryHighlights`, como os carrosséis de categoria. `EggRadarActionsBar` repete o desenho da
+barra do produto: **Compartilhar** (`useShareLink`, URL do radar) e **Sino**
+(`useJboEggRadarFollow` → `/push/egg-radar*`), que liga/desliga direto no toque; iPhone fora do app
+abre o passo a passo de instalação e navegador sem push só mostra o recado. Textos e rota em
+`app/utils/eggRadar.ts`.
 
 ## Tema e tipografia
 

@@ -38,6 +38,16 @@
         Início
       </NuxtLink>
       <NuxtLink
+        :to="EGG_RADAR_PATH"
+        class="hmenu__item hmenu__item--tagged"
+        role="menuitem"
+        data-test="menu-egg-radar"
+        @click="close"
+      >
+        <span>{{ EGG_RADAR_TITLE }}</span>
+        <span class="hmenu__tag">Novo</span>
+      </NuxtLink>
+      <NuxtLink
         to="/lojas"
         class="hmenu__item"
         role="menuitem"
@@ -90,6 +100,8 @@
 </template>
 
 <script setup lang="ts">
+import { EGG_RADAR_PATH, EGG_RADAR_TITLE } from '~/utils/eggRadar'
+
 const rootRef = ref<HTMLElement | null>(null)
 const open = ref(false)
 
@@ -183,6 +195,24 @@ onBeforeUnmount(() => {
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+.hmenu__item--tagged {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hmenu__tag {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: var(--red);
+  color: var(--on-dark);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
 .hmenu__item:hover,

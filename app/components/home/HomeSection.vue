@@ -1,7 +1,10 @@
 <template>
   <section class="hsec" :class="{ 'hsec--bleed': bleed }" :aria-label="title || undefined">
     <div v-if="title || $slots.aside" class="hsec__head">
-      <h2 v-if="title" class="hsec__title">{{ title }}</h2>
+      <div v-if="title" class="hsec__titles">
+        <h2 class="hsec__title">{{ title }}</h2>
+        <p v-if="subtitle" class="hsec__subtitle">{{ subtitle }}</p>
+      </div>
       <div v-if="$slots.aside" class="hsec__aside">
         <slot name="aside" />
       </div>
@@ -14,10 +17,13 @@
 /** Seção da home: título Montserrat à esquerda, ação/pill à direita, conteúdo abaixo. */
 withDefaults(defineProps<{
   title?: string
+  /** Linha curta abaixo do título (ex.: "Onde comprar ovos hoje"). */
+  subtitle?: string
   /** Sem padding lateral (carrossel que sangra até a borda). */
   bleed?: boolean
 }>(), {
   title: '',
+  subtitle: '',
   bleed: false,
 })
 </script>
@@ -46,6 +52,10 @@ withDefaults(defineProps<{
   margin-bottom: 12px;
 }
 
+.hsec__titles {
+  min-width: 0;
+}
+
 .hsec__title {
   margin: 0;
   font-family: var(--head);
@@ -53,6 +63,13 @@ withDefaults(defineProps<{
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--ink);
+}
+
+.hsec__subtitle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
 }
 
 .hsec__aside {

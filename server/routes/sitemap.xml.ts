@@ -11,6 +11,7 @@ export default defineEventHandler(async (event) => {
   const entries = new Map<string, string | null>()
   for (const loc of [
     '/',
+    '/radar-do-ovo',
     '/lojas',
     '/encartes',
     '/perguntas-frequentes',

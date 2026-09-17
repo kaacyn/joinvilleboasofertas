@@ -41,6 +41,19 @@
         <OfferCarousel :offers="section.items" />
       </HomeSection>
 
+      <HomeSection
+        v-if="eggRadarItems.length"
+        :title="`${EGG_RADAR_EMOJI} ${EGG_RADAR_TITLE}`"
+        :subtitle="EGG_RADAR_DESCRIPTION"
+        bleed
+        data-test="home-egg-radar"
+      >
+        <template #aside>
+          <NuxtLink :to="EGG_RADAR_PATH">Ver todas</NuxtLink>
+        </template>
+        <OfferCarousel :offers="eggRadarItems" />
+      </HomeSection>
+
       <HomeSection v-if="endingCount > 0 && endingItems.length" title="Termina hoje">
         <template #aside>
           <span class="home__pill">⏱ {{ endingCount }} {{ endingCount === 1 ? 'oferta' : 'ofertas' }}</span>
@@ -106,6 +119,13 @@
 <script setup lang="ts">
 import { siteTrail } from '~/utils/breadcrumb'
 import { categoryIcon } from '~/utils/categoryIcons'
+import {
+  EGG_RADAR_API_PATH,
+  EGG_RADAR_DESCRIPTION,
+  EGG_RADAR_EMOJI,
+  EGG_RADAR_PATH,
+  EGG_RADAR_TITLE,
+} from '~/utils/eggRadar'
 import { jboGet, type JboFacets, type JboOffer, type JboOffersPage } from '~/utils/jboApi'
 import {
   HOME_CAROUSEL_LIMIT,
@@ -180,6 +200,7 @@ const [
   endingResult,
   endingCountResult,
   categoriesResult,
+  eggRadarResult,
 ] = await Promise.all([
   useAsyncData(
     'jbo-facets',
@@ -227,6 +248,13 @@ const [
       : Promise.resolve(null),
     { watch: [isVitrine] },
   ),
+  useAsyncData(
+    'jbo-home-egg-radar',
+    () => isVitrine.value
+      ? jboGet<JboOffersPage>(EGG_RADAR_API_PATH, { limit: HOME_CAROUSEL_PAGE_SIZE }).catch(() => null)
+      : Promise.resolve(null),
+    { watch: [isVitrine] },
+  ),
 ])
 
 const facetsData = facetsResult.data
@@ -270,6 +298,10 @@ const categorySections = computed(() => {
     return [{ slug, title: `${categoryIcon(slug).emoji} ${page.category.name}`, items }]
   })
 })
+/** Radar do ovo (abaixo do Hortifruti): ordem da API (mais barato por ovo), só promo vigente. */
+const eggRadarItems = computed(() =>
+  pickCategoryHighlights(eggRadarResult.data.value?.items || [], HOME_CAROUSEL_LIMIT, now.value),
+)
 const categoriesWithSlug = computed(() => facets.value.categories.filter(c => Boolean(c.slug)))
 const canExpandCategories = computed(() => categoriesWithSlug.value.length > 8)
 
