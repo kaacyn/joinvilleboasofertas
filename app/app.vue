@@ -14,6 +14,8 @@
 </template>
 
 <script setup lang="ts">
+usePwaBackGuard()
+
 const {
   confirmOpen,
   confirmStoreName,
