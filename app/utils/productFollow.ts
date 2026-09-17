@@ -62,12 +62,12 @@ export function followCaption(
   pageStoreId: string,
   offers: JboOffer[] = [],
 ): { text: string, on: boolean } {
-  if (state.scope === 'all') return { text: 'Avisos em todos os mercados', on: true }
+  if (state.scope === 'all') return { text: 'Monitorando em todos os mercados', on: true }
   const otherIds = otherStoreIds(state, pageStoreId)
   const others = otherIds.length
   if (followsHere(state, pageStoreId)) {
     return {
-      text: others ? `Avisos aqui e em mais ${others} ${markets(others)}` : 'Avisos neste mercado',
+      text: others ? `Avisos aqui e em mais ${others} ${markets(others)}` : 'Monitorando este mercado',
       on: true,
     }
   }

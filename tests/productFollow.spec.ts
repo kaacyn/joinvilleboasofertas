@@ -77,10 +77,10 @@ describe('sino por mercado: estado e legenda', () => {
 
   it('legenda ao lado do sino em cada situação', () => {
     expect(followCaption(EMPTY_FOLLOW_STATE, K)).toEqual({ text: '', on: false })
-    expect(followCaption(stores(K), K)).toEqual({ text: 'Avisos neste mercado', on: true })
+    expect(followCaption(stores(K), K)).toEqual({ text: 'Monitorando este mercado', on: true })
     expect(followCaption(stores(K, C), K)).toEqual({ text: 'Avisos aqui e em mais 1 mercado', on: true })
     expect(followCaption(stores(K, C, 'mini'), K).text).toBe('Avisos aqui e em mais 2 mercados')
-    expect(followCaption(ALL, K)).toEqual({ text: 'Avisos em todos os mercados', on: true })
+    expect(followCaption(ALL, K)).toEqual({ text: 'Monitorando em todos os mercados', on: true })
     expect(followCaption(stores(C), K)).toEqual({ text: 'Você segue em outro mercado', on: false })
     expect(followCaption(stores(C, 'mini'), K).text).toBe('Você segue em 2 outros mercados')
   })
