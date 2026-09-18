@@ -277,4 +277,12 @@ describe('página de produto a partir do card da home', () => {
     expect(page).toContain('row__price-unit')
     expect(page).toContain('row__price-vol')
   })
+
+  it('redireciona 301 para o slug canônico quando a URL usa um slug antigo', () => {
+    const page = source('app/pages/produto/[slug]/[[loja]].vue')
+
+    expect(page).toContain('data.value.product.slug !== slug.value')
+    expect(page).toContain('canonicalProductPath')
+    expect(page).toContain("redirectCode: 301")
+  })
 })

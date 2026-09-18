@@ -231,6 +231,17 @@ if (error.value) {
   throw createError({ statusCode: 404, statusMessage: 'Produto não encontrado' })
 }
 
+/** Caminho canônico do produto (com a loja da URL, se houver). */
+function canonicalProductPath(productSlug: string): string {
+  return lojaSlug.value ? `/produto/${productSlug}/${lojaSlug.value}` : `/produto/${productSlug}`
+}
+
+// Slug antigo (alias após rename/mescla no Studio): a API devolve o slug atual
+// e a página redireciona de vez, preservando SEO e links de push já enviados.
+if (data.value?.product.slug && data.value.product.slug !== slug.value) {
+  await navigateTo(canonicalProductPath(data.value.product.slug), { redirectCode: 301, replace: true })
+}
+
 if (data.value && !lojaSlug.value && data.value.cheapest?.establishment_slug) {
   await navigateTo(productOfferPath(data.value.cheapest), { redirectCode: 301, replace: true })
 }
