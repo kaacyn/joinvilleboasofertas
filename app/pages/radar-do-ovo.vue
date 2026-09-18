@@ -29,7 +29,7 @@
         <button type="button" class="page__retry" @click="refresh()">Tentar de novo</button>
       </div>
       <p v-else-if="!items.length" class="page__empty">
-        Nenhuma oferta de ovos brancos ou vermelhos hoje. Toque no sino para saber quando aparecer.
+        Nenhuma oferta de ovos brancos, vermelhos ou de galinha hoje. Toque no sino para saber quando aparecer.
       </p>
     </main>
   </div>
@@ -57,7 +57,7 @@ useSyncLoadingIndicator(pending)
 
 useJboSeo({
   title: `${EGG_RADAR_TITLE}: ${EGG_RADAR_DESCRIPTION.toLowerCase()} em Joinville | Joinville Boas Ofertas`,
-  description: 'Ofertas de ovos brancos e vermelhos nos supermercados de Joinville, do mais barato por ovo.',
+  description: 'Ofertas de ovos brancos, vermelhos e de galinha nos supermercados de Joinville, do mais barato por ovo.',
   path: EGG_RADAR_PATH,
 })
 

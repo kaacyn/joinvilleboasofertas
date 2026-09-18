@@ -35,7 +35,7 @@ Variáveis (`.env`): `NUXT_API_BASE` (snap-api na rede Docker, só SSR), `NUXT_P
 | Rota | Função |
 |------|--------|
 | `/` | Home vitrine: carrossel "Maior economia do dia" (5 ofertas sorteadas, com bolinhas), categorias, carrosséis de Mercearia, Açougue, Bebidas e Hortifruti (ordem por economia), Radar do ovo, termina hoje e novas ofertas; qualquer filtro/busca vira lista (`?ends_today=1` lista só o que vence hoje) |
-| `/radar-do-ovo` | Radar do ovo: ovos brancos e vermelhos vigentes hoje, do mais barato por ovo; barra com Compartilhar e Sino (avisa quando aparecer oferta de ovos). Link no menu com selo "Novo" |
+| `/radar-do-ovo` | Radar do ovo: ovos brancos, vermelhos e de galinha vigentes hoje, do mais barato por ovo; barra com Compartilhar e Sino (avisa quando aparecer oferta de ovos). Link no menu com selo "Novo" |
 | `/oferta/{id}` | Redireciona para o produto naquela loja |
 | `/produto/{slug}/{loja}` | Produto + preço na loja, recorte do encarte e preços por loja; barra acima do título com Reportar um erro, Compartilhar e Sino (este mercado ou todos) |
 | `/loja/{slug}` | Ofertas da loja |
