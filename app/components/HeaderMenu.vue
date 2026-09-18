@@ -72,6 +72,15 @@
         Envie um encarte
       </NuxtLink>
       <NuxtLink
+        to="/contato"
+        class="hmenu__item"
+        role="menuitem"
+        data-test="menu-contato"
+        @click="close"
+      >
+        Contato e Sugestões
+      </NuxtLink>
+      <NuxtLink
         to="/perguntas-frequentes"
         class="hmenu__item"
         role="menuitem"

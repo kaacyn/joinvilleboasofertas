@@ -23,6 +23,12 @@
         interage com formulários, nome e e-mail para avisos relacionados ao
         serviço. Não vendemos dados pessoais.
       </p>
+      <p>
+        No formulário <NuxtLink to="/contato">Contato e Sugestões</NuxtLink>,
+        nome e e-mail são opcionais e usados só para responder à sua mensagem.
+        Guardamos o texto enviado, a página de onde você veio e dados técnicos
+        do navegador para tratar o pedido e evitar abuso.
+      </p>
       <h2>3. Cookies</h2>
       <p>
         Usamos cookies para melhorar a experiência e, em produção, medir

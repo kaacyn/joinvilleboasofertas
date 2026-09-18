@@ -43,6 +43,7 @@ Variáveis (`.env`): `NUXT_API_BASE` (snap-api na rede Docker, só SSR), `NUXT_P
 | `/encartes` | Lista de encartes (filtro por loja) |
 | `/encarte/{id}` | Foto do encarte + ofertas extraídas, com hotspots clicáveis na foto |
 | `/envie-um-encarte` | Formulário Envie um encarte (lead Instagram) |
+| `/contato` | Contato e Sugestões: formulário (assunto, nome e e-mail opcionais, mensagem) que envia `POST /api/public/jbo/contact-messages`. Link no menu |
 | `/perguntas-frequentes` | Perguntas frequentes (FAQ) |
 | `/categoria/{slug}` | Ofertas da categoria |
 | `/privacidade` | Política de privacidade |
@@ -79,6 +80,17 @@ escolhidos em páginas diferentes se somam; "todos" substitui a lista. A linha �
 mostra onde o aviso vale ("Avisos neste mercado", "Avisos em todos os mercados"…) e os avisos
 passageiros. Regras e textos em `app/utils/productFollow.ts`; Web Push compartilhado com a
 loja em `app/utils/webPush.ts`.
+
+## Contato e Sugestões
+
+Página `/contato` (item no menu após "Envie um encarte"). Regras e textos do
+formulário ficam em `app/utils/contactMessage.ts`; a validação do front é só
+conforto — a regra que vale é a do snap-api (mensagem de 10 a 2000 caracteres,
+e-mail opcional, `5/h` por IP). O campo `website` é honeypot: fica fora da
+tela e, se vier preenchido, o snap-api finge sucesso e descarta. Sem e-mail a
+mensagem é aceita, mas não pode ser respondida pelo Studio. `page_path` leva a
+página anterior dentro do site (`history.state.back`), só para dar contexto a
+quem lê.
 
 ## Radar do ovo
 

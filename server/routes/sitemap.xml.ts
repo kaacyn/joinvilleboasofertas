@@ -16,6 +16,7 @@ export default defineEventHandler(async (event) => {
     '/encartes',
     '/perguntas-frequentes',
     '/envie-um-encarte',
+    '/contato',
     '/privacidade',
     '/termos',
   ]) {
