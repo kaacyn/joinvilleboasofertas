@@ -1,6 +1,6 @@
 /**
  * Radar do ovo: rota, textos e regras de tela da home, da página e do sino.
- * Quais produtos entram (ovos brancos/vermelhos) é regra do snap-api, em
+ * Quais produtos entram (ovos brancos/vermelhos/de galinha) é regra do snap-api, em
  * `apps/jbo_public/services/egg_radar.py` — nunca refiltrar por nome aqui.
  */
 
